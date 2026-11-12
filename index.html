@@ -43,7 +43,7 @@
       <div class="network-status" id="network-status"><span class="status-dot"></span><span id="network-label">OFFLINE · LOCAL RECORDS</span></div>
 
       <section class="start-screen" id="start-screen">
-        <div class="hero-copy"><span class="section-tag"><span class="live-dot"></span> ELECTRIC STREET CULTURE</span><h1>OWN THE<br><span>STREET.</span></h1><p>Find your balance. Chase the longest line.<br>Make the city yours.</p><button class="primary-button" id="ride-button"><span>RIDE NOW</span><span class="button-arrow">↗</span></button><button class="text-button" id="garage-button"><span>▣</span> OPEN GARAGE <span class="garage-bike-name" id="current-bike-name"></span></button></div>
+        <div class="hero-copy"><span class="section-tag"><span class="live-dot"></span> ELECTRIC STREET CULTURE</span><h1>OWN THE<br><span>STREET.</span></h1><p>Steer the line. Pop a wheelie. Throw a trick.<br>Land it clean and own the block.</p><button class="primary-button" id="ride-button"><span>RIDE NOW</span><span class="button-arrow">↗</span></button><button class="text-button" id="garage-button"><span>▣</span> OPEN GARAGE <span class="garage-bike-name" id="current-bike-name"></span></button></div>
         <div class="hero-bottom"><span>01 — CITY CIRCUIT</span><span>BUILT FOR THE LONG RUN <span class="accent-text">✳</span></span></div>
       </section>
 
@@ -51,9 +51,16 @@
       <div class="toast hidden" id="toast" role="status"></div>
 
       <div class="ride-controls" id="ride-controls">
-        <span class="control-key"><kbd>↑</kbd><kbd>W</kbd><kbd>SPACE</kbd> THROTTLE</span><span class="control-separator">·</span><span class="control-key"><kbd>↓</kbd><kbd>S</kbd> REAR BRAKE</span><span class="control-separator">·</span><span class="control-key"><kbd>ESC</kbd> PAUSE</span>
+        <span class="control-key"><kbd>↑</kbd><kbd>W</kbd><kbd>SPACE</kbd> THROTTLE</span><span class="control-separator">·</span><span class="control-key"><kbd>↓</kbd><kbd>S</kbd> REAR BRAKE</span><span class="control-separator">·</span><span class="control-key"><kbd>←</kbd><kbd>→</kbd><kbd>A</kbd><kbd>D</kbd> STEER</span><span class="control-separator">·</span><span class="control-key"><kbd>Q</kbd> NO-HANDER</span><span class="control-separator">·</span><span class="control-key"><kbd>E</kbd> BARSPIN</span>
       </div>
-      <div class="touch-controls" id="touch-controls"><button class="touch-button" id="throttle-touch">HOLD<br><strong>THROTTLE</strong></button><button class="touch-button brake-button" id="brake-touch">TAP<br><strong>REAR BRAKE</strong></button></div>
+      <div class="touch-controls" id="touch-controls">
+        <button class="touch-button steer-button" id="left-touch" aria-label="Steer left">←</button>
+        <button class="touch-button" id="throttle-touch">HOLD<br><strong>THROTTLE</strong></button>
+        <button class="touch-button brake-button" id="brake-touch">TAP<br><strong>BRAKE</strong></button>
+        <button class="touch-button steer-button" id="right-touch" aria-label="Steer right">→</button>
+        <button class="touch-button trick-button" id="nohander-touch">Q<br><strong>NO-HANDER</strong></button>
+        <button class="touch-button trick-button" id="barspin-touch">E<br><strong>BARSPIN</strong></button>
+      </div>
 
       <div class="modal-backdrop hidden" id="garage-modal">
         <section class="garage-panel" role="dialog" aria-modal="true" aria-labelledby="garage-title">

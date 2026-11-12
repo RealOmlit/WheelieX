@@ -16,7 +16,9 @@ Open [http://localhost:8000](http://localhost:8000). Three.js and the optional F
 
 - Hold **Up**, **W**, or **Space** to accelerate and lift the front wheel.
 - Tap or hold **Down** or **S** to apply the rear brake and bring the front wheel down.
-- Press **Esc** to pause or resume. Touchscreens have on-screen throttle and brake controls.
+- Steer with **Left/Right** or **A/D** to carve across the road.
+- While the front wheel is up, press **Q** for a no-hander or **E** for a barspin. Stick the trick to bank bonus points. Touchscreens have throttle, brake, steering, and trick controls.
+- Press **Esc** to pause or resume.
 - Stay near the balance gauge's sweet spot to increase the distance score multiplier. Looping out or landing the front wheel too hard ends the run; earned points convert to cash.
 
 ## Garage and progression
