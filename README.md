@@ -14,16 +14,20 @@ Open [http://localhost:8000](http://localhost:8000). Three.js and the optional F
 
 ## Controls
 
-- Hold **Up**, **W**, or **Space** to accelerate and lift the front wheel.
-- Tap or hold **Down** or **S** to apply the rear brake and bring the front wheel down.
-- Steer with **Left/Right** or **A/D** to carve across the road.
-- While the front wheel is up, press **Q** for a no-hander or **E** for a barspin. Stick the trick to bank bonus points. Touchscreens have throttle, brake, steering, and trick controls.
+- Hold **W** (or **Up/Space**) to accelerate; hold **S** (or **Down**) to brake.
+- Steer with **A/D** or **Left/Right**. Hold **Shift** to lift and balance a wheelie.
+- While wheelieing, press **Q** for a no-hander, **E** for a barspin, **R** for a superman, **F** for a tailwhip, **C** for a can-can, or **V** for a nac-nac. Keep the front wheel up through the trick to score it.
+- Touch controls include throttle, brake, steering, wheelie, and a trick selector.
 - Press **Esc** to pause or resume.
-- Stay near the balance gauge's sweet spot to increase the distance score multiplier. Looping out or landing the front wheel too hard ends the run; earned points convert to cash.
+- Stay near the balance gauge's sweet spot to increase your payout. Land the front wheel to bank the ride automatically, or use **BANK RUN** to cash out early. Looping out ends the ride but still banks earned cash.
+
+The city circuit is a locally generated Three.js environment with street intersections and scale-oriented bike and rider models; it does not load Google Maps tiles or third-party model assets.
 
 ## Garage and progression
 
-Earn cash by riding wheelies. Unlock bikes and buy upgrades for lift-motor torque, rear braking, and top speed in the garage. Your cash, selected build, upgrades, and local leaderboard persist in `localStorage`.
+Earn cash by riding wheelies and landing safely. Your pending payout is shown during the run; cash is deposited when you land or bank the run. Unlock bikes and buy upgrades for lift-motor torque, rear braking, and top speed in the garage. Your cash, selected build, upgrades, and local leaderboard persist in `localStorage`.
+
+The starter bike uses a custom Three.js hardtail e-bike model based on the supplied stock-bike reference.
 
 ## Firebase live riders and global leaderboards (optional)
 

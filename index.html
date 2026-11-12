@@ -28,6 +28,7 @@
         <a class="brand" href="./" aria-label="WheelieX home"><span class="brand-mark">W<span>/</span>X</span><span class="brand-name">WHEELIE<span>X</span></span></a>
         <div class="top-stats">
           <div class="cash-pill"><span class="coin-icon">$</span><span id="cash">0</span><span class="cash-label">CASH</span></div>
+          <button class="bank-button" id="bank-button" aria-label="Bank run cash" title="Bank this run">BANK RUN</button>
           <button class="icon-button" id="sound-toggle" aria-label="Toggle sound" title="Toggle sound">◖</button>
           <button class="icon-button" id="pause-button" aria-label="Pause game" title="Pause">Ⅱ</button>
         </div>
@@ -36,35 +37,38 @@
       <section class="ride-hud" id="ride-hud" aria-live="polite">
         <div class="speed-card"><span class="eyebrow">SPEED</span><div class="speed-value"><span id="speed">0</span><span class="speed-unit">KM/H</span></div></div>
         <div class="angle-card"><div class="angle-head"><span class="eyebrow">BALANCE</span><span id="angle-readout">0°</span></div><div class="balance-track"><div class="balance-sweet"></div><div id="balance-needle"></div></div><span class="balance-hint" id="balance-hint">FIND THE SWEET SPOT</span></div>
-        <div class="distance-card"><span class="eyebrow">WHEELIE DISTANCE</span><div class="distance-value"><span id="distance">0</span><span class="distance-unit">M</span></div></div>
+        <div class="distance-card"><span class="eyebrow">WHEELIE DISTANCE</span><div class="distance-value"><span id="distance">0</span><span class="distance-unit">M</span></div><span class="bank-preview">+$<span id="run-cash">0</span> PENDING</span></div>
         <div class="combo-card" id="combo-card"><span class="combo-multiplier" id="multiplier">1.0<span>×</span></span><span class="eyebrow">COMBO</span></div>
       </section>
 
       <div class="network-status" id="network-status"><span class="status-dot"></span><span id="network-label">OFFLINE · LOCAL RECORDS</span></div>
 
       <section class="start-screen" id="start-screen">
-        <div class="hero-copy"><span class="section-tag"><span class="live-dot"></span> ELECTRIC STREET CULTURE</span><h1>OWN THE<br><span>STREET.</span></h1><p>Steer the line. Pop a wheelie. Throw a trick.<br>Land it clean and own the block.</p><button class="primary-button" id="ride-button"><span>RIDE NOW</span><span class="button-arrow">↗</span></button><button class="text-button" id="garage-button"><span>▣</span> OPEN GARAGE <span class="garage-bike-name" id="current-bike-name"></span></button></div>
-        <div class="hero-bottom"><span>01 — CITY CIRCUIT</span><span>BUILT FOR THE LONG RUN <span class="accent-text">✳</span></span></div>
+        <div class="hero-copy"><span class="section-tag"><span class="live-dot"></span> ELECTRIC STREET CULTURE</span><h1>OWN THE<br><span>STREET.</span></h1><p>Hold W + Shift to wheelie. Land clean to bank your cash,<br>or tap BANK RUN whenever you want.</p><button class="primary-button" id="ride-button"><span>RIDE NOW</span><span class="button-arrow">↗</span></button><button class="text-button" id="garage-button"><span>▣</span> OPEN GARAGE <span class="garage-bike-name" id="current-bike-name"></span></button></div>
+        <div class="hero-bottom"><span>01 — CITY STREET CIRCUIT</span><span>BUILT FOR THE LONG RUN <span class="accent-text">✳</span></span></div>
       </section>
 
       <section class="run-banner hidden" id="run-banner" aria-live="assertive"><span class="eyebrow">RUN OVER</span><strong id="run-message">KEEP IT RUBBER SIDE DOWN</strong><span id="run-result">+ $0</span><button class="primary-button" id="retry-button"><span>RUN IT BACK</span><span class="button-arrow">↗</span></button><button class="text-button" id="run-garage-button">▣ &nbsp;GARAGE</button></section>
       <div class="toast hidden" id="toast" role="status"></div>
 
       <div class="ride-controls" id="ride-controls">
-        <span class="control-key"><kbd>↑</kbd><kbd>W</kbd><kbd>SPACE</kbd> THROTTLE</span><span class="control-separator">·</span><span class="control-key"><kbd>↓</kbd><kbd>S</kbd> REAR BRAKE</span><span class="control-separator">·</span><span class="control-key"><kbd>←</kbd><kbd>→</kbd><kbd>A</kbd><kbd>D</kbd> STEER</span><span class="control-separator">·</span><span class="control-key"><kbd>Q</kbd> NO-HANDER</span><span class="control-separator">·</span><span class="control-key"><kbd>E</kbd> BARSPIN</span>
+        <span class="control-key"><kbd>W</kbd> THROTTLE</span><span class="control-separator">·</span><span class="control-key"><kbd>S</kbd> BRAKE</span><span class="control-separator">·</span><span class="control-key"><kbd>A</kbd><kbd>D</kbd> STEER</span><span class="control-separator">·</span><span class="control-key"><kbd>SHIFT</kbd> WHEELIE</span><span class="control-separator">·</span><span class="control-key"><kbd>Q</kbd><kbd>E</kbd><kbd>R</kbd><kbd>F</kbd><kbd>C</kbd><kbd>V</kbd> TRICKS</span>
       </div>
       <div class="touch-controls" id="touch-controls">
         <button class="touch-button steer-button" id="left-touch" aria-label="Steer left">←</button>
         <button class="touch-button" id="throttle-touch">HOLD<br><strong>THROTTLE</strong></button>
-        <button class="touch-button brake-button" id="brake-touch">TAP<br><strong>BRAKE</strong></button>
+        <button class="touch-button brake-button" id="brake-touch">HOLD<br><strong>BRAKE</strong></button>
         <button class="touch-button steer-button" id="right-touch" aria-label="Steer right">→</button>
-        <button class="touch-button trick-button" id="nohander-touch">Q<br><strong>NO-HANDER</strong></button>
-        <button class="touch-button trick-button" id="barspin-touch">E<br><strong>BARSPIN</strong></button>
+        <button class="touch-button" id="wheelie-touch">HOLD<br><strong>WHEELIE</strong></button>
+        <button class="touch-button trick-button" id="trick-picker-touch">E<br><strong>BARSPIN</strong></button>
+        <button class="touch-button trick-button" id="throw-trick-touch">DO<br><strong>TRICK</strong></button>
+        <button class="touch-button bank-touch" id="bank-touch">BANK<br><strong>RUN</strong></button>
       </div>
 
       <div class="modal-backdrop hidden" id="garage-modal">
         <section class="garage-panel" role="dialog" aria-modal="true" aria-labelledby="garage-title">
           <header class="panel-header"><div><span class="section-tag">YOUR LINEUP</span><h2 id="garage-title">THE GARAGE<span class="accent-text">.</span></h2></div><div class="garage-header-right"><div class="cash-pill"><span class="coin-icon">$</span><span id="garage-cash">0</span><span class="cash-label">CASH</span></div><button class="close-button" data-close="garage-modal" aria-label="Close garage">×</button></div></header>
+          <p class="garage-economy-note"><span>RIDE</span> TO EARN <b>·</b> <span>BANK</span> YOUR RUN <b>·</b> BUILD YOUR RIDE</p>
           <div class="garage-layout"><div class="bike-list" id="bike-list"></div><div class="bike-detail" id="bike-detail"></div></div>
           <footer class="panel-footer"><span>EVERY BUILD HAS A DIFFERENT FEEL.</span><button class="text-button" data-close="garage-modal">BACK TO THE STREET ↗</button></footer>
         </section>

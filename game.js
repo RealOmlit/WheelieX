@@ -2,8 +2,17 @@ import * as THREE from "three";
 
 const $ = (id) => document.getElementById(id);
 const STORAGE_KEY = "wheeliex-save-v1";
+const TRICKS = [
+  { id: "nohander", name: "NO-HANDER", key: "Q", points: 1 },
+  { id: "barspin", name: "BARSPIN", key: "E", points: 1.1 },
+  { id: "superman", name: "SUPERMAN", key: "R", points: 1.3 },
+  { id: "tailwhip", name: "TAILWHIP", key: "F", points: 1.45 },
+  { id: "cancan", name: "CAN-CAN", key: "C", points: 1.2 },
+  { id: "nacnac", name: "NAC-NAC", key: "V", points: 1.25 },
+];
+const TRICK_DURATION = 1.05;
 const BIKE_CATALOG = [
-  { id: "commuter", name: "Starter Commuter", subtitle: "COMMUTER E-BIKE", price: 0, speed: 0.53, torque: 0.36, brake: 0.53, weight: 0.57, payout: 1, color: 0xbedb8b, description: "Forgiving, predictable, and always ready for one more run. A solid place to find your balance." },
+  { id: "commuter", name: "Starter Commuter", subtitle: "HARDTAIL E-BIKE", price: 0, speed: 0.53, torque: 0.36, brake: 0.53, weight: 0.57, payout: 1, color: 0x20262b, description: "A familiar hardtail e-bike silhouette, with a frame-mounted battery and predictable handling." },
   { id: "kukirin", name: "Kukirin G2 Max / G4", subtitle: "URBAN ALL-ROUNDER", price: 500, speed: 0.77, torque: 0.56, brake: 0.57, weight: 0.79, payout: 1.12, color: 0xd98945, description: "Heavy metal and a lot of top end. The eager throttle needs a steady hand." },
   { id: "surron", name: "Sur-Ron Light Bee X", subtitle: "LIGHTWEIGHT DIRT MACHINE", price: 1500, speed: 0.79, torque: 0.84, brake: 0.86, weight: 0.37, payout: 1.3, color: 0xaceb65, description: "A lightweight frame with punchy lift and a rear brake that answers instantly." },
   { id: "talaria", name: "Talaria Sting R / Ultra Bee", subtitle: "THE TOP-SHELF BUILD", price: 4000, speed: 1, torque: 0.98, brake: 0.91, weight: 0.48, payout: 1.75, color: 0xc97455, description: "Maximum acceleration, a razor-thin balance window, and a payout to match." },
@@ -23,7 +32,7 @@ function readSave() {
     const base = defaultSave();
     return {
       ...base, ...parsed,
-      cash: Number.isFinite(parsed.cash) ? Math.max(0, parsed.cash) : 0,
+      cash: Number.isFinite(parsed.cash) ? Math.min(Number.MAX_SAFE_INTEGER, Math.max(0, Math.floor(parsed.cash))) : 0,
       unlocked: Array.isArray(parsed.unlocked) ? [...new Set(["commuter", ...parsed.unlocked.filter((id) => BIKE_CATALOG.some((bike) => bike.id === id))])] : base.unlocked,
       upgrades: parsed.upgrades && typeof parsed.upgrades === "object" ? parsed.upgrades : base.upgrades,
       records: parsed.records && typeof parsed.records === "object" ? { distance: Array.isArray(parsed.records.distance) ? parsed.records.distance : [], cash: Array.isArray(parsed.records.cash) ? parsed.records.cash : [] } : base.records,
@@ -45,6 +54,17 @@ function getStats(bike = getBike()) {
   return { ...bike, upgrades, torque: Math.min(1, bike.torque + upgrades.torque * 0.065), brake: Math.min(1, bike.brake + upgrades.brake * 0.065), speed: Math.min(1, bike.speed + upgrades.speed * 0.065) };
 }
 function formatNumber(number) { return Math.floor(number).toLocaleString("en-US"); }
+function getRunPayout() {
+  return state.distance > 0 ? Math.max(25, Math.floor(state.score * getStats().payout)) : 0;
+}
+function getUpgradeCost(level) {
+  return Math.floor(250 * (level + 1) * (level + 1));
+}
+function spendCash(amount) {
+  if (!Number.isSafeInteger(amount) || amount < 0 || save.cash < amount) return false;
+  save.cash -= amount;
+  return true;
+}
 
 const sceneContainer = $("scene");
 const scene = new THREE.Scene();
@@ -188,8 +208,10 @@ const buildingMaterials = [0x78877d, 0xa59a84, 0x778588, 0xc1aa88, 0x7d8479, 0x9
 const windowMat = new THREE.MeshStandardMaterial({ color: 0x293d3b, roughness: 0.62, emissive: 0x202c27, emissiveIntensity: 0.12 });
 const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x594a38, roughness: 1 });
 const foliageMats = [0x516f50, 0x697b53, 0x79825c].map((color) => new THREE.MeshStandardMaterial({ color, roughness: 1 }));
+const crossStreetXs = [-300, -180, -60, 60, 180, 300];
 for (let x = -385, i = 0; x <= 410; x += 27, i++) {
   for (const side of [-1, 1]) {
+    if (crossStreetXs.some((crossing) => Math.abs(x + (i % 2) * 7 - crossing) < 9)) continue;
     const tree = new THREE.Group();
     tree.position.set(x + (i % 2) * 7, 0, side * 10.8);
     const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.22, 2.2, 7), treeTrunkMat);
@@ -211,6 +233,10 @@ for (const side of [-1, 1]) {
     const width = 8 + ((i * 13 + 5) % 9);
     const depth = 7 + ((i * 5 + 2) % 7);
     const height = 7 + ((i * 11 + 3) % 16);
+    if (crossStreetXs.some((crossing) => Math.abs(x + width / 2 - crossing) < 13)) {
+      x += width + 2.5;
+      continue;
+    }
     const z = side * (13 + (i % 3) * 2);
     const building = new THREE.Group();
     building.position.set(x + width / 2, 0, z);
@@ -232,6 +258,43 @@ for (const side of [-1, 1]) {
     building.add(awning);
     scene.add(building);
     x += width + 2.5;
+  }
+}
+
+const crossStreetMat = new THREE.MeshStandardMaterial({ color: 0x373c39, roughness: 0.95 });
+const crossingMat = new THREE.MeshStandardMaterial({ color: 0xd8d2ba, roughness: 0.85 });
+const streetSignPoleMat = new THREE.MeshStandardMaterial({ color: 0x313a36, metalness: 0.38, roughness: 0.5 });
+const streetSignMat = new THREE.MeshStandardMaterial({ color: 0x33483d, roughness: 0.72, emissive: 0x152319, emissiveIntensity: 0.12 });
+for (const x of crossStreetXs) {
+  const street = new THREE.Mesh(new THREE.PlaneGeometry(10.8, 52), crossStreetMat);
+  street.rotation.x = -Math.PI / 2;
+  street.position.set(x, -0.008, 0);
+  street.receiveShadow = true;
+  scene.add(street);
+  for (const side of [-1, 1]) {
+    for (let stripe = -4; stripe <= 4; stripe++) {
+      const marking = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.018, 0.76), crossingMat);
+      marking.position.set(x + stripe * 0.76, 0.012, side * 6.15);
+      scene.add(marking);
+    }
+    const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.09, 42), sidewalkMat);
+    sidewalk.position.set(x + side * 7.1, -0.005, 0);
+    sidewalk.receiveShadow = true;
+    scene.add(sidewalk);
+    const sign = new THREE.Group();
+    sign.position.set(x + side * 8.8, 0, side * 8.1);
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 2.5, 8), streetSignPoleMat);
+    post.position.y = 1.25;
+    sign.add(post);
+    const board = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.48, 1.25), streetSignMat);
+    board.position.set(0, 2.14, 0);
+    board.castShadow = true;
+    sign.add(board);
+    const label = makeTextSprite("CITY CIRCUIT", { background: "rgba(35,52,43,.96)", color: "#e5efdc", fontSize: 22 });
+    label.position.set(0, 2.15, side * 0.025);
+    label.scale.set(1.05, 0.26, 1);
+    sign.add(label);
+    scene.add(sign);
   }
 }
 
@@ -264,16 +327,33 @@ function box(group, dimensions, position, color, options = {}) {
   group.add(mesh);
   return mesh;
 }
+function tubeBetween(group, start, end, radius, material, side = 0) {
+  const from = new THREE.Vector3(start[0], start[1], side);
+  const to = new THREE.Vector3(end[0], end[1], side);
+  const direction = to.clone().sub(from);
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, direction.length(), 8), material);
+  tube.position.copy(from.add(to).multiplyScalar(0.5));
+  tube.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+  tube.castShadow = true;
+  tube.receiveShadow = true;
+  group.add(tube);
+  return tube;
+}
 function makeBike(bike) {
   const root = new THREE.Group();
   const frame = new THREE.Group();
+  const commuterBuild = bike.id === "commuter";
+  frame.scale.x = commuterBuild ? 1 : 0.65;
+  frame.position.x = commuterBuild ? 0 : 0.83 * frame.scale.x;
   root.add(frame);
   const mainMat = new THREE.MeshStandardMaterial({ color: bike.color, roughness: 0.46, metalness: 0.24 });
   const darkMat = new THREE.MeshStandardMaterial({ color: 0x252c29, roughness: 0.7, metalness: 0.1 });
   const metalMat = new THREE.MeshStandardMaterial({ color: 0xb4b6a7, roughness: 0.34, metalness: 0.72 });
-  const rear = new THREE.Vector3(-0.83, 0, 0);
-  const front = new THREE.Vector3(1.55, 0, 0);
-  const wheelGeo = new THREE.TorusGeometry(0.4, 0.095, 10, 28);
+  const wheelRadius = commuterBuild ? 0.37 : 0.31;
+  const tireThickness = commuterBuild ? 0.035 : 0.055;
+  const rear = new THREE.Vector3(commuterBuild ? 0 : -0.83, 0, 0);
+  const front = new THREE.Vector3(commuterBuild ? 1.12 : 1.55, 0, 0);
+  const wheelGeo = new THREE.TorusGeometry(wheelRadius - tireThickness, tireThickness, 10, 32);
   const tireMat = new THREE.MeshStandardMaterial({ color: 0x1d2422, roughness: 0.93 });
   const hubMat = new THREE.MeshStandardMaterial({ color: 0xaeb4a3, metalness: 0.72, roughness: 0.34 });
   const handlebar = new THREE.Group();
@@ -284,35 +364,112 @@ function makeBike(bike) {
     wheel.position.copy(point);
     const tire = new THREE.Mesh(wheelGeo, tireMat);
     wheel.add(tire);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.105, 0.18, 12), hubMat);
+    const hubRadius = commuterBuild ? 0.045 : 0.075;
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(hubRadius, hubRadius, commuterBuild ? 0.12 : 0.16, 12), hubMat);
     hub.rotation.x = Math.PI / 2;
     wheel.add(hub);
-    for (let s = 0; s < 8; s++) {
-      const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.72, 4), metalMat);
-      const spokeAngle = Math.PI * s / 4;
-      spoke.position.set(Math.sin(spokeAngle) * 0.36, Math.cos(spokeAngle) * 0.36, 0);
+    const spokeCount = commuterBuild ? 24 : 8;
+    const rimRadius = wheelRadius - tireThickness;
+    for (let s = 0; s < spokeCount; s++) {
+      const spokeAngle = Math.PI * 2 * s / spokeCount;
+      const spokeLength = rimRadius - hubRadius * 0.55;
+      const spoke = new THREE.Mesh(new THREE.CylinderGeometry(commuterBuild ? 0.004 : 0.008, commuterBuild ? 0.004 : 0.008, spokeLength, 4), metalMat);
+      spoke.position.set(Math.sin(spokeAngle) * (rimRadius + hubRadius * 0.55) / 2, Math.cos(spokeAngle) * (rimRadius + hubRadius * 0.55) / 2, 0);
       spoke.rotation.z = -spokeAngle;
       wheel.add(spoke);
+    }
+    if (commuterBuild) {
+      const rotor = new THREE.Mesh(new THREE.TorusGeometry(wheelRadius * 0.43, 0.009, 6, 28), metalMat);
+      rotor.position.z = 0.075;
+      wheel.add(rotor);
+      const farRotor = rotor.clone();
+      farRotor.position.z = -0.075;
+      wheel.add(farRotor);
     }
     wheel.traverse((part) => { if (part.isMesh) { part.castShadow = true; part.receiveShadow = true; } });
     frame.add(wheel);
     wheels.push(wheel);
   }
-  box(frame, [1.32, 0.13, 0.12], [0.12, 0.55, 0], bike.color, { metalness: 0.42 });
-  box(frame, [0.11, 0.71, 0.11], [-0.08, 0.34, 0], bike.color, { metalness: 0.42 });
-  box(frame, [0.11, 0.70, 0.11], [0.78, 0.36, 0], bike.color, { metalness: 0.42 });
-  box(frame, [0.12, 0.63, 0.13], [1.42, 0.36, 0], 0x646c62, { metalness: 0.7 });
-  box(frame, [0.50, 0.42, 0.4], [0.12, 0.91, 0], bike.color, { roughness: 0.48, metalness: 0.22 });
-  box(frame, [0.34, 0.16, 0.34], [-0.35, 0.79, 0], 0x222926);
-  box(frame, [0.61, 0.11, 0.31], [-0.29, 1.04, 0], 0x252b27);
-  box(frame, [0.66, 0.16, 0.34], [0.74, 0.85, 0], 0x272d2a);
-  box(frame, [0.62, 0.085, 0.42], [-1.12, 0.57, 0], 0x242a27);
-  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.75, 8), darkMat);
-  handle.rotation.x = Math.PI / 2;
-  handle.position.set(1.36, 1.16, 0);
-  handlebar.add(handle);
-  box(handlebar, [0.4, 0.12, 0.43], [1.52, 1.18, 0], bike.color);
+  if (commuterBuild) {
+    const crank = [0.5, 0.34];
+    const seat = [0.42, 1.02];
+    const headTop = [0.94, 1.02];
+    const headBottom = [0.91, 0.66];
+    for (const side of [-0.105, 0.105]) {
+      tubeBetween(frame, rear.toArray(), crank, 0.027, mainMat, side);
+      tubeBetween(frame, rear.toArray(), seat, 0.024, mainMat, side);
+      tubeBetween(frame, crank, seat, 0.031, mainMat, side);
+      tubeBetween(frame, headTop, headBottom, 0.035, metalMat, side);
+      tubeBetween(frame, headBottom, front.toArray(), 0.032, darkMat, side);
+    }
+    tubeBetween(frame, seat, headTop, 0.034, mainMat);
+    tubeBetween(frame, crank, headBottom, 0.043, mainMat);
+    const battery = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.15, 0.17), new THREE.MeshStandardMaterial({ color: 0x343b3f, roughness: 0.55, metalness: 0.28 }));
+    battery.position.set(0.7, 0.53, 0);
+    battery.rotation.z = Math.atan2(headBottom[1] - crank[1], headBottom[0] - crank[0]);
+    battery.castShadow = true;
+    frame.add(battery);
+    const batteryBadge = box(frame, [0.045, 0.085, 0.008], [0.7, 0.53, 0.09], 0xb89c54, { roughness: 0.5, metalness: 0.45 });
+    batteryBadge.rotation.z = battery.rotation.z;
+    tubeBetween(frame, seat, [seat[0] - 0.03, 1.25], 0.025, metalMat);
+    box(frame, [0.34, 0.065, 0.14], [0.34, 1.28, 0], 0x15191b, { roughness: 0.82 });
+    const chainring = new THREE.Mesh(new THREE.TorusGeometry(0.145, 0.012, 6, 28), metalMat);
+    chainring.position.set(crank[0], crank[1], 0.12);
+    frame.add(chainring);
+    const crankAxle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.28, 12), darkMat);
+    crankAxle.rotation.x = Math.PI / 2;
+    crankAxle.position.set(crank[0], crank[1], 0);
+    frame.add(crankAxle);
+    for (const side of [-1, 1]) {
+      const pedalArm = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.025, 0.025), darkMat);
+      pedalArm.position.set(crank[0], crank[1], side * 0.16);
+      pedalArm.rotation.z = side * Math.PI / 2;
+      frame.add(pedalArm);
+      box(frame, [0.1, 0.035, 0.07], [crank[0], crank[1] + side * 0.12, side * 0.16], 0x24292b);
+    }
+    tubeBetween(frame, [0.04, 0.055], [crank[0] - 0.13, crank[1] + 0.1], 0.008, darkMat, 0.15);
+    tubeBetween(frame, [0.04, -0.035], [crank[0] - 0.13, crank[1] - 0.1], 0.008, darkMat, 0.15);
+    tubeBetween(frame, [0.97, 1.01], [1.01, 1.14], 0.025, metalMat);
+    handlebar.position.set(1.01, 1.14, 0);
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.68, 10), darkMat);
+    handle.rotation.x = Math.PI / 2;
+    handlebar.add(handle);
+    for (const side of [-1, 1]) {
+      const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.13, 8), darkMat);
+      grip.rotation.x = Math.PI / 2;
+      grip.position.z = side * 0.34;
+      handlebar.add(grip);
+      const brakeLever = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.018, 0.018), metalMat);
+      brakeLever.position.set(-0.025, -0.03, side * 0.23);
+      brakeLever.rotation.z = -0.22;
+      handlebar.add(brakeLever);
+    }
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 8), new THREE.MeshStandardMaterial({ color: 0xf3e9bc, emissive: 0xb8a674, emissiveIntensity: 0.5 }));
+    lamp.position.set(1.04, 0.88, 0);
+    frame.add(lamp);
+    const motorCase = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.22, 12), darkMat);
+    motorCase.rotation.x = Math.PI / 2;
+    motorCase.position.set(crank[0], crank[1], 0);
+    frame.add(motorCase);
+    tubeBetween(frame, [0.58, 0.28], [0.68, -0.35], 0.014, metalMat, -0.13);
+  } else {
+    box(frame, [1.32, 0.13, 0.12], [0.12, 0.55, 0], bike.color, { metalness: 0.42 });
+    box(frame, [0.11, 0.71, 0.11], [-0.08, 0.34, 0], bike.color, { metalness: 0.42 });
+    box(frame, [0.11, 0.70, 0.11], [0.78, 0.36, 0], bike.color, { metalness: 0.42 });
+    box(frame, [0.12, 0.63, 0.13], [1.42, 0.36, 0], 0x646c62, { metalness: 0.7 });
+    box(frame, [0.50, 0.42, 0.4], [0.12, 0.91, 0], bike.color, { roughness: 0.48, metalness: 0.22 });
+    box(frame, [0.34, 0.16, 0.34], [-0.35, 0.79, 0], 0x222926);
+    box(frame, [0.61, 0.11, 0.31], [-0.29, 1.04, 0], 0x252b27);
+    box(frame, [0.66, 0.16, 0.34], [0.74, 0.85, 0], 0x272d2a);
+    box(frame, [0.62, 0.085, 0.42], [-1.12, 0.57, 0], 0x242a27);
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.75, 8), darkMat);
+    handle.rotation.x = Math.PI / 2;
+    handle.position.set(1.36, 1.16, 0);
+    handlebar.add(handle);
+    box(handlebar, [0.4, 0.12, 0.43], [1.52, 1.18, 0], bike.color);
+  }
   const riderModel = new THREE.Group();
+  riderModel.scale.y = 0.8;
   frame.add(riderModel);
   const jacket = new THREE.MeshStandardMaterial({ color: 0x397d5c, roughness: 0.66 });
   const jacketShadow = new THREE.MeshStandardMaterial({ color: 0x263e34, roughness: 0.75 });
@@ -365,9 +522,10 @@ function makeBike(bike) {
     arm.position.set(0.34, 1.65, side * 0.24);
     arm.userData.side = side;
     addLimbSegment(arm, [0, 0, 0], [0.36, -0.23, side * 0.06], 0.105, jacket);
-    addLimbSegment(arm, [0.36, -0.23, side * 0.06], [0.92, -0.47, side * 0.12], 0.078, jacket);
+    const handReach = commuterBuild ? 0.61 : 0.92;
+    addLimbSegment(arm, [0.36, -0.23, side * 0.06], [handReach, -0.47, side * 0.12], 0.078, jacket);
     const glove = new THREE.Mesh(new THREE.SphereGeometry(0.105, 10, 8), darkMat);
-    glove.position.set(0.92, -0.47, side * 0.12);
+    glove.position.set(handReach, -0.47, side * 0.12);
     arm.add(glove);
     riderModel.add(arm);
     arms.push(arm);
@@ -389,33 +547,37 @@ function makeBike(bike) {
     riderModel.add(leg);
     legs.push(leg);
   }
-  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 8), new THREE.MeshStandardMaterial({ color: 0xf3e9bc, emissive: 0xb8a674, emissiveIntensity: 0.5 }));
-  lamp.position.set(1.78, 0.94, 0);
-  frame.add(lamp);
-  box(frame, [0.32, 0.1, 0.38], [-0.96, 0.58, 0], 0x343b36);
-  root.userData = { frame, wheels, color: bike.color, riderModel, arms, legs, handlebar };
+  if (!commuterBuild) {
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 8), new THREE.MeshStandardMaterial({ color: 0xf3e9bc, emissive: 0xb8a674, emissiveIntensity: 0.5 }));
+    lamp.position.set(1.78, 0.94, 0);
+    frame.add(lamp);
+    box(frame, [0.32, 0.1, 0.38], [-0.96, 0.58, 0], 0x343b36);
+  }
+  root.userData = { frame, wheels, color: bike.color, riderModel, arms, legs, handlebar, wheelRadius };
   return root;
 }
 
 const rider = makeBike(getBike());
 scene.add(rider);
+rider.position.set(0, rider.userData.wheelRadius, 0);
 function replaceRiderBike() {
   scene.remove(rider);
   const fresh = makeBike(getBike());
   rider.clear();
   rider.add(...fresh.children);
   rider.userData = fresh.userData;
-  rider.position.set(state.x, 0.43, state.lane);
+  rider.position.set(state.x, rider.userData.wheelRadius, state.lane);
   rider.rotation.z = state.pitch;
   scene.add(rider);
   refreshSideBikeLabel();
 }
 
 const ghostRiders = new Map();
-const state = { running: false, paused: false, speed: 0, pitch: 0, angularVelocity: 0, x: 0, lane: 0, steer: 0, distance: 0, score: 0, airTime: 0, runTime: 0, lastAngle: 0, throttle: false, brake: false, left: false, right: false, trick: "", trickTime: 0, trickCooldown: 0, crashed: false, frame: 0 };
+const state = { running: false, paused: false, speed: 0, pitch: 0, angularVelocity: 0, x: 0, lane: 0, steer: 0, distance: 0, score: 0, airTime: 0, runTime: 0, lastAngle: 0, throttle: false, brake: false, wheelie: false, wasWheelie: false, left: false, right: false, trick: "", trickTime: 0, trickCooldown: 0, crashed: false, frame: 0 };
 let cameraInitialized = false;
 let cameraX = -7;
 let cameraY = 4.6;
+const worldSpeed = 95 / 3.6;
 const clock = new THREE.Clock();
 
 let audioContext;
@@ -475,6 +637,13 @@ function refreshSideBikeLabel() {
 function setPaused(paused) {
   if (!state.running) return;
   state.paused = paused;
+  if (paused) {
+    state.throttle = false;
+    state.brake = false;
+    state.wheelie = false;
+    state.left = false;
+    state.right = false;
+  }
   $("pause-button").textContent = paused ? "▶" : "Ⅱ";
   $("pause-button").setAttribute("aria-label", paused ? "Resume game" : "Pause game");
   if (audioGain && audioContext) audioGain.gain.setTargetAtTime(paused ? 0 : 0.025, audioContext.currentTime, 0.08);
@@ -483,17 +652,22 @@ function setPaused(paused) {
 function startRide() {
   if (state.running && state.paused) { setPaused(false); return; }
   ensureAudio();
-  Object.assign(state, { running: true, paused: false, speed: 0, pitch: 0, angularVelocity: 0, lane: 0, steer: 0, distance: 0, score: 0, airTime: 0, runTime: 0, lastAngle: 0, throttle: false, brake: false, left: false, right: false, trick: "", trickTime: 0, trickCooldown: 0, crashed: false });
+  Object.assign(state, { running: true, paused: false, speed: 0, pitch: 0, angularVelocity: 0, lane: 0, steer: 0, distance: 0, score: 0, airTime: 0, runTime: 0, lastAngle: 0, throttle: false, brake: false, wheelie: false, wasWheelie: false, left: false, right: false, trick: "", trickTime: 0, trickCooldown: 0, crashed: false });
   state.x = 0;
   cameraInitialized = false;
-  rider.position.set(0, 0.43, 0);
+  rider.position.set(0, rider.userData.wheelRadius, 0);
   rider.rotation.set(0, 0, 0);
   rider.userData.frame.rotation.set(0, 0, 0);
+  rider.userData.riderModel.rotation.set(0, 0, 0);
+  rider.userData.arms.forEach((arm) => arm.rotation.set(0, 0, 0));
+  rider.userData.legs.forEach((leg) => leg.rotation.set(0, 0, 0));
+  rider.userData.handlebar.rotation.set(0, 0, 0);
   rider.userData.wheels.forEach((wheel) => { wheel.rotation.set(0, 0, 0); });
   $("start-screen").classList.add("hidden");
   $("run-banner").classList.add("hidden");
   $("ride-hud").classList.add("visible");
   $("touch-controls").classList.add("active");
+  $("bank-button").classList.add("active");
   $("pause-button").textContent = "Ⅱ";
   $("pause-button").setAttribute("aria-label", "Pause game");
   updateHud(0);
@@ -505,26 +679,30 @@ function endRide(message) {
   state.crashed = true;
   state.throttle = false;
   state.brake = false;
-  const payout = Math.floor(state.score * getStats().payout);
-  if (payout > 0) save.cash += payout;
+  state.wheelie = false;
+  state.wasWheelie = false;
+  const bankedCash = getRunPayout();
+  if (bankedCash > 0) save.cash += bankedCash;
   const distanceRecord = { name: save.riderName, bike: getBike().name, value: Math.round(state.distance * 10) / 10, date: Date.now() };
-  const cashRecord = { name: save.riderName, bike: getBike().name, value: save.cash, date: Date.now() };
+  const cashRecord = { name: save.riderName, bike: getBike().name, value: bankedCash, date: Date.now() };
   if (state.distance > 0) save.records.distance = [distanceRecord, ...save.records.distance.filter((entry) => entry.date !== distanceRecord.date)].slice(0, 20);
-  if (payout > 0) save.records.cash = [cashRecord, ...save.records.cash.filter((entry) => entry.date !== cashRecord.date)].slice(0, 20);
+  if (bankedCash > 0) save.records.cash = [cashRecord, ...save.records.cash.filter((entry) => entry.date !== cashRecord.date)].slice(0, 20);
   persist();
   refreshCash();
   saveRunOnline(distanceRecord, cashRecord);
   $("run-message").textContent = message;
-  $("run-result").textContent = `+ $${formatNumber(payout)}  ·  ${state.distance.toFixed(1)} M  ·  ${state.airTime.toFixed(1)} S AIR`;
+  $("run-result").textContent = `+ $${formatNumber(bankedCash)}  ·  ${state.distance.toFixed(1)} M  ·  ${state.airTime.toFixed(1)} S AIR`;
   $("run-banner").classList.remove("hidden");
   $("ride-hud").classList.remove("visible");
   $("touch-controls").classList.remove("active");
+  $("bank-button").classList.remove("active");
   if (audioGain && audioContext) audioGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.08);
 }
 
 function updateHud(multiplier) {
   $("speed").textContent = String(Math.round(state.speed * 95));
   $("distance").textContent = state.distance.toFixed(1);
+  $("run-cash").textContent = formatNumber(getRunPayout());
   $("angle-readout").textContent = `${Math.round(THREE.MathUtils.radToDeg(state.pitch))}°`;
   $("multiplier").innerHTML = `${multiplier.toFixed(1)}<span>×</span>`;
   const balancePosition = THREE.MathUtils.clamp(state.pitch / (Math.PI / 2) * 100, 0, 100);
@@ -537,7 +715,7 @@ function updateHud(multiplier) {
 function tryTrick(trick) {
   if (!state.running || state.paused) return;
   if (state.trick || state.trickCooldown > 0) { toast("TRICK IN PROGRESS · STICK THE LANDING"); return; }
-  if (state.pitch < 0.16 || state.speed < 0.18) { toast("LIFT THE FRONT WHEEL BEFORE TRICKING"); return; }
+  if (!state.wheelie || state.pitch < 0.16 || state.speed < 0.18) { toast("HOLD SHIFT TO WHEELIE BEFORE TRICKING"); return; }
   state.trick = trick;
   state.trickTime = 0;
   state.trickCooldown = 1.35;
@@ -552,35 +730,42 @@ function animate() {
     const acceleration = 0.34 + stats.torque * 0.3;
     if (state.throttle) state.speed = Math.min(topSpeed, state.speed + acceleration * dt);
     else state.speed = Math.max(0, state.speed - (0.08 + stats.weight * 0.035) * dt);
-    const throttleLift = state.throttle ? (0.82 + stats.torque * 1.18) * (0.55 + state.speed * 0.78) : 0;
+    const throttleLift = state.throttle && state.wheelie ? (0.82 + stats.torque * 1.18) * (0.55 + state.speed * 0.78) : 0;
     const rearBrake = state.brake ? 1.55 + stats.brake * 2.0 : 0;
     const pitchGravity = 0.53 + stats.weight * 0.28;
     const balanceCorrection = state.pitch > 0.1 ? Math.max(0, state.pitch - 0.16) * 0.65 : 0;
     state.angularVelocity += (throttleLift - rearBrake - pitchGravity - balanceCorrection - state.angularVelocity * (0.92 + stats.weight * 0.35)) * dt;
     const priorPitch = state.pitch;
     state.pitch = Math.max(-0.12, state.pitch + state.angularVelocity * dt);
-    state.x += state.speed * 12.5 * dt;
+    state.x += state.speed * worldSpeed * dt;
     state.runTime += dt;
     const wheelie = state.pitch > 0.14 && state.speed > 0.045;
+    const landedWheelie = state.wasWheelie && !wheelie;
+    state.wasWheelie = wheelie;
     state.trickCooldown = Math.max(0, state.trickCooldown - dt);
     if (state.trick) {
       state.trickTime += dt;
-      if (state.trickTime >= 0.88) {
-        const trickPoints = Math.round((45 + state.speed * 85) * stats.payout);
-        state.score += trickPoints;
-        toast(`${state.trick === "nohander" ? "NO-HANDER" : "BARSPIN"} · +${trickPoints} POINTS`);
+      if (state.trickTime >= TRICK_DURATION) {
+        const trickData = TRICKS.find((item) => item.id === state.trick);
+        const trickPoints = Math.round((45 + state.speed * 85) * (trickData?.points ?? 1));
+        if (state.wheelie && state.pitch > 0.14) {
+          state.score += trickPoints;
+          toast(`${trickData?.name ?? "TRICK"} · +${trickPoints} POINTS`);
+        } else {
+          toast("TRICK MISSED · KEEP THE FRONT UP");
+        }
         state.trick = "";
       }
     }
     const steering = Number(state.right) - Number(state.left);
     state.steer += (steering - state.steer) * (1 - Math.exp(-dt * 8));
-    state.lane = THREE.MathUtils.clamp(state.lane + state.steer * (0.55 + state.speed) * 2.8 * dt, -4.25, 4.25);
+    state.lane = THREE.MathUtils.clamp(state.lane + state.steer * (0.55 + state.speed) * 2.8 * dt, -4.65, 4.65);
     let multiplier = 1;
-    if (wheelie) {
+    if (wheelie && state.wheelie) {
       const sweetSpot = 0.52;
       const balance = THREE.MathUtils.clamp(1 - Math.abs(state.pitch - sweetSpot) / 0.62, 0, 1);
       multiplier = 1 + balance * 1.8;
-      const metres = state.speed * 12.5 * dt;
+      const metres = state.speed * worldSpeed * dt;
       state.distance += metres;
       state.score += metres * multiplier * 1.5;
       state.airTime += dt;
@@ -588,28 +773,39 @@ function animate() {
     const frontWheelSlam = priorPitch > 0.62 && state.pitch < 0.12 && state.angularVelocity < -1.45 && state.speed > 0.37;
     if (state.pitch > Math.PI / 2 || frontWheelSlam) {
       endRide(state.pitch > Math.PI / 2 ? "LOOPED OUT" : "FRONT WHEEL DOWN");
-    }
-    rider.position.set(state.x, 0.43, state.lane);
+    } else if (landedWheelie) endRide("WHEELIE BANKED");
+    rider.position.set(state.x, rider.userData.wheelRadius, state.lane);
     rider.rotation.z = state.pitch;
     rider.rotation.y = -state.steer * 0.10;
     rider.rotation.x = -state.steer * 0.065;
     rider.userData.frame.rotation.set(0, 0, 0);
-    for (const wheel of rider.userData.wheels) wheel.rotation.z = state.x * 2.4;
-    const trickProgress = state.trick ? THREE.MathUtils.clamp(state.trickTime / 0.88, 0, 1) : 0;
+    for (const wheel of rider.userData.wheels) wheel.rotation.z = -state.x / rider.userData.wheelRadius;
+    const trickProgress = state.trick ? THREE.MathUtils.clamp(state.trickTime / TRICK_DURATION, 0, 1) : 0;
     const trickPose = Math.sin(trickProgress * Math.PI);
     rider.userData.arms.forEach((arm) => {
-      arm.rotation.z = state.trick === "nohander" ? trickPose * 1.22 : 0;
+      const nohander = state.trick === "nohander";
+      const superman = state.trick === "superman";
+      arm.rotation.z = nohander ? trickPose * 1.22 : superman ? -trickPose * 0.44 : 0;
+      arm.rotation.x = superman ? arm.userData.side * trickPose * 0.5 : 0;
     });
-    rider.userData.handlebar.rotation.y = state.trick === "barspin" ? trickProgress * Math.PI * 2 : 0;
-    rider.userData.riderModel.rotation.z = state.trick === "nohander" ? -trickPose * 0.12 : 0;
-    const targetX = state.x - 7.3 - state.speed * 1.6;
-    const targetY = 3.1 + state.speed * 1.15 + Math.max(0, state.pitch) * 0.8;
+    const activeTrick = state.trick;
+    rider.userData.handlebar.rotation.y = activeTrick === "barspin" ? trickProgress * Math.PI * 2 : 0;
+    rider.userData.frame.rotation.y = activeTrick === "tailwhip" ? trickProgress * Math.PI * 2 : 0;
+    rider.userData.legs.forEach((leg, index) => {
+      leg.rotation.z = activeTrick === "superman" ? trickPose * 0.75
+        : activeTrick === "cancan" && index === 0 ? -trickPose * 1.15
+          : activeTrick === "nacnac" && index === 1 ? trickPose * 1.2 : 0;
+    });
+    rider.userData.riderModel.rotation.z = activeTrick === "nohander" ? -trickPose * 0.12
+      : activeTrick === "superman" ? trickPose * 0.12 : 0;
+    const targetX = state.x - 6.5 - state.speed * 1.6;
+    const targetY = 2.55 + state.speed * 0.45 + Math.max(0, state.pitch) * 0.65;
     const smoothing = 1 - Math.exp(-dt * 3.8);
     if (!cameraInitialized) { cameraX = targetX; cameraY = targetY; cameraInitialized = true; }
     else { cameraX += (targetX - cameraX) * smoothing; cameraY += (targetY - cameraY) * smoothing; }
-    camera.position.set(cameraX, cameraY, state.lane + 8.6);
-    camera.lookAt(state.x + 1.3, 0.93 + Math.max(0, state.pitch) * 0.8, state.lane);
-    camera.fov += (49 + state.speed * 5.5 - camera.fov) * smoothing;
+    camera.position.set(cameraX, cameraY, state.lane + 2.8);
+    camera.lookAt(state.x + 7, 1.05 + Math.max(0, state.pitch) * 0.65, state.lane);
+    camera.fov += (61 + state.speed * 3.5 - camera.fov) * smoothing;
     camera.updateProjectionMatrix();
     sky.position.x = state.x + 20;
     updateHud(multiplier);
@@ -617,14 +813,14 @@ function animate() {
     if (state.frame > 0.3) { state.frame = 0; publishGhost(); }
     setEngineSound();
   } else if (!state.running) {
-    const targetX = -7.3;
+    const targetX = -6.5;
     const smoothing = 1 - Math.exp(-dt * 1.8);
-    if (!cameraInitialized) { cameraX = targetX; cameraY = 4.6; cameraInitialized = true; }
+    if (!cameraInitialized) { cameraX = targetX; cameraY = 3.3; cameraInitialized = true; }
     cameraX += (targetX - cameraX) * smoothing;
-    cameraY += (4.6 - cameraY) * smoothing;
-    camera.position.set(cameraX, cameraY, 8.6);
-    camera.lookAt(-0.8, 0.9, 0);
-    camera.fov += (49 - camera.fov) * smoothing;
+    cameraY += (3.3 - cameraY) * smoothing;
+    camera.position.set(cameraX, cameraY, 3.5);
+    camera.lookAt(6.5, 1.05, 0);
+    camera.fov += (61 - camera.fov) * smoothing;
     camera.updateProjectionMatrix();
   }
   renderer.render(scene, camera);
@@ -647,12 +843,17 @@ refreshSideBikeLabel();
 setTimeout(() => $("loading-screen").classList.add("done"), 450);
 setTimeout(() => $("loading-screen").classList.add("hidden"), 1000);
 
-const keyMap = { ArrowUp: "throttle", KeyW: "throttle", Space: "throttle", ArrowDown: "brake", KeyS: "brake", ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right" };
+const keyMap = { ArrowUp: "throttle", KeyW: "throttle", Space: "throttle", ArrowDown: "brake", KeyS: "brake", ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right", ShiftLeft: "wheelie", ShiftRight: "wheelie" };
+let trickSelectionIndex = 1;
+function trickHotkey(code) {
+  return TRICKS.find((trick) => trick.key === code.replace("Key", ""))?.id;
+}
 window.addEventListener("keydown", (event) => {
   if (event.code === "Escape") { if (state.running) setPaused(!state.paused); return; }
-  if ((event.code === "KeyQ" || event.code === "KeyE") && !event.repeat) {
+  const trick = trickHotkey(event.code);
+  if (trick && !event.repeat) {
     event.preventDefault();
-    tryTrick(event.code === "KeyQ" ? "nohander" : "barspin");
+    tryTrick(trick);
     return;
   }
   const control = keyMap[event.code];
@@ -664,8 +865,8 @@ window.addEventListener("keyup", (event) => {
   const control = keyMap[event.code];
   if (control) { event.preventDefault(); state[control] = false; }
 });
-window.addEventListener("blur", () => { state.throttle = false; state.brake = false; state.left = false; state.right = false; if (state.running) setPaused(true); });
-document.addEventListener("visibilitychange", () => { if (document.hidden && state.running) { state.throttle = false; state.brake = false; state.left = false; state.right = false; setPaused(true); } });
+window.addEventListener("blur", () => { state.throttle = false; state.brake = false; state.wheelie = false; state.left = false; state.right = false; if (state.running) setPaused(true); });
+document.addEventListener("visibilitychange", () => { if (document.hidden && state.running) { state.throttle = false; state.brake = false; state.wheelie = false; state.left = false; state.right = false; setPaused(true); } });
 function bindTouch(button, control) {
   const el = $(button);
   const down = (event) => { event.preventDefault(); if (!state.running || state.paused) return; ensureAudio(); state[control] = true; };
@@ -678,13 +879,24 @@ function bindTouch(button, control) {
 }
 bindTouch("throttle-touch", "throttle");
 bindTouch("brake-touch", "brake");
+bindTouch("wheelie-touch", "wheelie");
 bindTouch("left-touch", "left");
 bindTouch("right-touch", "right");
-$("nohander-touch").addEventListener("pointerdown", (event) => { event.preventDefault(); tryTrick("nohander"); });
-$("barspin-touch").addEventListener("pointerdown", (event) => { event.preventDefault(); tryTrick("barspin"); });
+$("trick-picker-touch").addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  trickSelectionIndex = (trickSelectionIndex + 1) % TRICKS.length;
+  const selected = TRICKS[trickSelectionIndex];
+  $("trick-picker-touch").innerHTML = `${selected.key}<br><strong>${selected.name}</strong>`;
+});
+$("throw-trick-touch").addEventListener("pointerdown", (event) => { event.preventDefault(); tryTrick(TRICKS[trickSelectionIndex].id); });
 
 $("ride-button").addEventListener("click", startRide);
 $("retry-button").addEventListener("click", startRide);
+$("bank-button").addEventListener("click", () => { if (state.running) endRide("RUN BANKED"); });
+$("bank-touch").addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  if (state.running) endRide("RUN BANKED");
+});
 $("pause-button").addEventListener("click", () => { if (state.running) setPaused(!state.paused); });
 $("sound-toggle").addEventListener("click", () => {
   audioEnabled = !audioEnabled;
@@ -716,7 +928,8 @@ function renderGarage() {
   $("bike-list").innerHTML = BIKE_CATALOG.map((bike, index) => {
     const unlocked = save.unlocked.includes(bike.id);
     const selected = bike.id === getBike().id;
-    return `<button class="bike-option ${selected ? "selected" : ""}" data-bike="${bike.id}"><span class="bike-number">0${index + 1}</span><span><span class="bike-option-name">${bike.name}</span><span class="bike-option-sub">${bike.subtitle}</span></span><span class="bike-price">${unlocked ? selected ? "SELECTED" : "OWNED" : `$${formatNumber(bike.price)}`}</span></button>`;
+    const priceLabel = unlocked ? selected ? "EQUIPPED" : "OWNED" : save.cash >= bike.price ? `BUY · $${formatNumber(bike.price)}` : `NEED $${formatNumber(bike.price - save.cash)}`;
+    return `<button class="bike-option ${selected ? "selected" : ""}" data-bike="${bike.id}"><span class="bike-number">0${index + 1}</span><span><span class="bike-option-name">${bike.name}</span><span class="bike-option-sub">${bike.subtitle}</span></span><span class="bike-price">${priceLabel}</span></button>`;
   }).join("");
   $("bike-list").querySelectorAll("[data-bike]").forEach((button) => button.addEventListener("click", () => renderBikeDetail(button.dataset.bike)));
   renderBikeDetail(getBike().id);
@@ -731,21 +944,26 @@ function renderBikeDetail(id) {
     return `<div class="stat-row"><span>${label}</span><span class="stat-bar"><span style="width:${Math.round(value * 100)}%"></span></span><span class="stat-number">${Math.round(value * 100)}</span></div>`;
   }).join("");
   let action = "";
-  if (!unlocked) action = `<button class="primary-button" id="buy-bike"><span>UNLOCK · $${formatNumber(bike.price)}</span><span class="button-arrow">↗</span></button>`;
+  if (!unlocked) {
+    const affordable = save.cash >= bike.price;
+    action = `<button class="primary-button" id="buy-bike" ${affordable ? "" : "disabled"}><span>${affordable ? `UNLOCK · $${formatNumber(bike.price)}` : `NEED $${formatNumber(bike.price - save.cash)} MORE`}</span><span class="button-arrow">${affordable ? "↗" : "-"}</span></button>`;
+  }
   else if (!selected) action = `<button class="primary-button" id="equip-bike"><span>EQUIP BIKE</span><span class="button-arrow">↗</span></button>`;
   else action = `<button class="primary-button" id="equipped-bike" disabled><span>CURRENT RIDE</span><span>✓</span></button>`;
   const upgradeMarkup = unlocked ? `<div class="upgrade-buttons">${["torque", "brake", "speed"].map((key) => {
     const level = stats.upgrades[key] || 0;
-    const cost = Math.floor(250 * (level + 1) * (level + 1));
-    return `<button class="upgrade-button" data-upgrade="${key}" ${level >= 3 || save.cash < cost ? "disabled" : ""}>${UPGRADE_LABELS[key]} · LV ${level}/3<br><span>${level >= 3 ? "MAXED" : `UPGRADE · $${formatNumber(cost)}`}</span></button>`;
+    const cost = getUpgradeCost(level);
+    const affordable = save.cash >= cost;
+    return `<button class="upgrade-button" data-upgrade="${key}" ${level >= 3 || !affordable ? "disabled" : ""}>${UPGRADE_LABELS[key]} · LV ${level}/3<br><span>${level >= 3 ? "MAXED" : affordable ? `UPGRADE · $${formatNumber(cost)}` : `NEED $${formatNumber(cost - save.cash)} MORE`}</span></button>`;
   }).join("")}</div>` : "";
   $("bike-detail").innerHTML = `<span class="bike-detail-tag">${bike.subtitle} · ×${bike.payout.toFixed(2)} PAYOUT</span><h3>${bike.name}</h3><p class="bike-description">${bike.description}</p>${statMarkup}<div class="bike-actions">${action}${upgradeMarkup}</div>`;
   $("bike-detail").querySelector("#buy-bike")?.addEventListener("click", () => {
-    if (save.cash < bike.price) { toast("NOT ENOUGH CASH · KEEP RIDING"); return; }
-    save.cash -= bike.price;
+    if (save.unlocked.includes(bike.id)) return;
+    if (!spendCash(bike.price)) { toast("NOT ENOUGH CASH · KEEP RIDING"); return; }
     save.unlocked.push(bike.id);
     save.upgrades[bike.id] ||= { torque: 0, brake: 0, speed: 0 };
     persist();
+    refreshCash();
     renderGarage();
     toast(`${bike.name.toUpperCase()} UNLOCKED`);
   });
@@ -759,12 +977,12 @@ function renderBikeDetail(id) {
   $("bike-detail").querySelectorAll("[data-upgrade]").forEach((button) => button.addEventListener("click", () => {
     const key = button.dataset.upgrade;
     const level = stats.upgrades[key] || 0;
-    const cost = Math.floor(250 * (level + 1) * (level + 1));
-    if (level >= 3 || save.cash < cost) { toast("NOT ENOUGH CASH FOR THIS UPGRADE"); return; }
-    save.cash -= cost;
+    const cost = getUpgradeCost(level);
+    if (level >= 3 || !spendCash(cost)) { toast("NOT ENOUGH CASH FOR THIS UPGRADE"); return; }
     save.upgrades[bike.id] ||= { torque: 0, brake: 0, speed: 0 };
     save.upgrades[bike.id][key] = level + 1;
     persist();
+    refreshCash();
     renderGarage();
     toast(`${UPGRADE_LABELS[key]} UPGRADED · LV ${level + 1}`);
   }));
@@ -858,7 +1076,7 @@ function updateGhosts(players) {
       ghost = { bike, nameTag };
       ghostRiders.set(id, ghost);
     }
-    ghost.bike.position.set(player.x, 0.43, -2.2);
+    ghost.bike.position.set(player.x, ghost.bike.userData.wheelRadius, -2.2);
     ghost.bike.rotation.z = player.angle;
     updateTextSprite(ghost.nameTag, `${String(player.name || "RIDER").slice(0, 18)} · ${Math.round(player.angle * 180 / Math.PI)}°`, { background: "rgba(13,23,23,.82)", color: "#b8ffff", fontSize: 24 });
   }
