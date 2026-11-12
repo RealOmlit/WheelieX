@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#11191b">
+    <meta name="description" content="Hold your balance. Own the street. Play WheelieX, a free 3D electric bike stunt game.">
+    <title>WheelieX — Own the street</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"
+        }
+      }
+    </script>
+    <script type="module" src="./game.js"></script>
+  </head>
+  <body>
+    <main id="game" aria-label="WheelieX game">
+      <div id="scene"></div>
+      <div class="vignette" aria-hidden="true"></div>
+
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="WheelieX home"><span class="brand-mark">W<span>/</span>X</span><span class="brand-name">WHEELIE<span>X</span></span></a>
+        <div class="top-stats">
+          <div class="cash-pill"><span class="coin-icon">$</span><span id="cash">0</span><span class="cash-label">CASH</span></div>
+          <button class="icon-button" id="sound-toggle" aria-label="Toggle sound" title="Toggle sound">◖</button>
+          <button class="icon-button" id="pause-button" aria-label="Pause game" title="Pause">Ⅱ</button>
+        </div>
+      </header>
+
+      <section class="ride-hud" id="ride-hud" aria-live="polite">
+        <div class="speed-card"><span class="eyebrow">SPEED</span><div class="speed-value"><span id="speed">0</span><span class="speed-unit">KM/H</span></div></div>
+        <div class="angle-card"><div class="angle-head"><span class="eyebrow">BALANCE</span><span id="angle-readout">0°</span></div><div class="balance-track"><div class="balance-sweet"></div><div id="balance-needle"></div></div><span class="balance-hint" id="balance-hint">FIND THE SWEET SPOT</span></div>
+        <div class="distance-card"><span class="eyebrow">WHEELIE DISTANCE</span><div class="distance-value"><span id="distance">0</span><span class="distance-unit">M</span></div></div>
+        <div class="combo-card" id="combo-card"><span class="combo-multiplier" id="multiplier">1.0<span>×</span></span><span class="eyebrow">COMBO</span></div>
+      </section>
+
+      <div class="network-status" id="network-status"><span class="status-dot"></span><span id="network-label">OFFLINE · LOCAL RECORDS</span></div>
+
+      <section class="start-screen" id="start-screen">
+        <div class="hero-copy"><span class="section-tag"><span class="live-dot"></span> ELECTRIC STREET CULTURE</span><h1>OWN THE<br><span>STREET.</span></h1><p>Find your balance. Chase the longest line.<br>Make the city yours.</p><button class="primary-button" id="ride-button"><span>RIDE NOW</span><span class="button-arrow">↗</span></button><button class="text-button" id="garage-button"><span>▣</span> OPEN GARAGE <span class="garage-bike-name" id="current-bike-name"></span></button></div>
+        <div class="hero-bottom"><span>01 — CITY CIRCUIT</span><span>BUILT FOR THE LONG RUN <span class="accent-text">✳</span></span></div>
+      </section>
+
+      <section class="run-banner hidden" id="run-banner" aria-live="assertive"><span class="eyebrow">RUN OVER</span><strong id="run-message">KEEP IT RUBBER SIDE DOWN</strong><span id="run-result">+ $0</span><button class="primary-button" id="retry-button"><span>RUN IT BACK</span><span class="button-arrow">↗</span></button><button class="text-button" id="run-garage-button">▣ &nbsp;GARAGE</button></section>
+      <div class="toast hidden" id="toast" role="status"></div>
+
+      <div class="ride-controls" id="ride-controls">
+        <span class="control-key"><kbd>↑</kbd><kbd>W</kbd><kbd>SPACE</kbd> THROTTLE</span><span class="control-separator">·</span><span class="control-key"><kbd>↓</kbd><kbd>S</kbd> REAR BRAKE</span><span class="control-separator">·</span><span class="control-key"><kbd>ESC</kbd> PAUSE</span>
+      </div>
+      <div class="touch-controls" id="touch-controls"><button class="touch-button" id="throttle-touch">HOLD<br><strong>THROTTLE</strong></button><button class="touch-button brake-button" id="brake-touch">TAP<br><strong>REAR BRAKE</strong></button></div>
+
+      <div class="modal-backdrop hidden" id="garage-modal">
+        <section class="garage-panel" role="dialog" aria-modal="true" aria-labelledby="garage-title">
+          <header class="panel-header"><div><span class="section-tag">YOUR LINEUP</span><h2 id="garage-title">THE GARAGE<span class="accent-text">.</span></h2></div><div class="garage-header-right"><div class="cash-pill"><span class="coin-icon">$</span><span id="garage-cash">0</span><span class="cash-label">CASH</span></div><button class="close-button" data-close="garage-modal" aria-label="Close garage">×</button></div></header>
+          <div class="garage-layout"><div class="bike-list" id="bike-list"></div><div class="bike-detail" id="bike-detail"></div></div>
+          <footer class="panel-footer"><span>EVERY BUILD HAS A DIFFERENT FEEL.</span><button class="text-button" data-close="garage-modal">BACK TO THE STREET ↗</button></footer>
+        </section>
+      </div>
+
+      <div class="modal-backdrop hidden" id="leaderboard-modal">
+        <section class="leaderboard-panel" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title">
+          <header class="panel-header"><div><span class="section-tag">THE STREETS REMEMBER</span><h2 id="leaderboard-title">LEADERBOARD<span class="accent-text">.</span></h2></div><button class="close-button" data-close="leaderboard-modal" aria-label="Close leaderboard">×</button></header>
+          <div class="leaderboard-tabs"><button class="tab-button active" data-board="distance">LONGEST WHEELIE</button><button class="tab-button" data-board="cash">TOP EARNERS</button></div>
+          <div class="leaderboard-columns"><span>RANK / RIDER</span><span id="leaderboard-score-title">DISTANCE</span></div>
+          <div class="leaderboard-rows" id="leaderboard-rows"></div>
+          <footer class="panel-footer"><span id="leaderboard-source">LOCAL RECORDS · THIS DEVICE</span><button class="text-button" data-close="leaderboard-modal">BACK TO THE STREET ↗</button></footer>
+        </section>
+      </div>
+
+      <aside class="right-actions"><button class="side-button" id="leaderboard-button"><span>↗</span> LEADERBOARD</button><span class="side-divider"></span><span class="side-caption" id="side-bike-label">STOCK BUILD</span></aside>
+      <div class="loading-screen" id="loading-screen"><span class="loading-mark">W<span>/</span>X</span><span class="loading-label">LOADING THE STREETS</span><div class="loading-track"><span></span></div></div>
+    </main>
+  </body>
+</html>

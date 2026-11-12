@@ -1,0 +1,130 @@
+:root{color-scheme:dark;--ink:#f4f4eb;--muted:#9aaba7;--green:#c0f56a;--black:#11191b;--panel:rgba(17,25,27,.94);--line:rgba(244,244,235,.15);font-family:"DM Sans",sans-serif;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-optical-sizing:auto}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--black);color:var(--ink)}
+body{min-width:320px}
+button,a{-webkit-tap-highlight-color:transparent}
+button{font:inherit}
+#game,#scene{position:absolute;inset:0;overflow:hidden}
+#scene canvas{display:block;width:100%;height:100%}
+.vignette{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(10,17,18,.40) 0%,transparent 23%,transparent 67%,rgba(10,17,18,.27) 100%),linear-gradient(90deg,rgba(10,17,18,.15),transparent 40%)}
+.topbar{position:absolute;z-index:2;inset:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:27px 4.3vw}
+.brand{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none}
+.brand-mark,.loading-mark{display:grid;place-items:center;width:39px;height:39px;border:1px solid rgba(192,245,106,.68);color:var(--green);font-family:"Barlow Condensed",sans-serif;font-size:17px;font-weight:900;letter-spacing:-1.6px}
+.brand-mark span,.loading-mark span{color:var(--ink);margin:0 1px}
+.brand-name{font-family:"Barlow Condensed",sans-serif;font-weight:900;font-size:20px;letter-spacing:1.9px}
+.brand-name span{color:var(--green)}
+.top-stats,.cash-pill{display:flex;align-items:center}
+.top-stats{gap:12px}
+.cash-pill{height:38px;gap:8px;padding:0 13px;border:1px solid var(--line);background:rgba(17,25,27,.57);font-family:"DM Mono",monospace;font-weight:500;font-size:14px}
+.coin-icon{color:var(--green);font-size:16px}
+.cash-label{color:var(--muted);font-size:9px;letter-spacing:1.5px}
+.icon-button,.close-button{display:grid;place-items:center;width:38px;height:38px;color:var(--ink);background:rgba(17,25,27,.50);border:1px solid var(--line);cursor:pointer}
+.icon-button:hover,.close-button:hover{border-color:var(--green);color:var(--green)}
+.ride-hud{position:absolute;z-index:2;top:104px;left:4.3vw;right:4.3vw;display:grid;grid-template-columns:1fr 1.15fr 1fr auto;align-items:center;gap:27px;max-width:750px;pointer-events:none;opacity:0;transform:translateY(-8px);transition:opacity .25s,transform .25s}
+.ride-hud.visible{opacity:1;transform:translateY(0)}
+.eyebrow{display:block;color:var(--muted);font-family:"DM Mono",monospace;font-size:9px;letter-spacing:1.7px}
+.speed-value,.distance-value{display:flex;align-items:baseline;gap:6px;margin-top:3px;font-family:"Barlow Condensed",sans-serif;font-size:43px;font-weight:700;line-height:1}
+.speed-unit,.distance-unit{font-family:"DM Mono",monospace;color:var(--muted);font-size:9px;letter-spacing:1px}
+.angle-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.angle-head #angle-readout{font-family:"DM Mono",monospace;font-size:12px}
+.balance-track{position:relative;height:5px;background:rgba(244,244,235,.17)}
+.balance-sweet{position:absolute;top:0;bottom:0;left:36%;width:18%;background:rgba(192,245,106,.38)}
+#balance-needle{position:absolute;top:-3px;left:0;width:3px;height:11px;background:var(--green);box-shadow:0 0 9px rgba(192,245,106,.8);transition:left .08s}
+.balance-hint{display:block;margin-top:7px;color:var(--green);font-family:"DM Mono",monospace;font-size:8px;letter-spacing:1px}
+.combo-card{text-align:right}
+.combo-multiplier{display:block;color:var(--green);font-family:"Barlow Condensed",sans-serif;font-size:38px;font-weight:800;line-height:1}
+.combo-multiplier span{font-size:22px}
+.network-status{position:absolute;z-index:2;right:4.3vw;top:109px;display:flex;align-items:center;gap:8px;color:#c2d0c8;font-family:"DM Mono",monospace;font-size:9px;letter-spacing:1px}
+.status-dot,.live-dot{width:7px;height:7px;border-radius:50%;background:#7f918b}
+.network-status.connected .status-dot,.live-dot{background:var(--green);box-shadow:0 0 9px rgba(192,245,106,.65)}
+.start-screen{position:absolute;z-index:2;inset:0;display:flex;align-items:center;padding:40px 10.1vw 36px;transition:opacity .25s,transform .25s}
+.start-screen.hidden{opacity:0;transform:translateY(10px);pointer-events:none}
+.hero-copy{margin-top:-17px}
+.section-tag{display:flex;align-items:center;gap:9px;color:#d4dfd6;font-family:"DM Mono",monospace;font-size:9px;letter-spacing:2px}
+.hero-copy h1,.panel-header h2{margin:18px 0 12px;font-family:"Barlow Condensed",sans-serif;font-weight:900;letter-spacing:-1.5px;line-height:.83}
+.hero-copy h1{font-size:clamp(74px,10.8vw,151px)}
+.hero-copy h1 span{color:var(--green)}
+.hero-copy>p{margin:22px 0 25px;color:#e0e6df;font-size:14px;line-height:1.8}
+.primary-button{display:inline-flex;align-items:center;justify-content:space-between;gap:39px;min-width:177px;padding:14px 16px;background:var(--green);color:#18211b;border:0;font-family:"Barlow Condensed",sans-serif;font-size:16px;font-weight:900;letter-spacing:1.3px;cursor:pointer;transition:background .15s,transform .15s}
+.primary-button:hover{background:#d5ff98;transform:translateY(-2px)}
+.button-arrow{font-family:"DM Sans",sans-serif;font-size:19px;font-weight:500}
+.text-button{display:block;padding:13px 0;background:none;color:#e1e6df;border:0;font-family:"DM Mono",monospace;font-size:10px;letter-spacing:1.2px;text-align:left;cursor:pointer}
+.text-button:hover{color:var(--green)}
+.hero-copy>.text-button{margin-top:7px}
+.hero-copy>.text-button>span:first-child{margin-right:8px}
+.garage-bike-name{margin-left:7px;color:var(--green)}
+.hero-bottom{position:absolute;right:4.3vw;bottom:31px;left:4.3vw;display:flex;justify-content:space-between;color:#d1dad1;font-family:"DM Mono",monospace;font-size:9px;letter-spacing:1.3px}
+.accent-text{color:var(--green)}
+.ride-controls{position:absolute;z-index:2;bottom:31px;left:50%;display:flex;align-items:center;justify-content:center;gap:14px;white-space:nowrap;transform:translateX(-50%);color:rgba(238,242,233,.73);font-family:"DM Mono",monospace;font-size:8px;letter-spacing:1px}
+.control-key{display:flex;align-items:center;gap:5px}
+kbd{min-width:19px;padding:4px 5px;border:1px solid rgba(244,244,235,.28);color:var(--ink);font:inherit;text-align:center}
+.control-separator{color:var(--green)}
+.right-actions{position:absolute;z-index:2;top:50%;right:4.3vw;display:flex;align-items:flex-end;flex-direction:column;gap:12px;transform:translateY(-50%)}
+.side-button{display:flex;align-items:center;gap:12px;padding:10px 0;border:0;background:none;color:var(--ink);font-family:"DM Mono",monospace;font-size:9px;letter-spacing:1px;cursor:pointer}
+.side-button span{color:var(--green);font-size:15px}
+.side-button:hover{color:var(--green)}
+.side-divider{width:35px;height:1px;background:var(--green)}
+.side-caption{color:var(--muted);font-family:"DM Mono",monospace;font-size:8px;letter-spacing:1.4px}
+.run-banner{position:absolute;z-index:3;top:50%;left:50%;display:flex;align-items:center;flex-direction:column;min-width:min(370px,calc(100vw - 42px));padding:30px 35px;background:rgba(17,25,27,.91);border:1px solid var(--line);text-align:center;transform:translate(-50%,-50%);backdrop-filter:blur(14px)}
+.run-banner.hidden{display:none}
+.run-banner>strong{margin:9px 0;color:var(--ink);font-family:"Barlow Condensed",sans-serif;font-size:27px;font-weight:800}
+#run-result{margin-bottom:20px;color:var(--green);font-family:"DM Mono",monospace;font-size:13px}
+.run-banner>.text-button{align-self:center;text-align:center}
+.toast{position:absolute;z-index:6;top:82px;left:50%;padding:11px 17px;border:1px solid rgba(192,245,106,.35);background:rgba(17,25,27,.96);color:var(--green);font-family:"DM Mono",monospace;font-size:11px;transform:translateX(-50%)}
+.hidden{display:none!important}
+.modal-backdrop{position:absolute;z-index:5;inset:0;display:grid;place-items:center;padding:22px;background:rgba(8,13,14,.7);backdrop-filter:blur(8px)}
+.garage-panel,.leaderboard-panel{width:min(920px,100%);max-height:min(700px,calc(100dvh - 44px));overflow:auto;padding:28px 34px 16px;background:var(--panel);border:1px solid var(--line);box-shadow:0 25px 100px rgba(0,0,0,.4)}
+.panel-header{display:flex;align-items:center;justify-content:space-between}
+.panel-header h2{margin:10px 0 0;font-size:clamp(36px,5vw,53px);letter-spacing:-.3px}
+.panel-header h2 .accent-text{color:var(--green)}
+.garage-header-right{display:flex;align-items:center;gap:12px}
+.garage-layout{display:grid;grid-template-columns:1fr 1.15fr;gap:25px;margin-top:25px;min-height:300px}
+.bike-list{display:flex;flex-direction:column;gap:7px}
+.bike-option{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:9px;padding:12px;border:1px solid var(--line);background:rgba(255,255,255,.025);color:var(--ink);text-align:left;cursor:pointer}
+.bike-option:hover,.bike-option.selected{border-color:rgba(192,245,106,.68);background:rgba(192,245,106,.06)}
+.bike-number{color:var(--green);font-family:"DM Mono",monospace;font-size:10px}
+.bike-option-name{font-family:"Barlow Condensed",sans-serif;font-size:15px;font-weight:700;line-height:1.1}
+.bike-option-sub{display:block;margin-top:4px;color:var(--muted);font-family:"DM Mono",monospace;font-size:8px;letter-spacing:.5px}
+.bike-price{color:var(--green);font-family:"DM Mono",monospace;font-size:10px}
+.bike-detail{position:relative;display:flex;flex-direction:column;justify-content:center;padding:22px;border:1px solid var(--line);background:linear-gradient(140deg,rgba(192,245,106,.06),transparent 48%),rgba(255,255,255,.018)}
+.bike-detail-tag{color:var(--green);font-family:"DM Mono",monospace;font-size:9px;letter-spacing:1.6px}
+.bike-detail h3{margin:9px 0 4px;font-family:"Barlow Condensed",sans-serif;font-size:33px;font-weight:800;line-height:.95}
+.bike-description{margin:8px 0 17px;color:#b1beb4;font-size:11px;line-height:1.55}
+.stat-row{display:grid;grid-template-columns:67px 1fr 27px;align-items:center;gap:9px;margin:6px 0;color:#d7dfd8;font-family:"DM Mono",monospace;font-size:9px}
+.stat-bar{height:4px;background:rgba(244,244,235,.14)}
+.stat-bar span{display:block;height:100%;background:var(--green)}
+.stat-number{text-align:right;color:var(--green)}
+.bike-actions{display:flex;gap:10px;margin-top:16px}
+.bike-actions .primary-button{min-width:135px;padding:11px 13px;font-size:13px}
+.upgrade-button{flex:1;padding:10px;border:1px solid rgba(192,245,106,.45);background:transparent;color:var(--green);font-family:"DM Mono",monospace;font-size:9px;letter-spacing:.5px;text-align:left;cursor:pointer}
+.upgrade-button:hover{background:rgba(192,245,106,.08)}
+.upgrade-button:disabled{opacity:.42;cursor:not-allowed}
+.panel-footer{display:flex;align-items:center;justify-content:space-between;margin-top:17px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-family:"DM Mono",monospace;font-size:8px;letter-spacing:1px}
+.panel-footer .text-button{font-size:8px}
+.leaderboard-panel{width:min(650px,100%)}
+.leaderboard-tabs{display:flex;gap:22px;margin-top:25px;border-bottom:1px solid var(--line)}
+.tab-button{position:relative;padding:0 0 11px;background:none;border:0;color:var(--muted);font-family:"DM Mono",monospace;font-size:9px;letter-spacing:1px;cursor:pointer}
+.tab-button.active{color:var(--green)}
+.tab-button.active:after{position:absolute;right:0;bottom:-1px;left:0;height:2px;background:var(--green);content:""}
+.leaderboard-columns,.leaderboard-row{display:grid;grid-template-columns:1fr 110px;align-items:center}
+.leaderboard-columns{padding:13px 12px 9px;color:var(--muted);font-family:"DM Mono",monospace;font-size:8px;letter-spacing:1px}
+.leaderboard-columns span:last-child{text-align:right}
+.leaderboard-rows{min-height:205px}
+.leaderboard-row{min-height:42px;padding:0 12px;border-top:1px solid rgba(244,244,235,.065)}
+.leaderboard-rider{display:flex;align-items:center;gap:12px;font-size:12px}
+.leaderboard-rank{width:18px;color:var(--muted);font-family:"DM Mono",monospace;font-size:9px}
+.leaderboard-row:first-child .leaderboard-rank{color:var(--green)}
+.leaderboard-bike{margin-left:2px;color:var(--muted);font-family:"DM Mono",monospace;font-size:8px}
+.leaderboard-score{color:var(--green);font-family:"DM Mono",monospace;font-size:11px;text-align:right}
+.leaderboard-empty{display:grid;min-height:205px;place-items:center;color:var(--muted);font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.6px;text-align:center}
+.loading-screen{position:absolute;z-index:10;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:13px;background:#172322;transition:opacity .45s}
+.loading-screen.done{opacity:0;pointer-events:none}
+.loading-mark{width:54px;height:54px;font-size:23px}
+.loading-label{color:#d1dcd0;font-family:"DM Mono",monospace;font-size:9px;letter-spacing:2px}
+.loading-track{width:105px;height:2px;margin-top:5px;background:rgba(244,244,235,.16)}
+.loading-track span{display:block;width:100%;height:100%;background:var(--green);transform-origin:left;animation:load-in .6s ease-out}
+@keyframes load-in{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.touch-controls{display:none}
+.paused #start-screen,.paused #right-actions{pointer-events:none}
+@media(max-width:700px){.topbar{padding:17px 18px}.brand-mark{width:32px;height:32px}.brand-name{font-size:17px}.cash-pill{height:34px;padding:0 9px}.top-stats{gap:7px}.ride-hud{top:73px;right:18px;left:18px;grid-template-columns:.75fr 1.2fr .85fr auto;gap:11px}.speed-value,.distance-value{font-size:33px}.combo-multiplier{font-size:30px}.network-status{top:164px;right:19px;font-size:8px}.start-screen{align-items:flex-start;padding:clamp(165px,32vh,245px) 25px 100px}.hero-copy{margin:0}.hero-copy h1{font-size:clamp(79px,17vw,120px)}.hero-copy>p{font-size:12px}.hero-bottom{right:18px;bottom:15px;left:18px;font-size:7px}.hero-bottom span:last-child{display:none}.right-actions{top:auto;right:20px;bottom:84px;gap:8px;transform:none}.side-button{font-size:8px}.ride-controls{display:none}.touch-controls{position:absolute;z-index:3;right:15px;bottom:38px;left:15px;justify-content:space-between;gap:14px;pointer-events:none}.touch-controls.active{display:flex}.touch-button{width:116px;height:62px;border:1px solid rgba(192,245,106,.65);background:rgba(17,25,27,.78);color:var(--green);font-family:"DM Mono",monospace;font-size:8px;letter-spacing:1px;pointer-events:auto;touch-action:none}.touch-button strong{font-size:10px}.brake-button{border-color:rgba(255,155,117,.7);color:#ffb095}.garage-panel,.leaderboard-panel{padding:21px 19px 13px}.garage-layout{grid-template-columns:1fr;gap:10px;margin-top:17px}.bike-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}.bike-option{grid-template-columns:23px 1fr;gap:5px;padding:8px}.bike-option-name{font-size:12px}.bike-option-sub{font-size:7px}.bike-price{grid-column:2}.bike-detail{padding:14px}.bike-description{margin:6px 0 10px}.stat-row{margin:5px 0}.bike-actions{margin-top:11px}.panel-footer{font-size:7px}.panel-footer .text-button{font-size:7px}.leaderboard-tabs{margin-top:19px}.ride-banner{padding:23px}.toast{top:63px;font-size:9px}}
+@media(max-width:390px){.ride-hud{gap:7px}.speed-value,.distance-value{font-size:28px}.eyebrow{font-size:8px}.combo-multiplier{font-size:27px}.hero-copy h1{font-size:74px}.garage-panel,.leaderboard-panel{padding-right:14px;padding-left:14px}}
