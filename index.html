@@ -1,91 +1,303 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#11191b">
-    <meta name="description" content="Hold your balance. Own the street. Play WheelieX, a free 3D electric bike stunt game.">
-    <title>WheelieX — Own the street</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./style.css">
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"
-        }
-      }
-    </script>
-    <script type="module" src="./game.js"></script>
-  </head>
-  <body>
-    <main id="game" aria-label="WheelieX game">
-      <div id="scene"></div>
-      <div class="vignette" aria-hidden="true"></div>
-
-      <header class="topbar">
-        <a class="brand" href="./" aria-label="WheelieX home"><span class="brand-mark">W<span>/</span>X</span><span class="brand-name">WHEELIE<span>X</span></span></a>
-        <div class="top-stats">
-          <div class="cash-pill"><span class="coin-icon">$</span><span id="cash">0</span><span class="cash-label">CASH</span></div>
-          <button class="bank-button" id="bank-button" aria-label="Bank run cash" title="Bank this run">BANK RUN</button>
-          <button class="icon-button" id="sound-toggle" aria-label="Toggle sound" title="Toggle sound">◖</button>
-          <button class="icon-button" id="pause-button" aria-label="Pause game" title="Pause">Ⅱ</button>
-        </div>
-      </header>
-
-      <section class="ride-hud" id="ride-hud" aria-live="polite">
-        <div class="speed-card"><span class="eyebrow">SPEED</span><div class="speed-value"><span id="speed">0</span><span class="speed-unit">KM/H</span></div></div>
-        <div class="angle-card"><div class="angle-head"><span class="eyebrow">BALANCE</span><span id="angle-readout">0°</span></div><div class="balance-track"><div class="balance-sweet"></div><div id="balance-needle"></div></div><span class="balance-hint" id="balance-hint">FIND THE SWEET SPOT</span></div>
-        <div class="distance-card"><span class="eyebrow">WHEELIE DISTANCE</span><div class="distance-value"><span id="distance">0</span><span class="distance-unit">M</span></div><span class="bank-preview">+$<span id="run-cash">0</span> PENDING</span></div>
-        <div class="combo-card" id="combo-card"><span class="combo-multiplier" id="multiplier">1.0<span>×</span></span><span class="eyebrow">COMBO</span></div>
-      </section>
-
-      <div class="network-status" id="network-status"><span class="status-dot"></span><span id="network-label">OFFLINE · LOCAL RECORDS</span></div>
-
-      <section class="start-screen" id="start-screen">
-        <div class="hero-copy"><span class="section-tag"><span class="live-dot"></span> ELECTRIC STREET CULTURE</span><h1>OWN THE<br><span>STREET.</span></h1><p>Hold W + Shift to wheelie. Land clean to bank your cash,<br>or tap BANK RUN whenever you want.</p><button class="primary-button" id="ride-button"><span>RIDE NOW</span><span class="button-arrow">↗</span></button><button class="text-button" id="garage-button"><span>▣</span> OPEN GARAGE <span class="garage-bike-name" id="current-bike-name"></span></button></div>
-        <div class="hero-bottom"><span>01 — CITY STREET CIRCUIT</span><span>BUILT FOR THE LONG RUN <span class="accent-text">✳</span></span></div>
-      </section>
-
-      <section class="run-banner hidden" id="run-banner" aria-live="assertive"><span class="eyebrow">RUN OVER</span><strong id="run-message">KEEP IT RUBBER SIDE DOWN</strong><span id="run-result">+ $0</span><button class="primary-button" id="retry-button"><span>RUN IT BACK</span><span class="button-arrow">↗</span></button><button class="text-button" id="run-garage-button">▣ &nbsp;GARAGE</button></section>
-      <div class="toast hidden" id="toast" role="status"></div>
-
-      <div class="ride-controls" id="ride-controls">
-        <span class="control-key"><kbd>W</kbd> THROTTLE</span><span class="control-separator">·</span><span class="control-key"><kbd>S</kbd> BRAKE</span><span class="control-separator">·</span><span class="control-key"><kbd>A</kbd><kbd>D</kbd> STEER</span><span class="control-separator">·</span><span class="control-key"><kbd>SHIFT</kbd> WHEELIE</span><span class="control-separator">·</span><span class="control-key"><kbd>Q</kbd><kbd>E</kbd><kbd>R</kbd><kbd>F</kbd><kbd>C</kbd><kbd>V</kbd> TRICKS</span>
-      </div>
-      <div class="touch-controls" id="touch-controls">
-        <button class="touch-button steer-button" id="left-touch" aria-label="Steer left">←</button>
-        <button class="touch-button" id="throttle-touch">HOLD<br><strong>THROTTLE</strong></button>
-        <button class="touch-button brake-button" id="brake-touch">HOLD<br><strong>BRAKE</strong></button>
-        <button class="touch-button steer-button" id="right-touch" aria-label="Steer right">→</button>
-        <button class="touch-button" id="wheelie-touch">HOLD<br><strong>WHEELIE</strong></button>
-        <button class="touch-button trick-button" id="trick-picker-touch">E<br><strong>BARSPIN</strong></button>
-        <button class="touch-button trick-button" id="throw-trick-touch">DO<br><strong>TRICK</strong></button>
-        <button class="touch-button bank-touch" id="bank-touch">BANK<br><strong>RUN</strong></button>
-      </div>
-
-      <div class="modal-backdrop hidden" id="garage-modal">
-        <section class="garage-panel" role="dialog" aria-modal="true" aria-labelledby="garage-title">
-          <header class="panel-header"><div><span class="section-tag">YOUR LINEUP</span><h2 id="garage-title">THE GARAGE<span class="accent-text">.</span></h2></div><div class="garage-header-right"><div class="cash-pill"><span class="coin-icon">$</span><span id="garage-cash">0</span><span class="cash-label">CASH</span></div><button class="close-button" data-close="garage-modal" aria-label="Close garage">×</button></div></header>
-          <p class="garage-economy-note"><span>RIDE</span> TO EARN <b>·</b> <span>BANK</span> YOUR RUN <b>·</b> BUILD YOUR RIDE</p>
-          <div class="garage-layout"><div class="bike-list" id="bike-list"></div><div class="bike-detail" id="bike-detail"></div></div>
-          <footer class="panel-footer"><span>EVERY BUILD HAS A DIFFERENT FEEL.</span><button class="text-button" data-close="garage-modal">BACK TO THE STREET ↗</button></footer>
-        </section>
-      </div>
-
-      <div class="modal-backdrop hidden" id="leaderboard-modal">
-        <section class="leaderboard-panel" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title">
-          <header class="panel-header"><div><span class="section-tag">THE STREETS REMEMBER</span><h2 id="leaderboard-title">LEADERBOARD<span class="accent-text">.</span></h2></div><button class="close-button" data-close="leaderboard-modal" aria-label="Close leaderboard">×</button></header>
-          <div class="leaderboard-tabs"><button class="tab-button active" data-board="distance">LONGEST WHEELIE</button><button class="tab-button" data-board="cash">TOP EARNERS</button></div>
-          <div class="leaderboard-columns"><span>RANK / RIDER</span><span id="leaderboard-score-title">DISTANCE</span></div>
-          <div class="leaderboard-rows" id="leaderboard-rows"></div>
-          <footer class="panel-footer"><span id="leaderboard-source">LOCAL RECORDS · THIS DEVICE</span><button class="text-button" data-close="leaderboard-modal">BACK TO THE STREET ↗</button></footer>
-        </section>
-      </div>
-
-      <aside class="right-actions"><button class="side-button" id="leaderboard-button"><span>↗</span> LEADERBOARD</button><span class="side-divider"></span><span class="side-caption" id="side-bike-label">STOCK BUILD</span></aside>
-      <div class="loading-screen" id="loading-screen"><span class="loading-mark">W<span>/</span>X</span><span class="loading-label">LOADING THE STREETS</span><div class="loading-track"><span></span></div></div>
-    </main>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>E-Bike Life</title>
+<style>
+*{box-sizing:border-box;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#bfdef2;font:600 14px system-ui,sans-serif;color:#fff}
+canvas#g{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+.p{position:fixed;background:rgba(12,18,30,.62);border-radius:12px;padding:8px 12px;backdrop-filter:blur(6px)}
+#mm{position:fixed;top:10px;left:10px;width:150px;height:150px;border-radius:18px;border:3px solid #fff8;box-shadow:0 4px 14px #0006}
+#top{top:10px;left:50%;transform:translateX(-50%);text-align:center;min-width:170px}
+#cash{font-size:26px;color:#4ade80}#combo{font-size:16px;color:#facc15;min-height:20px}
+#tr{top:10px;right:10px;text-align:right}
+button{font:inherit;color:#fff;background:#2563eb;border:0;border-radius:8px;padding:6px 10px;margin:4px 0 0 4px;cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+#br{bottom:14px;right:14px;width:190px;text-align:right}
+#sp{font-size:34px}small{font-size:12px;opacity:.8}
+.bar{height:8px;background:#fff3;border-radius:4px;overflow:hidden;flex:1}.bar i{display:block;height:100%;background:#38bdf8}
+#bb{background:linear-gradient(90deg,#8b5cf6,#38bdf8)!important}
+#wm{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);opacity:0;pointer-events:none}
+#sl{position:fixed;inset:0;pointer-events:none;opacity:0;background:repeating-conic-gradient(from 0deg at 50% 50%,#0000 0 3deg,#cfe8ff66 3deg 3.6deg);-webkit-mask:radial-gradient(circle,#0000 40%,#000 90%);mask:radial-gradient(circle,#0000 40%,#000 90%)}
+#pop{position:fixed;top:30%;left:0;right:0;pointer-events:none}
+.pp{position:absolute;left:50%;font-size:24px;font-weight:800;text-shadow:0 2px 4px #000a;animation:fl 1.4s forwards;white-space:nowrap}
+@keyframes fl{to{transform:translateY(-70px);opacity:0}}
+#help{bottom:14px;left:14px;font-size:12px;max-width:300px}
+#gar{display:none;position:fixed;top:0;left:0;bottom:0;width:min(470px,100%);overflow:auto;background:rgba(10,15,28,.88);padding:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card{background:#fff1;border:2px solid transparent;border-radius:10px;padding:8px;cursor:pointer}.card.sel{border-color:#38bdf8}
+.card .bar{margin-top:3px;height:5px}.card small{display:block}
+.row{display:flex;gap:8px;align-items:center;margin:6px 0}.row span{width:92px}.row em{width:42px;font-style:normal}
+.big{width:100%;padding:12px;font-size:16px;background:#16a34a;margin:6px 0}
+h2{display:flex;justify-content:space-between;margin:0 0 10px}h2 span{color:#4ade80}h3{margin:14px 0 4px}
+#tc{display:none}
+@media(pointer:coarse){#tc{display:block}#br{bottom:170px}#help{display:none}
+#tc button{position:fixed;width:64px;height:64px;font-size:24px;opacity:.7;margin:0;touch-action:none}}
+</style></head><body>
+<canvas id="g"></canvas><div id="sl"></div>
+<canvas id="mm" width="300" height="300"></canvas>
+<div id="top" class="p"><div id="cash">$0</div><div id="combo"></div></div>
+<div id="tr" class="p"><div id="net">Connecting…</div><button id="bg">🏍 Garage [G]</button><button id="bm">🔊</button></div>
+<div id="pop"></div><canvas id="wm" width="240" height="130"></canvas>
+<div id="br" class="p"><div id="sp"></div><div class="bar"><i id="bb" style="width:100%"></i></div><small>BOOST [E] · tap speed for units</small></div>
+<div id="help" class="p">W/↑ throttle · S/↓ brake · A/D steer · Space/Shift wheelie · E/F boost · G garage</div>
+<div id="tc">
+<button data-k="KeyA" style="left:12px;bottom:90px">◀</button><button data-k="KeyD" style="left:86px;bottom:90px">▶</button>
+<button data-k="Space" style="left:12px;bottom:16px;width:138px">WHEELIE</button>
+<button data-k="KeyW" style="right:12px;bottom:90px">▲</button><button data-k="KeyS" style="right:86px;bottom:90px">■</button>
+<button data-k="KeyE" style="right:12px;bottom:16px;width:138px;background:#7c3aed">⚡ BOOST</button></div>
+<div id="gar"></div>
+<script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
+<script type="module">
+import*as T from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+const $=id=>document.getElementById(id),PI=Math.PI;
+/* ---------- save ---------- */
+let S;try{S=JSON.parse(localStorage.getItem('ebl1'))}catch(e){}
+S=S||{cash:0,own:[0],eq:0,up:{}};const save=()=>{try{localStorage.setItem('ebl1',JSON.stringify(S))}catch(e){}};
+/* ---------- bikes ---------- */
+const B=(n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh)=>({n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh});
+const BIKES=[
+B('Kirkland Signature Cruiser',0,[3,4,8,3],0x2563eb,0xdc2626,0xaaaaaa,0x222222,.34,.12,1.3,.32,.32,.6,.62,.22,0),
+B('Super73-RX Mojave',1500,[4,4,7,4],0x56603a,0xd9b97a,0x888888,0xc49a63,.3,.22,1.25,.28,.26,.95,.52,.45,0),
+B('Talaria XXX TL2500',3500,[5,5,6,4],0x111111,0x333333,0x555555,0x111111,.36,.1,1.3,.2,.3,.6,.7,.1,0),
+B('Surron Hyper Bee',6000,[4,6,6,5],0xef4444,0x111111,0xcccccc,0x111111,.32,.1,1.2,.2,.26,.5,.64,.12,0),
+B('Surron Light Bee X',9000,[5,5,6,5],0x1c1c1c,0xfacc15,0xfacc15,0x111111,.34,.1,1.28,.2,.28,.55,.66,.12,0),
+B('Talaria Sting R MX4',14000,[6,7,5,6],0x0ea5e9,0x111111,0xd4d4d8,0x111111,.38,.1,1.4,.22,.3,.55,.7,.14,1),
+B('E-Ride Pro SS 2.0',20000,[7,7,5,6],0x7c3aed,0x111111,0xa78bfa,0x111111,.34,.11,1.3,.24,.3,.6,.66,.12,0),
+B('Segway Dirt eBike X260',28000,[6,6,7,6],0xf5f5f5,0x111111,0x999999,0x222222,.4,.11,1.45,.24,.32,.62,.74,.15,1),
+B('Cake Kalk INK',38000,[7,7,6,7],0xf8fafc,0x111111,0xdddddd,0x111111,.35,.1,1.3,.22,.3,.55,.68,.1,0),
+B('Surron Ultra Bee HP',52000,[8,8,7,7],0x1f2937,0x22d3ee,0x22d3ee,0x111111,.38,.11,1.4,.26,.32,.6,.72,.14,1),
+B('Surron Storm Bee',70000,[9,9,7,9],0x0f172a,0xf59e0b,0xf59e0b,0x111111,.4,.12,1.5,.28,.34,.62,.76,.16,1),
+B('Stark VARG 80HP',100000,[10,10,8,10],0xdc2626,0x111111,0x666666,0x111111,.4,.12,1.5,.26,.34,.6,.76,.16,1)];
+const lv=i=>S.up[i]||(S.up[i]=[1,1,1,1]),eff=i=>BIKES[i].s.map((s,k)=>s+(lv(i)[k]-1)*.55),cost=(i,l)=>Math.round(100*l*l+BIKES[i].pr*.03*l);
+/* ---------- three setup ---------- */
+const cv=$('g'),R=new T.WebGLRenderer({canvas:cv,antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;
+const scene=new T.Scene();scene.fog=new T.Fog(0xbfdef2,90,230);
+const cam=new T.PerspectiveCamera(62,1,.1,2500);
+scene.add(new T.HemisphereLight(0xffffff,0x667755,1.0));
+const sun=new T.DirectionalLight(0xfff2d8,2.2);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);const sc=sun.shadow.camera;sc.left=sc.bottom=-45;sc.right=sc.top=45;sc.far=250;scene.add(sun,sun.target);
+const sky=new T.Mesh(new T.SphereGeometry(1000,16,12),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 p;void main(){float h=clamp(normalize(p).y,0.,1.);gl_FragColor=vec4(mix(vec3(.75,.87,.95),vec3(.18,.45,.85),pow(h,.55)),1.);}'}));scene.add(sky);
+const mat=(c,o={})=>new T.MeshStandardMaterial({color:c,roughness:.5,metalness:.3,...o});
+const bx=(w,h,l,m,x,y,z)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,l),m);o.position.set(x,y,z);return o};
+const tb=(a,b,r,m)=>{const A=new T.Vector3(...a),Bv=new T.Vector3(...b),o=new T.Mesh(new T.CylinderGeometry(r,r,A.distanceTo(Bv),8),m);o.position.copy(A).add(Bv).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),Bv.clone().sub(A).normalize());return o};
+/* ---------- bike model ---------- */
+function buildBike(d,shirt){
+const g=new T.Group(),P=new T.Group();g.add(P);
+const M=mat(d.c),A=mat(d.a),F=mat(d.f,{metalness:.9,roughness:.3}),K=mat(0x151515,{roughness:.9,metalness:0}),SM=mat(d.sc,{roughness:.8}),SH=mat(shirt,{metalness:0}),PN=mat(0x222244,{metalness:0});
+const wh=z=>{const w=new T.Group();w.position.z=z;const s=new T.Group();w.add(s);
+const t=new T.Mesh(new T.CylinderGeometry(d.wr,d.wr,d.tw,20),K);t.rotation.z=1.5708;s.add(t);
+const r=new T.Mesh(new T.CylinderGeometry(d.wr*.6,d.wr*.6,d.tw+.01,14),A);r.rotation.z=1.5708;s.add(r);
+s.add(bx(d.tw+.03,d.wr*1.5,.05,A,0,0,0));P.add(w);return s};
+const rw=wh(0),fw=wh(d.wb),wb=d.wb,y0=d.wr*.9,hy=d.wr*2+.18,hz=wb-.22,hby=hy+d.hb*.5+.06;
+P.add(bx(d.bw,d.bh,wb*.4,M,0,y0+.12,wb*.42));
+const mo=new T.Mesh(new T.CylinderGeometry(.11,.11,d.bw+.06,12),A);mo.rotation.z=1.5708;mo.position.set(0,y0-.08,wb*.3);P.add(mo);
+P.add(tb([0,0,0],[0,y0,wb*.35],.04,F));
+P.add(tb([0,y0+.2,wb*.55],[0,hy,hz],.05,M));
+P.add(tb([0,y0+.15,wb*.3],[0,d.sy,wb*.18],.04,M));
+P.add(bx(.2,.09,d.sl,SM,0,d.sy,wb*.18));
+[-.07,.07].forEach(sx=>P.add(tb([sx,0,wb],[sx,hy,hz],.03,F)));
+P.add(tb([-.32,hby,hz-.08],[.32,hby,hz-.08],.025,F));P.add(tb([0,hy,hz],[0,hby,hz-.08],.03,F));
+P.add(bx(.14,.03,.35,M,0,d.wr*(d.fh?1.75:1.2),wb+(d.fh?.1:0)));P.add(bx(.16,.03,.4,M,0,d.wr*1.2,-.18));
+const hl=new T.Mesh(new T.SphereGeometry(.07,10,8),new T.MeshBasicMaterial({color:0xffffee}));hl.position.set(0,hby-.06,hz+.08);P.add(hl);
+const tl=new T.Mesh(new T.BoxGeometry(.1,.05,.04),new T.MeshBasicMaterial({color:0xff2222}));tl.position.set(0,d.wr*1.2+.02,-.4);P.add(tl);
+const glow=new T.Mesh(new T.SphereGeometry(.16,10,8),new T.MeshBasicMaterial({color:0xa855f7,transparent:true,opacity:.8}));glow.position.set(0,y0-.08,wb*.3);glow.visible=false;P.add(glow);
+const Rd=new T.Group();P.add(Rd);
+Rd.add(tb([0,d.sy+.1,wb*.12],[0,d.sy+.62,wb*.38],.12,SH));
+const hd=new T.Mesh(new T.SphereGeometry(.13,12,10),mat(0xffffff));hd.position.set(0,d.sy+.82,wb*.45);Rd.add(hd);
+[-1,1].forEach(s=>{Rd.add(tb([s*.2,d.sy+.55,wb*.36],[s*.32,hby,hz-.08],.04,SH));Rd.add(tb([s*.14,d.sy+.1,wb*.12],[s*.22,y0-.1,wb*.32],.055,PN))});
+g.traverse(o=>{if(o.isMesh)o.castShadow=true});
+return{g,P,rw,fw,R:Rd,glow,wr:d.wr,wb,d};}
+function tag(txt,col){const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');x.font='bold 30px system-ui';x.textAlign='center';x.fillStyle='rgba(0,0,0,.5)';x.fillRect(0,8,256,48);x.fillStyle=col;x.fillText(txt,128,43);const s=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),depthTest:false}));s.scale.set(3,.75,1);s.position.y=2.4;s.renderOrder=9;return s}
+function pose(r,X,Y,Z,H,Ro,Pt,V,dt){r.g.position.set(X,Y+r.wr,Z);r.g.rotation.set(0,H,Ro);r.P.rotation.x=-Pt;const s=V*dt/r.wr;r.rw.rotation.x+=s;r.fw.rotation.x+=s}
+/* ---------- world ---------- */
+const S_=90,chunks=new Map(),rng=s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const gGeo=new T.PlaneGeometry(S_,S_).rotateX(-PI/2),rGeo=new T.PlaneGeometry(24,S_).rotateX(-PI/2),bGeo=new T.BoxGeometry(1,1,1).translate(0,.5,0);
+const GM=[0x5a5e66,0x5f9e4b,0xcaa56b,0x8f949c].map(c=>mat(c,{roughness:1,metalness:0}));
+const rt=(()=>{const c=document.createElement('canvas');c.width=64;c.height=512;const x=c.getContext('2d');x.fillStyle='#34373d';x.fillRect(0,0,64,512);x.fillStyle='#fff';x.fillRect(1,0,2,512);x.fillRect(61,0,2,512);x.fillStyle='#f5c518';x.fillRect(30,0,1.5,512);x.fillRect(33,0,1.5,512);x.fillStyle='#ddd';const u=51.2;for(let i=0;i<10;i++){const y=i*u+u/3;x.fillRect(15.5,y,1.5,u/3);x.fillRect(46,y,1.5,u/3)}const t=new T.CanvasTexture(c);t.anisotropy=4;return t})();
+const roadM=mat(0xffffff,{map:rt,roughness:.9,metalness:0}),swM=mat(0x9a9a9a,{roughness:1,metalness:0}),poleM=mat(0x444444),lampM=new T.MeshBasicMaterial({color:0xfff2b0});
+const BM=[0x8a94a6,0x6b7a90,0xa7b0c0,0x4b5563,0x9aa5b8].map(c=>mat(c,{roughness:.8})),HM=[0xf2e2c7,0xe8b4a0,0xb9d3e8,0xd9e8b9].map(c=>mat(c,{roughness:.9,metalness:0}));
+const roofM=mat(0x7a3b2e,{roughness:.9}),trM=mat(0x5b3a1e,{roughness:1,metalness:0}),lfM=mat(0x2f7d32,{roughness:1,metalness:0}),rkM=mat(0x8b7355,{roughness:1}),cacM=mat(0x3f8f3f,{roughness:1});
+const trGeo=new T.CylinderGeometry(.25,.3,2,6),cnGeo=new T.ConeGeometry(1.6,4,7),pGeo=new T.CylinderGeometry(.1,.1,7,6),lGeo=new T.SphereGeometry(.4,8,6),rkGeo=new T.DodecahedronGeometry(1),cacGeo=new T.CylinderGeometry(.35,.35,3,8),hrGeo=new T.ConeGeometry(5.6,2.5,4).rotateY(PI/4);
+const orbGeo=new T.CylinderGeometry(.55,.55,.14,16).rotateX(PI/2),orbM=mat(0xffd21f,{emissive:0xaa7700,metalness:.8,roughness:.3}),padGeo=new T.PlaneGeometry(4,8).rotateX(-PI/2),padM=new T.MeshBasicMaterial({color:0x66ddff});
+const RM=[0xd97706,0x9a7b4f,0x9ca3af,0xb45309].map(c=>mat(c,{roughness:.8}));
+function mkChunk(cx,cz){
+const r=rng((cx*73856093)^(cz*19349663)),g=new T.Group(),c={g,id:[cx,cz],ramps:[],cols:[],orbs:[],pads:[],dis:[]},ox=cx*S_,oz=cz*S_;g.position.set(ox,0,oz);
+const hw=cx===0,b=hw?r()*3|0:r()*4|0;
+const gm=new T.Mesh(gGeo,GM[b]);gm.receiveShadow=true;g.add(gm);
+const add=(m,x,y,z,cs)=>{m.position.set(x,y,z);if(cs)m.castShadow=true;m.receiveShadow=true;g.add(m);return m};
+const rp=ex=>{for(let i=0;i<25;i++){const x=(r()-.5)*84,z=(r()-.5)*84;if(!hw||Math.abs(x)>ex)return[x,z]}return[40,40]};
+const ramp=(x,z,ry,L,w,H,mi)=>{const sh=new T.Shape();sh.moveTo(0,0);sh.lineTo(L,0);sh.lineTo(L,H);sh.closePath();const geo=new T.ExtrudeGeometry(sh,{depth:w,bevelEnabled:false}).translate(-L/2,0,-w/2);c.dis.push(geo);const m=add(new T.Mesh(geo,RM[mi]),x,0,z,1);m.rotation.y=ry;c.ramps.push({x:ox+x,z:oz+z,L,w,H,co:Math.cos(ry),si:Math.sin(ry)})};
+const tree=(x,z)=>{add(new T.Mesh(trGeo,trM),x,1,z);add(new T.Mesh(cnGeo,lfM),x,3.6,z,1)};
+const col=(x,z,w,d)=>c.cols.push({x:ox+x,z:oz+z,hw:w/2+.4,hd:d/2+.4});
+if(hw){add(new T.Mesh(rGeo,roadM),0,.03,0).receiveShadow=true;
+[-13.5,13.5].forEach(x=>add(new T.Mesh(bGeo,swM),x,0,0).scale.set(3,.2,S_));
+[-30,0,30].forEach(z=>[-14.5,14.5].forEach(sx=>{add(new T.Mesh(pGeo,poleM),sx,3.5,z);add(new T.Mesh(lGeo,lampM),sx*.9,7.1,z)}));
+if(r()<.55)ramp((r()-.5)*14,(r()-.5)*70,r()<.5?-PI/2:PI/2,9,5,2.2,0);
+for(let i=0;i<7;i++){const o=new T.Mesh(orbGeo,orbM);const x=(r()*2-1)*9,z=-40+i*12;add(o,x,1.3,z);c.orbs.push({m:o,x:ox+x,z:oz+z,on:true})}
+if(r()<.4){const x=(r()<.5?-1:1)*5;add(new T.Mesh(padGeo,padM),x,.06,(r()-.5)*60);const q=g.children[g.children.length-1];c.pads.push({x:ox+x,z:oz+q.position.z})}}
+else{for(let i=0;i<5;i++){const[x,z]=rp(0),o=new T.Mesh(orbGeo,orbM);add(o,x,1.3,z);c.orbs.push({m:o,x:ox+x,z:oz+z,on:true})}}
+if(b===0)for(let i=0;i<9;i++){const[x,z]=rp(27),w=8+r()*8,d=8+r()*8,h=10+r()*38,m=new T.Mesh(bGeo,BM[r()*5|0]);m.scale.set(w,h,d);add(m,x,0,z,1);col(x,z,w,d)}
+if(b===1)for(let i=0;i<6;i++){const[x,z]=rp(24),m=new T.Mesh(bGeo,HM[r()*4|0]);m.scale.set(7,4,7);add(m,x,0,z,1);add(new T.Mesh(hrGeo,roofM),x,5.25,z,1);col(x,z,7,7)}
+if(b===2){for(let i=0;i<8;i++){const[x,z]=rp(17),m=new T.Mesh(rkGeo,rkM),s=.8+r()*2;m.scale.set(s,s*.7,s);add(m,x,s*.3,z,1)}
+for(let i=0;i<6;i++){const[x,z]=rp(17);add(new T.Mesh(cacGeo,cacM),x,1.5,z,1)}
+for(let i=0;i<2;i++){const[x,z]=rp(17);ramp(x,z,r()*6.28,9,5,2.2,1)}}
+if(b===3)for(let i=0;i<4;i++){const[x,z]=rp(0);ramp(x,z,r()*6.28,8+r()*5,5+r()*3,2+r()*1.8,2+(i&1))}
+if(b!==2)for(let i=0;i<7;i++){const[x,z]=rp(17);tree(x,z)}
+return c}
+function gH(x,z){let h=0;const a=Math.round(x/S_),b=Math.round(z/S_);gH.sl=0;gH.e=[0,0];
+for(let i=-1;i<2;i++)for(let j=-1;j<2;j++){const c=chunks.get((a+i)+','+(b+j));if(!c)continue;for(const q of c.ramps){const dx=x-q.x,dz=z-q.z,u=dx*q.co-dz*q.si,l=dx*q.si+dz*q.co;if(Math.abs(u)<q.L/2&&Math.abs(l)<q.w/2){const hh=(u+q.L/2)/q.L*q.H;if(hh>h){h=hh;gH.sl=q.H/q.L;gH.e=[q.co,-q.si]}}}}return h}
+function nbr(x,z,f){const a=Math.round(x/S_),b=Math.round(z/S_);for(let i=-1;i<2;i++)for(let j=-1;j<2;j++){const c=chunks.get((a+i)+','+(b+j));if(c)f(c)}}
+function loadChunks(x,z){const a=Math.round(x/S_),b=Math.round(z/S_);
+for(let i=-2;i<3;i++)for(let j=-2;j<3;j++){const k=(a+i)+','+(b+j);if(!chunks.has(k)){const c=mkChunk(a+i,b+j);chunks.set(k,c);scene.add(c.g)}}
+for(const[k,c]of chunks)if(Math.abs(c.id[0]-a)>3||Math.abs(c.id[1]-b)>3){scene.remove(c.g);c.dis.forEach(q=>q.dispose());chunks.delete(k)}}
+/* ---------- particles ---------- */
+const NP=260,pp=new Float32Array(NP*3),pc=new Float32Array(NP*3),pq=[],pg=new T.BufferGeometry();
+for(let i=0;i<NP;i++){pp[i*3+1]=-999;pq.push({l:0,v:[0,0,0],g:0})}
+pg.setAttribute('position',new T.BufferAttribute(pp,3));pg.setAttribute('color',new T.BufferAttribute(pc,3));
+const pts=new T.Points(pg,new T.PointsMaterial({size:.25,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending}));pts.frustumCulled=false;scene.add(pts);
+let pi=0;const emit=(p3,vx,vy,vz,l,r,g,b,gr)=>{const i=pi++%NP,q=pq[i];pp.set([p3.x,p3.y,p3.z],i*3);pc.set([r,g,b],i*3);q.l=l;q.v=[vx,vy,vz];q.g=gr};
+const stepP=dt=>{for(let i=0;i<NP;i++){const q=pq[i];if(q.l>0){q.l-=dt;q.v[1]-=q.g*dt;pp[i*3]+=q.v[0]*dt;pp[i*3+1]+=q.v[1]*dt;pp[i*3+2]+=q.v[2]*dt;if(q.l<=0)pp[i*3+1]=-999}}pg.attributes.position.needsUpdate=true;pg.attributes.color.needsUpdate=true};
+/* ---------- audio ---------- */
+let AC,mg,mo1,mo2,mgn,ng={},muted=false;
+function ainit(){if(AC){AC.resume();return}try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return}
+mg=AC.createGain();mg.gain.value=muted?0:.5;mg.connect(AC.destination);
+mo1=AC.createOscillator();mo1.type='sawtooth';mo2=AC.createOscillator();mo2.type='sine';const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=1600;mgn=AC.createGain();mgn.gain.value=0;
+mo1.connect(f);mo2.connect(f);f.connect(mgn);mgn.connect(mg);mo1.start();mo2.start();
+const nb=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+const ns=(t,fr,q)=>{const s=AC.createBufferSource();s.buffer=nb;s.loop=true;const fl=AC.createBiquadFilter();fl.type=t;fl.frequency.value=fr;fl.Q.value=q;const g=AC.createGain();g.gain.value=0;s.connect(fl);fl.connect(g);g.connect(mg);s.start();return g};
+ng.scr=ns('bandpass',1700,3);ng.spk=ns('highpass',5000,1);ng.bst=ns('bandpass',600,.6)}
+addEventListener('pointerdown',ainit);addEventListener('keydown',ainit);
+$('bm').onclick=()=>{muted=!muted;$('bm').textContent=muted?'🔇':'🔊';if(mg)mg.gain.value=muted?0:.5};
+/* ---------- input ---------- */
+const keys={};addEventListener('keydown',e=>{keys[e.code]=1;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(e.code==='KeyG')tg(!gOpen);if(e.code==='Escape'&&gOpen)tg(false)});
+addEventListener('keyup',e=>keys[e.code]=0);addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
+document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{keys[k]=1;e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0))});
+/* ---------- state ---------- */
+const MYC=new T.Color().setHSL(Math.random(),.8,.5).getHex();
+let me=buildBike(BIKES[S.eq],MYC);scene.add(me.g);
+let x=0,y=0,z=0,h=0,v=0,p=0,pw=0,vy=0,air=false,wreck=0,boostE=100,boosting=false,zt=0,wt=0,cb=1,pad=0,airT=0,roll=0,pend=0,pt=0,lastGH=0,lastRd=0,tt=0,units=0,svT=0,gOpen=false,gi=S.eq,ga=0,netT=0,camInit=true;
+const earn=a=>{S.cash+=a;pend+=a};
+function pop(t,col){const d=document.createElement('div');d.className='pp';d.textContent=t;d.style.color=col||'#4ade80';d.style.marginLeft=((Math.random()-.5)*200-50)+'px';$('pop').appendChild(d);setTimeout(()=>d.remove(),1450)}
+/* ---------- multiplayer ---------- */
+const ROOM='ebikelife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),NAME='Rider'+(100+Math.random()*900|0),rem=new Map();let cli=null,online=false;
+try{cli=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'ebl_'+ID,reconnectPeriod:4000,connectTimeout:8000});
+cli.on('connect',()=>{online=true;cli.subscribe(ROOM+'/s')});cli.on('close',()=>online=false);cli.on('error',()=>{});
+cli.on('message',(t,m)=>{try{const d=JSON.parse(m.toString());if(d.i===ID||!BIKES[d.b])return;let r=rem.get(d.i);
+if(!r){r={rig:null,b:-1,x:d.x,y:d.y,z:d.z,h:d.h,p:d.p,r:d.r,v:0,col:'#'+(d.c>>>0).toString(16).padStart(6,'0')};r.tag=tag(d.n,'#fff');rem.set(d.i,r)}
+if(r.b!==d.b){if(r.rig)scene.remove(r.rig.g);r.rig=buildBike(BIKES[d.b],d.c);r.rig.g.add(r.tag);scene.add(r.rig.g);r.b=d.b}
+Object.assign(r,{tx:d.x,ty:d.y,tz:d.z,th:d.h,tp:d.p,tr:d.r,tv:d.v,n:d.n,seen:performance.now()})}catch(e){}})}catch(e){}
+const ghosts=[];for(let i=0;i<4;i++){const rig=buildBike(BIKES[(Math.random()*12)|0],new T.Color().setHSL(Math.random(),.7,.5).getHex());rig.g.add(tag('Ghost '+(i+1),'#bbb'));scene.add(rig.g);ghosts.push({rig,x:(i-1.5)*5,z:(Math.random()-.5)*300,dir:i%2?1:-1,sp:16+Math.random()*10,ph:Math.random()*6,v:0,p:0,h:0})}
+/* ---------- garage ---------- */
+const G=$('gar'),SN=['Motor Power','Torque','Balance','Boost'];
+function setBike(i){scene.remove(me.g);me=buildBike(BIKES[i],MYC);scene.add(me.g)}
+function vo(){if(gOpen&&innerWidth>700)cam.setViewOffset(innerWidth,innerHeight,-innerWidth*.2,0,innerWidth,innerHeight);else cam.clearViewOffset();cam.updateProjectionMatrix()}
+function tg(o){gOpen=o;G.style.display=o?'block':'none';if(o){gi=S.eq;rg();v=0;p=0;pw=0;air=false;vy=0;y=gH(x,z)}else if(gi!==S.eq)setBike(S.eq);vo()}
+function rg(){let t=`<h2>GARAGE <span>$${Math.floor(S.cash).toLocaleString()}</span><button data-a="close">✕</button></h2><div class="grid">`;
+BIKES.forEach((b,i)=>{t+=`<div class="card${i===gi?' sel':''}" data-a="pv" data-i="${i}"><b>${b.n}</b><small>${S.own.includes(i)?(i===S.eq?'EQUIPPED':'OWNED'):'$'+b.pr.toLocaleString()}</small>${b.s.map(q=>`<div class="bar"><i style="width:${q*10}%"></i></div>`).join('')}</div>`});
+const b=BIKES[gi],own=S.own.includes(gi),e=eff(gi),L=lv(gi);t+=`</div><h3>${b.n}</h3>`;
+t+=own?(gi===S.eq?'':'<button class="big" data-a="eq">EQUIP</button>'):`<button class="big" data-a="buy" ${S.cash<b.pr?'disabled':''}>BUY $${b.pr.toLocaleString()}</button>`;
+SN.forEach((n,k)=>{const l=L[k];t+=`<div class="row"><span>${n}</span><div class="bar"><i style="width:${Math.min(100,e[k]*7.5)}%"></i></div><em>Lv ${l}</em>${own&&l<10?`<button data-a="up" data-k="${k}" ${S.cash<cost(gi,l)?'disabled':''}>$${cost(gi,l).toLocaleString()}</button>`:`<button disabled>${l>=10?'MAX':'—'}</button>`}</div>`});
+G.innerHTML=t}
+G.onclick=e=>{const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const a=t.dataset.a;
+if(a==='close'){tg(false);return}
+if(a==='pv'){gi=+t.dataset.i;setBike(gi)}
+else if(a==='eq'){S.eq=gi}
+else if(a==='buy'){const pr=BIKES[gi].pr;if(S.cash>=pr){S.cash-=pr;S.own.push(gi);S.eq=gi}}
+else if(a==='up'){const k=+t.dataset.k,l=lv(gi)[k],c=cost(gi,l);if(l<10&&S.cash>=c){S.cash-=c;lv(gi)[k]++}}
+save();rg()};
+$('bg').onclick=()=>tg(!gOpen);$('sp').onclick=()=>units^=1;
+setTimeout(()=>$('help').remove(),15000);
+/* ---------- HUD draw ---------- */
+const mm=$('mm'),mx=mm.getContext('2d'),wm=$('wm'),wx=wm.getContext('2d');
+function drawMM(){const k=1.5,sh=Math.sin(h),ch=Math.cos(h),P=(wx_,wz)=>{const dx=wx_-x,dz=wz-z;return[150+(-dx*ch+dz*sh)*k,150-(dx*sh+dz*ch)*k]};
+mx.fillStyle='#3d5a3a';mx.fillRect(0,0,300,300);mx.fillStyle='#50545c';mx.beginPath();[[-12,-200],[12,-200],[12,200],[-12,200]].forEach(([a,b],i)=>{const q=P(a,z+b);i?mx.lineTo(q[0],q[1]):mx.moveTo(q[0],q[1])});mx.fill();
+nbr(x,z,c=>{mx.fillStyle='#8d96a5';c.cols.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)});mx.fillStyle='#fbbf24';c.ramps.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)});mx.fillStyle='#4ade80';c.orbs.forEach(q=>{if(q.on){const s=P(q.x,q.z);mx.fillRect(s[0]-1.5,s[1]-1.5,3,3)}})});
+mx.font='bold 18px system-ui';mx.textAlign='center';
+const dot=(X,Z,col,n)=>{const s=P(X,Z);if(s[0]<-10||s[0]>310||s[1]<-10||s[1]>310)return;mx.fillStyle=col;mx.beginPath();mx.arc(s[0],s[1],7,0,7);mx.fill();mx.strokeStyle='#000';mx.lineWidth=2;mx.stroke();mx.fillStyle='#fff';mx.strokeText(n,s[0],s[1]-11);mx.fillText(n,s[0],s[1]-11)};
+for(const r of rem.values())dot(r.x,r.z,r.col,r.n||'');
+if(!rem.size&&Math.abs(x)<150)ghosts.forEach((q,i)=>dot(q.x,q.z,'#999','Ghost '+(i+1)));
+mx.fillStyle='#fff';mx.strokeStyle='#000';mx.beginPath();mx.moveTo(150,134);mx.lineTo(160,160);mx.lineTo(150,154);mx.lineTo(140,160);mx.closePath();mx.fill();mx.stroke()}
+function drawWM(zw){if(p<.04){wm.style.opacity=0;return}wm.style.opacity=1;wx.clearRect(0,0,240,130);const a=q=>PI+q/1.6*PI,arc=(q0,q1,c)=>{wx.beginPath();wx.strokeStyle=c;wx.lineWidth=14;wx.arc(120,120,90,a(q0),a(q1));wx.stroke()};
+arc(0,1.6,'rgba(255,255,255,.25)');arc(.8-zw,.8+zw,'#22c55e');arc(1.22,1.6,'#ef4444');wx.strokeStyle='#fff';wx.lineWidth=4;wx.beginPath();wx.moveTo(120,120);wx.lineTo(120+Math.cos(a(Math.min(p,1.6)))*82,120+Math.sin(a(Math.min(p,1.6)))*82);wx.stroke()}
+/* ---------- main loop ---------- */
+function resize(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;vo()}addEventListener('resize',resize);resize();
+loadChunks(0,0);let last=performance.now();const tv=new T.Vector3();
+function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;tt+=dt;
+const k=c=>keys[c],thr=k('KeyW')||k('ArrowUp')?1:0,br=k('KeyS')||k('ArrowDown')?1:0,st=((k('KeyD')||k('ArrowRight'))?1:0)-((k('KeyA')||k('ArrowLeft'))?1:0),pull=k('Space')||k('ShiftLeft')||k('ShiftRight')?1:0,bo=k('KeyE')||k('KeyF');
+const E=eff(S.eq),zw=.1+.012*E[2];let sparks=0,skid=0;
+if(gOpen){ga+=dt*.5;y=gH(x,z);boosting=false}
+else if(wreck>0){wreck-=dt;v*=Math.exp(-2*dt);x+=Math.sin(h)*v*dt;z+=Math.cos(h)*v*dt;if(wreck<=0){wreck=0;v=0;p=0;pw=0;air=false;vy=0;y=gH(x,z);camInit=true}}
+else{
+boosting=!!bo&&boostE>1;
+if(boosting){boostE=Math.max(0,boostE-dt*30/(.6+E[3]*.14));earn(dt*6)}else boostE=Math.min(100,boostE+dt*(5+E[3]*1.4));
+if(pad>0)pad-=dt;
+const vmax=(16+E[0]*2.6)*(boosting?1.28:1)*(pad>0?1.2:1);
+if(thr)v+=(4+E[1]*1.1)*(1-Math.max(0,v)/vmax)*dt*1.6;
+if(boosting)v+=(8+E[3]*1.3)*dt*(1-v/(vmax*1.1));
+if(pad>0)v+=14*dt;
+if(v>vmax)v-=(v-vmax)*1.2*dt;
+v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br)v=0;
+if(br){if(v>.2){v-=16*dt;skid=v>6&&!air?1:0}else v=Math.max(-5,v-5*dt)}
+const lift=Math.min(1,Math.abs(v)/5),wh=p>.1?1:0;
+const a=(thr*(1.2+E[1]*.22)+pull*2.6+(boosting?.8:0))*lift-3.2*p-1.6*pw-br*7*(p>0?1:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
+pw+=a*dt;p+=pw*dt;if(p<0){p=0;pw=Math.max(0,pw)}
+earn(dt*Math.max(0,v)*.12);
+if(p>.15){wt+=dt;if(Math.abs(p-.8)<zw)zt+=dt;else zt=Math.max(0,zt-dt*1.5);cb=Math.min(10,1+zt*.9);earn(dt*(6+6*p)*Math.floor(cb));if(p>1.22){sparks=1;earn(dt*30*Math.floor(cb))}}else{wt=0;zt=0;cb=1}
+if(p>1.45){wreck=1.7;wt=0;zt=0;cb=1;pop('WIPEOUT!','#f43f5e')}
+h-=st*(1.9/(1+Math.abs(v)*.04))*(p>.2?.55+.05*E[2]:1)*Math.min(1,Math.abs(v)/3)*(v<0?-1:1)*dt;
+roll+=(st*.4*Math.min(1,Math.abs(v)/10)-roll)*Math.min(1,8*dt);
+x+=Math.sin(h)*v*dt;z+=Math.cos(h)*v*dt;
+nbr(x,z,c=>{for(const q of c.cols)if(Math.abs(x-q.x)<q.hw&&Math.abs(z-q.z)<q.hd){const px=q.hw-Math.abs(x-q.x),pz=q.hd-Math.abs(z-q.z);if(px<pz)x+=Math.sign(x-q.x||1)*px;else z+=Math.sign(z-q.z||1)*pz;v*=.4}});
+const gh=gH(x,z),rd=gH.sl*(Math.sin(h)*gH.e[0]+Math.cos(h)*gH.e[1]);
+if(air){vy-=22*dt;y+=vy*dt;airT+=dt;if(y<=gh){y=gh;air=false;if(airT>.6){const b=Math.floor(airT*60);earn(b);pop('AIR TIME +$'+b,'#38bdf8')}airT=0;vy=0}else if(y-gh>1)earn(dt*20)}
+else{if(lastGH>gh+.25&&v>3){air=true;vy=Math.max(0,lastRd*v);y=lastGH}else y=gh}
+lastGH=gh;lastRd=rd;
+nbr(x,z,c=>{for(const o of c.orbs)if(o.on){o.m.rotation.y+=dt*2;o.m.position.y=1.3+Math.sin(tt*3+o.x)*.15;const dx=x-o.x,dz=z-o.z;if(dx*dx+dz*dz<4&&Math.abs(y+.8-o.m.position.y)<3){o.on=false;o.m.visible=false;earn(50)}}
+for(const q of c.pads)if(pad<.5&&Math.abs(x-q.x)<2.4&&Math.abs(z-q.z)<4.8&&!air){pad=1.5;boostE=Math.min(100,boostE+30);earn(25);pop('BOOST PAD!','#a78bfa')}});
+if(wreck>0){/* wipeout just began */}
+}
+/* chunks & sun & sky */
+const pcx=Math.round(x/S_),pcz=Math.round(z/S_);if(loadChunks.k!==pcx+','+pcz){loadChunks.k=pcx+','+pcz;loadChunks(x,z)}
+sun.position.set(x+60,90,z+40);sun.target.position.set(x,0,z);
+/* rig pose */
+pose(me,x,y,z,h,roll,p,v,dt);
+if(wreck>0){const t=1.7-wreck;me.P.rotation.x=-p-t*5;me.R.position.set(.6*t,Math.max(-.3,3*t-5*t*t),-3*t);me.R.rotation.x=-t*8}else{me.R.position.set(0,0,0);me.R.rotation.x=0}
+me.glow.visible=boosting||pad>0;if(me.glow.visible)me.glow.scale.setScalar(1+Math.sin(tt*40)*.25);
+me.g.updateMatrixWorld(true);
+if(sparks){tv.set(0,.1,-.55);me.P.localToWorld(tv);for(let i=0;i<4;i++)emit(tv,-Math.sin(h)*v*.3+(Math.random()-.5)*3,Math.random()*3+1,-Math.cos(h)*v*.3+(Math.random()-.5)*3,.5,1,.6+Math.random()*.3,.1,9)}
+if(boosting||pad>0){tv.set(0,.3,-.3);me.P.localToWorld(tv);for(let i=0;i<3;i++)emit(tv,-Math.sin(h)*8+(Math.random()-.5)*1.5,Math.random()*.6,-Math.cos(h)*8+(Math.random()-.5)*1.5,.45,.5+Math.random()*.3,.3,1,0)}
+stepP(dt);
+/* camera */
+if(gOpen){cam.position.set(x+Math.cos(ga)*4.2,y+1.6,z+Math.sin(ga)*4.2);cam.lookAt(x,y+.7,z);cam.fov=45}
+else{const cd=7+Math.abs(v)*.04,tx=x-Math.sin(h)*cd,tz=z-Math.cos(h)*cd,ty=y+3+p*.6;
+if(camInit){cam.position.set(tx,ty,tz);camInit=false}else{const kk=1-Math.exp(-6*dt);cam.position.x+=(tx-cam.position.x)*kk;cam.position.y+=(ty-cam.position.y)*kk;cam.position.z+=(tz-cam.position.z)*kk}
+cam.lookAt(x+Math.sin(h)*4,y+1.2+p*1.2,z+Math.cos(h)*4);
+const tf=62+Math.min(14,Math.abs(v)*.25)+(boosting?10:0);cam.fov+=(tf-cam.fov)*Math.min(1,5*dt)}
+cam.updateProjectionMatrix();sky.position.copy(cam.position);
+/* ghosts */
+const showG=!rem.size&&Math.abs(x)<150;
+ghosts.forEach(q=>{q.rig.g.visible=showG;if(!showG)return;q.z+=q.dir*q.sp*dt;q.x=(ghosts.indexOf(q)-1.5)*5+Math.sin(tt*.5+q.ph)*3;q.h=q.dir>0?0:PI;q.v=q.sp;q.p=Math.max(0,.8+.25*Math.sin(tt*.9+q.ph));
+if(Math.abs(q.z-z)>260)q.z=z-q.dir*240;const gy=gH(q.x,q.z);pose(q.rig,q.x,gy,q.z,q.h,0,q.p,q.v,dt)});
+/* remotes */
+const kk=1-Math.exp(-12*dt),nowt=performance.now();
+for(const[id,r]of rem){if(nowt-r.seen>4000){if(r.rig)scene.remove(r.rig.g);rem.delete(id);continue}
+r.x+=(r.tx-r.x)*kk;r.y+=(r.ty-r.y)*kk;r.z+=(r.tz-r.z)*kk;r.p+=(r.tp-r.p)*kk;r.r+=(r.tr-r.r)*kk;r.v=r.tv;let d=r.th-r.h;d=Math.atan2(Math.sin(d),Math.cos(d));r.h+=d*kk;pose(r.rig,r.x,r.y,r.z,r.h,r.r,r.p,r.v,dt)}
+/* network send */
+if(cli&&online&&now-netT>100){netT=now;try{cli.publish(ROOM+'/s',JSON.stringify({i:ID,n:NAME,x:+x.toFixed(2),y:+y.toFixed(2),z:+z.toFixed(2),h:+h.toFixed(3),p:+p.toFixed(3),r:+roll.toFixed(3),v:+v.toFixed(1),b:S.eq,c:MYC}),{qos:0})}catch(e){}}
+/* audio */
+if(AC){const t=AC.currentTime,sp=Math.abs(v),bs=boosting?1:0;mo1.frequency.setTargetAtTime(55+sp*6+bs*40,t,.05);mo2.frequency.setTargetAtTime(300+sp*26+bs*200,t,.05);
+mgn.gain.setTargetAtTime(gOpen?.02:.04+.07*thr+Math.min(.04,sp*.001),t,.05);ng.scr.gain.setTargetAtTime(skid?.25:0,t,.05);ng.spk.gain.setTargetAtTime(sparks?.18:0,t,.03);ng.bst.gain.setTargetAtTime(bs?.22:0,t,.1)}
+/* HUD */
+if(S.cash!==undefined){$('cash').textContent='$'+Math.floor(S.cash).toLocaleString()}
+$('combo').textContent=p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(wreck>0?'WIPEOUT!':'');
+$('sp').innerHTML=Math.round(Math.abs(v)*(units?3.6:2.237))+` <small>${units?'KM/H':'MPH'}</small>`;
+$('bb').style.width=boostE+'%';
+$('net').textContent=online?`Connected: ${1+rem.size} Rider${rem.size?'s':''} Online${rem.size?'':' · AI ghosts riding'}`:'Offline · AI Ghost Riders';
+$('sl').style.opacity=boosting?.9:Math.max(0,Math.min(.5,(Math.abs(v)-32)/40));
+pt+=dt;if(pt>.7){pt=0;if(pend>=1){pop('+$'+Math.floor(pend));pend=0}}
+svT+=dt;if(svT>3){svT=0;save();if(gOpen)rg()}
+drawMM();drawWM(zw);
+R.render(scene,cam)}
+addEventListener('beforeunload',save);document.addEventListener('visibilitychange',save);
+requestAnimationFrame(loop);
+</script></body></html>
