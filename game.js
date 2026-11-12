@@ -707,7 +707,7 @@ function updateHud(multiplier) {
   $("distance").textContent = state.distance.toFixed(1);
   $("run-cash").textContent = formatNumber(getRunPayout());
   $("angle-readout").textContent = `${Math.round(THREE.MathUtils.radToDeg(state.pitch))}°`;
-  $("multiplier").innerHTML = `${multiplier.toFixed(1)}<span>×</span>`;
+  $("multiplier").innerHTML = state.trick ? `${state.trick.toUpperCase()} · ${multiplier.toFixed(1)}<span>×</span>` : `${multiplier.toFixed(1)}<span>×</span>`;
   const balancePosition = THREE.MathUtils.clamp(state.pitch / (Math.PI / 2) * 100, 0, 100);
   $("balance-needle").style.left = `${balancePosition}%`;
   const hint = $("balance-hint");
