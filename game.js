@@ -9,6 +9,7 @@ const TRICKS = [
   { id: "tailwhip", name: "TAILWHIP", key: "F", points: 1.45 },
   { id: "cancan", name: "CAN-CAN", key: "C", points: 1.2 },
   { id: "nacnac", name: "NAC-NAC", key: "V", points: 1.25 },
+  { id: "stoppie", name: "STOPPIE", key: "B", points: 1.35 },
 ];
 const TRICK_DURATION = 1.05;
 const BIKE_CATALOG = [
@@ -16,6 +17,8 @@ const BIKE_CATALOG = [
   { id: "kukirin", name: "Kukirin G2 Max / G4", subtitle: "URBAN ALL-ROUNDER", price: 500, speed: 0.77, torque: 0.56, brake: 0.57, weight: 0.79, payout: 1.12, color: 0xd98945, description: "Heavy metal and a lot of top end. The eager throttle needs a steady hand." },
   { id: "surron", name: "Sur-Ron Light Bee X", subtitle: "LIGHTWEIGHT DIRT MACHINE", price: 1500, speed: 0.79, torque: 0.84, brake: 0.86, weight: 0.37, payout: 1.3, color: 0xaceb65, description: "A lightweight frame with punchy lift and a rear brake that answers instantly." },
   { id: "talaria", name: "Talaria Sting R / Ultra Bee", subtitle: "THE TOP-SHELF BUILD", price: 4000, speed: 1, torque: 0.98, brake: 0.91, weight: 0.48, payout: 1.75, color: 0xc97455, description: "Maximum acceleration, a razor-thin balance window, and a payout to match." },
+  { id: "strom", name: "Strom RC e+", subtitle: "ALL-TERRAIN CRUISER", price: 6200, speed: 0.72, torque: 0.82, brake: 0.82, weight: 0.52, payout: 1.45, color: 0xb5653a, description: "Bolt-on suspension and a torquey hub motor for fire-road flirting." },
+  { id: "veloretti", name: "Veloretti Supervelo", subtitle: "CITY GRINDER", price: 2800, speed: 0.72, torque: 0.7, brake: 0.75, weight: 0.6, payout: 1.35, color: 0x5aa0c9, description: "Featherweight city frame with a whisper-quiet hub motor and quick steering." },
 ];
 const STAT_LABELS = [["speed", "TOP SPEED"], ["torque", "TORQUE"], ["brake", "BRAKE"], ["weight", "BATTERY / WEIGHT"]];
 const UPGRADE_LABELS = { torque: "LIFT MOTOR", brake: "REAR BRAKE", speed: "BATTERY PACK" };
@@ -715,7 +718,9 @@ function updateHud(multiplier) {
 function tryTrick(trick) {
   if (!state.running || state.paused) return;
   if (state.trick || state.trickCooldown > 0) { toast("TRICK IN PROGRESS · STICK THE LANDING"); return; }
-  if (!state.wheelie || state.pitch < 0.16 || state.speed < 0.18) { toast("HOLD SHIFT TO WHEELIE BEFORE TRICKING"); return; }
+  const lifted = state.wheelie || state.brake;
+  const minPitch = state.brake ? 0 : 0.16;
+  if (!lifted || state.pitch < minPitch || state.speed < 0.18) { toast("HOLD SHIFT TO WHEELIE BEFORE TRICKING"); return; }
   state.trick = trick;
   state.trickTime = 0;
   state.trickCooldown = 1.35;
@@ -748,7 +753,7 @@ function animate() {
       if (state.trickTime >= TRICK_DURATION) {
         const trickData = TRICKS.find((item) => item.id === state.trick);
         const trickPoints = Math.round((45 + state.speed * 85) * (trickData?.points ?? 1));
-        if (state.wheelie && state.pitch > 0.14) {
+        if (state.pitch > 0.14) {
           state.score += trickPoints;
           toast(`${trickData?.name ?? "TRICK"} · +${trickPoints} POINTS`);
         } else {
@@ -797,7 +802,9 @@ function animate() {
           : activeTrick === "nacnac" && index === 1 ? trickPose * 1.2 : 0;
     });
     rider.userData.riderModel.rotation.z = activeTrick === "nohander" ? -trickPose * 0.12
-      : activeTrick === "superman" ? trickPose * 0.12 : 0;
+      : activeTrick === "superman" ? trickPose * 0.12
+      : activeTrick === "stoppie" ? trickPose * 0.45
+      : 0;
     const targetX = state.x - 6.5 - state.speed * 1.6;
     const targetY = 2.55 + state.speed * 0.45 + Math.max(0, state.pitch) * 0.65;
     const smoothing = 1 - Math.exp(-dt * 3.8);
