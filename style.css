@@ -28,6 +28,7 @@ button{font:inherit}
 .ride-hud.visible{opacity:1;transform:translateY(0)}
 .eyebrow{display:block;color:var(--muted);font-family:"DM Mono",monospace;font-size:9px;letter-spacing:1.7px}
 .speed-value,.distance-value{display:flex;align-items:baseline;gap:6px;margin-top:3px;font-family:"Barlow Condensed",sans-serif;font-size:43px;font-weight:700;line-height:1}
+#speed{cursor:pointer}
 .speed-unit,.distance-unit{font-family:"DM Mono",monospace;color:var(--muted);font-size:9px;letter-spacing:1px}
 .angle-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .angle-head #angle-readout{font-family:"DM Mono",monospace;font-size:12px}

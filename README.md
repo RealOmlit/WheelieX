@@ -18,6 +18,7 @@ Open [http://localhost:8000](http://localhost:8000). Three.js and the optional F
 - Steer with **A/D** or **Left/Right**. Hold **Shift** to lift and balance a wheelie.
 - While wheelieing, press **Q** for a no-hander, **E** for a barspin, **R** for a superman, **F** for a tailwhip, **C** for a can-can, or **V** for a nac-nac. Keep the front wheel up through the trick to score it.
 - Press **B** for a stoppie — a rear-brake front lift. Hold the brake through the trick to score it.
+- Tap the speed readout to toggle kilometres per hour and miles per hour.
 - Touch controls include throttle, brake, steering, wheelie, and a trick selector.
 - Press **Esc** to pause or resume.
 - Stay near the balance gauge's sweet spot to increase your payout. Land the front wheel to bank the ride automatically, or use **BANK RUN** to cash out early. Looping out ends the ride but still banks earned cash.

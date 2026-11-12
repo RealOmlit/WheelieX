@@ -702,8 +702,10 @@ function endRide(message) {
   if (audioGain && audioContext) audioGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.08);
 }
 
+let units = false;
 function updateHud(multiplier) {
-  $("speed").textContent = String(Math.round(state.speed * 95));
+  $("speed").textContent = String(Math.round(state.speed * worldSpeed * (units ? 1.60934 : 3.6)));
+  $("speed-unit").textContent = units ? "MPH" : "KM/H";
   $("distance").textContent = state.distance.toFixed(1);
   $("run-cash").textContent = formatNumber(getRunPayout());
   $("angle-readout").textContent = `${Math.round(THREE.MathUtils.radToDeg(state.pitch))}°`;
@@ -714,6 +716,11 @@ function updateHud(multiplier) {
   hint.textContent = multiplier >= 1.8 ? "✳ SWEET SPOT ✳" : state.pitch > 1.15 ? "EASE IT DOWN" : state.pitch < 0.2 ? "LIFT THE FRONT" : "HOLD YOUR LINE";
   hint.style.color = multiplier >= 1.8 ? "#c0f56a" : state.pitch > 1.15 ? "#ffb095" : "";
 }
+$("speed").onclick = () => {
+  units = !units;
+  $("speed").textContent = String(Math.round(state.speed * worldSpeed * (units ? 1.60934 : 3.6)));
+  $("speed-unit").textContent = units ? "MPH" : "KM/H";
+};
 
 function tryTrick(trick) {
   if (!state.running || state.paused) return;
