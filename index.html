@@ -17,7 +17,6 @@
         }
       }
     </script>
-    <script type="module" src="./game.js"></script>
   </head>
   <body>
     <main id="game" aria-label="WheelieX game">
@@ -94,11 +93,59 @@
       <div class="loading-screen" id="loading-screen" role="status" aria-live="polite">
         <div class="loading-inner">
           <span class="loading-mark">W<span>/</span>X</span>
-          <span class="loading-label">LOADING THE STREETS</span>
+          <span class="loading-label" id="loading-label">LOADING THE STREETS</span>
           <div class="loading-track"><span id="loading-fill"></span></div>
-          <span class="loading-percent" id="loading-percent">0%</span>
+          <span class="loading-percent" id="loading-percent">INITIALIZING 3D ENGINE</span>
+          <span class="loading-error hidden" id="loading-error" role="alert"></span>
+          <button class="loading-retry hidden" id="loading-retry" type="button">RELOAD GAME ↻</button>
         </div>
       </div>
     </main>
+    <script type="module" src="./game.js" id="game-module"></script>
+    <script>
+      (() => {
+        const screen = document.getElementById("loading-screen");
+        const fill = document.getElementById("loading-fill");
+        const percent = document.getElementById("loading-percent");
+        const label = document.getElementById("loading-label");
+        const error = document.getElementById("loading-error");
+        const retry = document.getElementById("loading-retry");
+        const gameModule = document.getElementById("game-module");
+        let finished = false;
+
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          fill.classList.add("complete");
+          fill.style.width = "100%";
+          percent.textContent = "READY";
+          screen.classList.add("done");
+          window.setTimeout(() => screen.classList.add("hidden"), 500);
+        };
+        const fail = (message) => {
+          if (finished) return;
+          finished = true;
+          screen.classList.add("failed");
+          label.textContent = "THE STREETS DIDN'T LOAD";
+          percent.textContent = "STARTUP ERROR";
+          error.textContent = message || "Check your connection and try again.";
+          error.classList.remove("hidden");
+          retry.classList.remove("hidden");
+        };
+
+        retry.addEventListener("click", () => window.location.reload());
+        window.WheelieXLoading = { finish, fail };
+        gameModule.addEventListener("error", () => {
+          fail("The game engine could not be loaded. Check your internet connection and reload.");
+        });
+        window.addEventListener("error", (event) => {
+          if (event.target !== window || finished) return;
+          fail(event.message || "Game startup failed. Check your connection and reload.");
+        });
+        window.addEventListener("unhandledrejection", () => {
+          if (!finished) fail("Game startup failed. Check your connection and reload.");
+        });
+      })();
+    </script>
   </body>
 </html>

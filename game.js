@@ -216,6 +216,7 @@ const buildingMaterials = [0x78877d, 0xa59a84, 0x778588, 0xc1aa88, 0x7d8479, 0x9
 const windowMat = new THREE.MeshStandardMaterial({ color: 0x293d3b, roughness: 0.62, emissive: 0x202c27, emissiveIntensity: 0.12 });
 const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x594a38, roughness: 1 });
 const foliageMats = [0x516f50, 0x697b53, 0x79825c].map((color) => new THREE.MeshStandardMaterial({ color, roughness: 1 }));
+const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x313a36, metalness: 0.38, roughness: 0.5 });
 const crossStreetXs = [-300, -180, -60, 60, 180, 300];
 for (let x = -385, i = 0; x <= 410; x += 27, i++) {
   for (const side of [-1, 1]) {
@@ -325,7 +326,6 @@ connectorRoad.receiveShadow = true;
 scene.add(connectorRoad);
 
 const streetLights = [];
-const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x313a36, metalness: 0.38, roughness: 0.5 });
 const bulbMaterial = new THREE.MeshStandardMaterial({ color: 0xe8edbd, emissive: 0xd2db8a, emissiveIntensity: 1.5 });
 for (let x = -405; x <= 420; x += 30) {
   for (const side of [-1, 1]) {
@@ -990,44 +990,7 @@ onResize();
 animate();
 refreshCash();
 refreshSideBikeLabel();
-function runLoadingSequence() {
-  const screen = $("loading-screen");
-  const fill = $("loading-fill");
-  const percent = $("loading-percent");
-  if (!screen || !fill || !percent) return;
-
-  let done = false;
-  const finishLoading = () => {
-    if (done) return;
-    done = true;
-    fill.style.width = "100%";
-    percent.textContent = "100%";
-    screen.classList.add("done");
-    setTimeout(() => screen.classList.add("hidden"), 420);
-  };
-
-  let progress = 8;
-  const animate = () => {
-    if (done) return;
-    progress = Math.min(94, progress + Math.random() * 12 + 8);
-    fill.style.width = `${progress}%`;
-    percent.textContent = `${Math.round(progress)}%`;
-    if (document.readyState === "complete") {
-      finishLoading();
-      return;
-    }
-    if (progress < 94) {
-      setTimeout(animate, 140);
-    } else {
-      finishLoading();
-    }
-  };
-
-  animate();
-  window.addEventListener("load", finishLoading, { once: true });
-  setTimeout(finishLoading, 2200);
-}
-runLoadingSequence();
+window.WheelieXLoading?.finish();
 
 const keyMap = { ArrowUp: "throttle", KeyW: "throttle", Space: "throttle", ArrowDown: "brake", KeyS: "brake", ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right", ShiftLeft: "wheelie", ShiftRight: "wheelie" };
 let trickSelectionIndex = 1;
