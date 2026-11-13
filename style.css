@@ -25,7 +25,7 @@ button:disabled{opacity:.4;cursor:default}
 #pl.max-wanted #wanted{color:#38bdf8}
 @keyframes pursuit-flash{0%,49%{box-shadow:inset 0 0 100px 4px rgba(245,35,55,.16)}50%,100%{box-shadow:inset 0 0 100px 4px rgba(35,95,255,.16)}}
 @keyframes emp-flash{0%,49%{box-shadow:inset 0 0 120px 5px rgba(56,189,248,.26)}50%,100%{box-shadow:inset 0 0 120px 5px rgba(147,197,253,.12)}}
-#gar{display:none;position:fixed;top:0;left:0;bottom:0;width:min(470px,100%);overflow:auto;background:rgba(10,15,28,.88);padding:14px}
+#gar{display:none;position:fixed;top:0;left:0;bottom:0;z-index:9;width:min(470px,100%);overflow:auto;background:rgba(10,15,28,.96);padding:14px}
 #settings{display:none;position:fixed;top:50%;left:50%;z-index:9;width:min(360px,calc(100% - 28px));padding:20px;transform:translate(-50%,-50%);border:1px solid #c0f56a55;border-radius:12px;background:rgba(10,15,28,.96);box-shadow:0 12px 50px #000b}
 #settings h2{align-items:center;color:#c0f56a}
 #settings label{display:block;margin:12px 0 6px;font:600 10px "DM Mono",monospace;letter-spacing:1px}
@@ -37,6 +37,7 @@ button:disabled{opacity:.4;cursor:default}
 .row{display:flex;gap:8px;align-items:center;margin:6px 0}.row span{width:92px}.row em{width:42px;font-style:normal}
 .big{width:100%;padding:12px;font-size:16px;background:#16a34a;margin:6px 0}
 h2{display:flex;justify-content:space-between;margin:0 0 10px}h2 span{color:#4ade80}h3{margin:14px 0 4px}
+.bike-spec{margin-left:6px;color:#c0f56a;font-size:11px;font-weight:600}
 .mod-shop{margin-top:16px;padding-top:8px;border-top:1px solid #fff2}
 #gar h4{margin:12px 0 6px;color:#c0f56a;font:600 10px "DM Mono",monospace;letter-spacing:1.2px}
 .mod-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
@@ -51,8 +52,6 @@ h2{display:flex;justify-content:space-between;margin:0 0 10px}h2 span{color:#4ad
 .hack-odds span{padding:4px;border-radius:4px;background:#0003;color:var(--rarity);font-size:10px}
 .hack-odds i{color:#fff;font-style:normal}
 #gar .hack-card button{align-self:stretch;margin:4px 0 0;background:#db3444}
-.stat-overclocked,.stat-overclocked em,.stat-overclocked span{color:#ff555d!important}
-#gar .stat-overclocked .bar i{background:#ff4149!important}
 #tc{display:none}
 @media(pointer:coarse){#tc{display:block}#br{bottom:170px}#help{display:none}
 #tc button{position:fixed;width:64px;height:64px;font-size:24px;opacity:.7;margin:0;touch-action:none}}
