@@ -21,8 +21,16 @@ button:disabled{opacity:.4;cursor:default}
 @keyframes fl{to{transform:translateY(-70px);opacity:0}}
 #help{bottom:14px;left:14px;font-size:12px;max-width:300px}
 #pl{position:fixed;inset:0;pointer-events:none}#pl.pursuit{animation:pursuit-flash .9s steps(2,end) infinite}#wanted{color:#f87171;font-size:16px;min-height:0}
+#pl.max-wanted{animation:emp-flash .65s steps(2,end) infinite}
+#pl.max-wanted #wanted{color:#38bdf8}
 @keyframes pursuit-flash{0%,49%{box-shadow:inset 0 0 100px 4px rgba(245,35,55,.16)}50%,100%{box-shadow:inset 0 0 100px 4px rgba(35,95,255,.16)}}
+@keyframes emp-flash{0%,49%{box-shadow:inset 0 0 120px 5px rgba(56,189,248,.26)}50%,100%{box-shadow:inset 0 0 120px 5px rgba(147,197,253,.12)}}
 #gar{display:none;position:fixed;top:0;left:0;bottom:0;width:min(470px,100%);overflow:auto;background:rgba(10,15,28,.88);padding:14px}
+#settings{display:none;position:fixed;top:50%;left:50%;z-index:9;width:min(360px,calc(100% - 28px));padding:20px;transform:translate(-50%,-50%);border:1px solid #c0f56a55;border-radius:12px;background:rgba(10,15,28,.96);box-shadow:0 12px 50px #000b}
+#settings h2{align-items:center;color:#c0f56a}
+#settings label{display:block;margin:12px 0 6px;font:600 10px "DM Mono",monospace;letter-spacing:1px}
+#settings select{width:100%;padding:10px;border:1px solid #fff3;border-radius:7px;background:#1a2530;color:#fff;font:inherit}
+#settings p{margin:12px 0 0;color:#cbd5e1;font-size:12px;line-height:1.5}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .card{background:#fff1;border:2px solid transparent;border-radius:10px;padding:8px;cursor:pointer}.card.sel{border-color:#38bdf8}
 .card .bar{margin-top:3px;height:5px}.card small{display:block}
@@ -39,6 +47,9 @@ h2{display:flex;justify-content:space-between;margin:0 0 10px}h2 span{color:#4ad
 #gar button.mod-card small{font-size:9px;color:#c0f56a}
 #gar button.mod-card span{font-size:9px;line-height:1.35;opacity:.72}
 .hack-card{grid-column:1/-1;display:flex;flex-direction:column;gap:5px;padding:10px;border:1px solid #fff2;border-radius:7px;background:#ffffff0b}
+.hack-odds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.hack-odds span{padding:4px;border-radius:4px;background:#0003;color:var(--rarity);font-size:10px}
+.hack-odds i{color:#fff;font-style:normal}
 #gar .hack-card button{align-self:stretch;margin:4px 0 0;background:#db3444}
 .stat-overclocked,.stat-overclocked em,.stat-overclocked span{color:#ff555d!important}
 #gar .stat-overclocked .bar i{background:#ff4149!important}

@@ -49,7 +49,7 @@
 <canvas id="g"></canvas><div id="sl"></div>
 <canvas id="mm" width="300" height="300" tabindex="0" role="button" aria-label="Expand player map" aria-expanded="false" title="Click to enlarge player map"></canvas>
 <div id="top" class="p"><div id="cash">$0</div><div id="combo"></div><div id="wanted"></div></div><div id="pl"></div>
-<div id="tr" class="p"><div id="net" aria-live="polite">Enter your name to connect</div><button id="bg">🏍 Garage [G]</button><button id="bm">🔊</button></div>
+<div id="tr" class="p"><div id="net" aria-live="polite">Enter your name to connect</div><button id="bg">🏍 Garage [G]</button><button id="st">⚙ Settings</button><button id="bm">🔊</button></div>
 <div id="pop"></div><canvas id="wm" width="240" height="130"></canvas>
 <div id="br" class="p"><div id="sp"></div><div class="bar"><i id="bb" style="width:0%"></i></div><small id="boost-note">NO BOOST MOUNT · MOD SHOP</small></div>
 <div id="help" class="p">W/↑ throttle · S/↓ brake · A/D steer · Space/Shift wheelie (ease off before you fall) · AIR: W/S flips, A/D barrel rolls · F mount/dismount · mouse look · E boost · G garage</div>
@@ -60,6 +60,14 @@
 <button data-k="KeyE" style="right:12px;bottom:16px;width:138px;background:#7c3aed">⚡ BOOST</button>
 <button id="mt" data-k="KeyF" style="left:50%;bottom:16px;width:100px;transform:translateX(-50%)">MOUNT</button></div>
 <div id="gar"></div>
+<div id="settings" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <h2 id="settings-title">SETTINGS <button id="settings-close" aria-label="Close settings">✕</button></h2>
+  <label for="police-difficulty">POLICE DIFFICULTY</label>
+  <select id="police-difficulty">
+    <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option><option value="insane">Insane</option><option value="death">Death</option>
+  </select>
+  <p>Higher difficulty means faster police, earlier detection, and longer escapes.</p>
+</div>
 <script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 <script id="game-module" type="module" src="./game.js"></script>

@@ -20,13 +20,15 @@ Open [http://localhost:8000](http://localhost:8000). Three.js, MQTT.js, and web 
 - In the air, hold **W/Up** for a backflip, **S/Down** for a frontflip, and **A/D** for barrel rolls. Counter-steer to level out; land upright to score, or you'll crash.
 - Press **F** to mount or dismount (stop first); click the game and move the mouse to look around. Use **W/A/S/D** to walk when off the bike.
 - Hold **E** for boost after installing a boost mount; **G** opens the garage.
+- Use **Settings** to choose police difficulty: Easy, Medium, Hard, Insane, or Death.
 - Tap the speed readout to toggle kilometres per hour and miles per hour.
 - Touch controls mirror throttle, brake, steer, wheelie, boost, and mounting.
 
 ## Features
 
 - Procedurally generated 3D city with chunks, ramps, obstacle orbs, and boost pads.
-- Police wanted system with chase, bust, and escape flow.
+- Six-star police chases with bust and escape flow, plus helicopter, tank, and an escapable EMP lockdown at higher stars.
+- Police difficulty settings from Easy to Death.
 - Username-based live multiplayer over MQTT; play solo if the broker is unavailable.
 - Walk, look around, and see other riders on or off their bikes.
 - Perform backflips, frontflips, and barrel rolls in the air; tricks require clean landings to score.
@@ -36,7 +38,7 @@ Open [http://localhost:8000](http://localhost:8000). Three.js, MQTT.js, and web 
 
 ## Garage and progression
 
-Earn cash from riding, boosts, air time, and boost pads. The garage lists bikes in a clearer entry-to-performance progression, with prices reduced. Each performance upgrade adds 1.5% to its stat. The Mod Shop offers Factory, Trail, and Race suspension setups with visible suspension travel; install Street/Race boost mounts for 300%/400% of the bike price, or purchase the ECU overclock to max stats and unlock boost software.
+Earn cash from riding, boosts, air time, and boost pads. The garage lists bikes in a clearer entry-to-performance progression, with prices reduced. Each performance upgrade adds 1.5% to its stat. The Mod Shop offers Factory, Trail, and Race suspension setups with visible suspension travel; install Street/Race boost mounts for 300%/400% of the bike price. ECU hack rolls cost at least $25,000 and keep the best rarity per bike: Common 50% (+5%), Uncommon 25% (+10%), Rare 15% (+20%), Epic 7% (+35%), Legendary 2.5% (+50%), Mythic 0.49% (+75%), and Secret 0.01% (all stats maxed). Hack rarity never installs a boost mount.
 
 ## Multiplayer
 
