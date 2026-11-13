@@ -15,29 +15,54 @@
 <body>
 <div class="loading-screen" id="loading-screen" role="status" aria-live="polite">
   <div class="loading-inner">
-    <span class="loading-mark">W<span>/</span>X</span>
-    <span class="loading-label" id="loading-label">LOADING THE STREETS</span>
+    <div class="loading-topline"><span class="loading-live"><i></i> URBAN E-BIKE STUNTS</span><span class="loading-edition">WX / 01</span></div>
+    <span class="loading-mark" aria-label="WheelieX">W<span>/</span>X</span>
+    <div class="loading-heading"><span class="loading-kicker">ELECTRIC. UNFILTERED. YOURS.</span><h1>OWN THE<br><span>STREETS.</span></h1></div>
+    <div class="loading-art" aria-hidden="true">
+      <svg viewBox="0 0 280 118" fill="none">
+        <path class="loading-ground" d="M12 101h256"/>
+        <circle class="loading-wheel" cx="73" cy="82" r="26"/>
+        <circle class="loading-wheel" cx="207" cy="82" r="26"/>
+        <path class="loading-bike" d="m73 82 37-41 34 41H73l29-30 47-5 28 35m-39-41h20m-65 0h-18m97 41 13-27"/>
+        <path class="loading-bike-accent" d="m103 49 23-5 17 4-9 13h-24z"/>
+        <path class="loading-bike-accent" d="m179 48 20-3m-77-9 13-3"/>
+      </svg>
+    </div>
+    <span class="loading-label" id="loading-label">PREPARING YOUR RIDE</span>
     <div class="loading-track"><span id="loading-fill"></span></div>
-    <span class="loading-percent" id="loading-percent">INITIALIZING 3D ENGINE</span>
+    <div class="loading-foot"><span class="loading-percent" id="loading-percent">INITIALIZING 3D ENGINE</span><span class="loading-hint">GRAB YOUR HELMET</span></div>
     <span class="loading-error hidden" id="loading-error" role="alert"></span>
     <button class="loading-retry hidden" id="loading-retry" type="button">RELOAD GAME ↻</button>
   </div>
 </div>
+<div class="join-screen" id="join-screen" role="dialog" aria-modal="true" aria-labelledby="join-title">
+  <form class="join-card" id="join-form">
+    <span class="join-kicker">WHEELIEX MULTIPLAYER</span>
+    <h2 id="join-title">WHO'S RIDING?</h2>
+    <p>Pick a rider name to enter the city and meet other players.</p>
+    <label for="rider-name">RIDER NAME</label>
+    <input id="rider-name" name="username" type="text" minlength="2" maxlength="16" autocomplete="nickname" placeholder="Your name" required>
+    <button class="join-button" type="submit">ENTER THE CITY <span>→</span></button>
+    <small>Your name is shown to everyone in this session.</small>
+  </form>
+</div>
 <canvas id="g"></canvas><div id="sl"></div>
 <canvas id="mm" width="300" height="300"></canvas>
 <div id="top" class="p"><div id="cash">$0</div><div id="combo"></div><div id="wanted"></div></div><div id="pl"></div>
-<div id="tr" class="p"><div id="net">Connecting…</div><button id="bg">🏍 Garage [G]</button><button id="bm">🔊</button></div>
+<div id="tr" class="p"><div id="net" aria-live="polite">Enter your name to connect</div><button id="bg">🏍 Garage [G]</button><button id="bm">🔊</button></div>
 <div id="pop"></div><canvas id="wm" width="240" height="130"></canvas>
-<div id="br" class="p"><div id="sp"></div><div class="bar"><i id="bb" style="width:100%"></i></div><small>BOOST [E] · tap speed for units</small></div>
-<div id="help" class="p">W/↑ throttle · S/↓ brake · A/D steer · Space/Shift pop wheelie (W/S to balance) · E/F boost · G garage · speed or wheelie near cops = chase!</div>
+<div id="br" class="p"><div id="sp"></div><div class="bar"><i id="bb" style="width:0%"></i></div><small id="boost-note">NO BOOST MOUNT · MOD SHOP</small></div>
+<div id="help" class="p">W/↑ throttle · S/↓ brake · A/D steer · Space/Shift wheelie · F mount/dismount · mouse look · E boost (with mount) · G garage</div>
 <div id="tc">
 <button data-k="KeyA" style="left:12px;bottom:90px">◀</button><button data-k="KeyD" style="left:86px;bottom:90px">▶</button>
 <button data-k="Space" style="left:12px;bottom:16px;width:138px">WHEELIE</button>
 <button data-k="KeyW" style="right:12px;bottom:90px">▲</button><button data-k="KeyS" style="right:86px;bottom:90px">■</button>
-<button data-k="KeyE" style="right:12px;bottom:16px;width:138px;background:#7c3aed">⚡ BOOST</button></div>
+<button data-k="KeyE" style="right:12px;bottom:16px;width:138px;background:#7c3aed">⚡ BOOST</button>
+<button id="mt" data-k="KeyF" style="left:50%;bottom:16px;width:100px;transform:translateX(-50%)">MOUNT</button></div>
 <div id="gar"></div>
 <script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script id="game-module" type="module" src="./game.js"></script>
 <script>
   (() => {
     const screen = document.getElementById("loading-screen");
@@ -47,20 +72,29 @@
     const error = document.getElementById("loading-error");
     const retry = document.getElementById("loading-retry");
     const gameModule = document.getElementById("game-module");
-    gameModule.addEventListener("error", () => fail("The game engine could not be loaded. Check your internet connection and reload."));
+    const started = performance.now();
+    const minimumDuration = 3000;
     let finished = false;
+    let finishing = false;
+    let finishTimer;
 
     const finish = () => {
-      if (finished) return;
-      finished = true;
-      fill.classList.add("complete");
-      fill.style.width = "100%";
-      percent.textContent = "READY";
-      screen.classList.add("done");
-      window.setTimeout(() => screen.classList.add("hidden"), 500);
+      if (finished || finishing) return;
+      finishing = true;
+      finishTimer = window.setTimeout(() => {
+        if (finished) return;
+        finished = true;
+        fill.classList.add("complete");
+        fill.style.width = "100%";
+        percent.textContent = "READY";
+        screen.classList.add("done");
+        window.setTimeout(() => screen.classList.add("hidden"), 500);
+      }, Math.max(0, minimumDuration - (performance.now() - started)));
     };
     const fail = (message) => {
       if (finished) return;
+      window.clearTimeout(finishTimer);
+      finishing = false;
       finished = true;
       screen.classList.add("failed");
       label.textContent = "THE STREETS DIDN'T LOAD";
@@ -69,6 +103,7 @@
       error.classList.remove("hidden");
       retry.classList.remove("hidden");
     };
+    gameModule.addEventListener("error", () => fail("The game engine could not be loaded. Check your internet connection and reload."));
     const safeFinish = () => { if (!finished) finish(); };
     retry.addEventListener("click", () => window.location.reload());
     window.WheelieXLoading = { finish: safeFinish, fail };
@@ -76,6 +111,5 @@
     window.setTimeout(() => { if (!finished) safeFinish(); }, 8000);
   })();
 </script>
-<script id="game-module" type="module" src="./game.js"></script>
 <noscript><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#bfdef2;color:#0f1b14;font-family:system-ui,sans-serif;font-size:14px;line-height:1.5;padding:20px;text-align:center">E-Bike Life needs WebGL support and an internet connection to load the 3D engine. Please try again in a modern browser.</div></noscript>
 </body></html>

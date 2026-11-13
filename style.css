@@ -18,7 +18,8 @@ button:disabled{opacity:.4;cursor:default}
 .pp{position:absolute;left:50%;font-size:24px;font-weight:800;text-shadow:0 2px 4px #000a;animation:fl 1.4s forwards;white-space:nowrap}
 @keyframes fl{to{transform:translateY(-70px);opacity:0}}
 #help{bottom:14px;left:14px;font-size:12px;max-width:300px}
-#pl{position:fixed;inset:0;pointer-events:none}#wanted{color:#f87171;font-size:16px;min-height:0}
+#pl{position:fixed;inset:0;pointer-events:none}#pl.pursuit{animation:pursuit-flash .9s steps(2,end) infinite}#wanted{color:#f87171;font-size:16px;min-height:0}
+@keyframes pursuit-flash{0%,49%{box-shadow:inset 0 0 100px 4px rgba(245,35,55,.16)}50%,100%{box-shadow:inset 0 0 100px 4px rgba(35,95,255,.16)}}
 #gar{display:none;position:fixed;top:0;left:0;bottom:0;width:min(470px,100%);overflow:auto;background:rgba(10,15,28,.88);padding:14px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .card{background:#fff1;border:2px solid transparent;border-radius:10px;padding:8px;cursor:pointer}.card.sel{border-color:#38bdf8}
@@ -26,18 +27,72 @@ button:disabled{opacity:.4;cursor:default}
 .row{display:flex;gap:8px;align-items:center;margin:6px 0}.row span{width:92px}.row em{width:42px;font-style:normal}
 .big{width:100%;padding:12px;font-size:16px;background:#16a34a;margin:6px 0}
 h2{display:flex;justify-content:space-between;margin:0 0 10px}h2 span{color:#4ade80}h3{margin:14px 0 4px}
+.mod-shop{margin-top:16px;padding-top:8px;border-top:1px solid #fff2}
+#gar h4{margin:12px 0 6px;color:#c0f56a;font:600 10px "DM Mono",monospace;letter-spacing:1.2px}
+.mod-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#gar button.mod-card{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px;margin:0;padding:10px;border:1px solid #fff2;border-radius:7px;background:#ffffff0b;text-align:left;white-space:normal}
+#gar button.mod-card:hover:not(:disabled){border-color:#c0f56a88;background:#c0f56a12}
+#gar button.mod-card.selected{border-color:#c0f56a99;background:#c0f56a14}
+#gar button.mod-card b{font-size:11px}
+#gar button.mod-card small{font-size:9px;color:#c0f56a}
+#gar button.mod-card span{font-size:9px;line-height:1.35;opacity:.72}
+.hack-card{grid-column:1/-1;display:flex;flex-direction:column;gap:5px;padding:10px;border:1px solid #fff2;border-radius:7px;background:#ffffff0b}
+#gar .hack-card button{align-self:stretch;margin:4px 0 0;background:#db3444}
+.stat-overclocked,.stat-overclocked em,.stat-overclocked span{color:#ff555d!important}
+#gar .stat-overclocked .bar i{background:#ff4149!important}
 #tc{display:none}
 @media(pointer:coarse){#tc{display:block}#br{bottom:170px}#help{display:none}
 #tc button{position:fixed;width:64px;height:64px;font-size:24px;opacity:.7;margin:0;touch-action:none}}
-.loading-screen{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,rgba(192,245,106,.08),transparent 28%),#172322;transition:opacity .45s ease,visibility .45s ease}
+.loading-screen{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;overflow:auto;padding:24px 16px;background:radial-gradient(ellipse at 50% 38%,rgba(192,245,106,.11),transparent 42%),linear-gradient(145deg,#172322,#0c1513);transition:opacity .55s ease,visibility .55s ease}
+.loading-screen:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(220,255,214,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(220,255,214,.025) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse,#000 20%,transparent 80%)}
 .loading-screen.done{opacity:0;visibility:hidden;pointer-events:none}
-.loading-inner{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:13px}
-.loading-mark{width:54px;height:54px;display:grid;place-items:center;font-size:23px;color:#c0f56a}
-.loading-label{color:#d1dcd0;font-family:"DM Mono",monospace;font-size:9px;letter-spacing:2px}
-.loading-track{width:130px;height:3px;margin-top:5px;background:rgba(244,244,235,.12);overflow:hidden;border-radius:999px}
-.loading-track span{display:block;width:0;height:100%;background:linear-gradient(90deg,#c0f56a,#ebffb0);border-radius:inherit;transform-origin:left;transition:width .22s ease}
-.loading-percent{color:#c0f56a;font-family:"DM Mono",monospace;font-size:9px;letter-spacing:2px}
-.loading-error{max-width:260px;color:#ffb095;font-family:"DM Sans",sans-serif;font-size:12px;line-height:1.5;text-align:center}
-.loading-retry{padding:10px 14px;border:1px solid rgba(192,245,106,.6);background:rgba(192,245,106,.08);color:#c0f56a;font-family:"DM Mono",monospace;font-size:10px;letter-spacing:1px;cursor:pointer}
+.loading-inner{position:relative;width:min(100%,430px);flex:none;display:flex;align-items:center;flex-direction:column;margin-block:auto;padding:25px 32px 27px;border:1px solid rgba(223,255,216,.13);border-radius:8px;background:linear-gradient(145deg,rgba(24,39,34,.96),rgba(8,17,15,.97));box-shadow:0 24px 90px #0008,0 0 55px rgba(149,211,113,.07);text-align:center}
+.loading-topline,.loading-foot{width:100%;display:flex;align-items:center;justify-content:space-between}
+.loading-live,.loading-edition,.loading-hint{color:#8b9b8e;font:500 9px "DM Mono",monospace;letter-spacing:1.2px}
+.loading-live{display:flex;align-items:center;gap:8px;color:#c0f56a}
+.loading-live i{width:6px;height:6px;border-radius:50%;background:#c0f56a;box-shadow:0 0 10px #c0f56a;animation:loading-pulse 1.6s ease-in-out infinite}
+.loading-mark{width:58px;height:58px;flex:none;display:grid;place-items:center;margin-top:24px;border:1px solid rgba(192,245,106,.4);border-radius:50%;background:rgba(192,245,106,.06);color:#eaffcf;font:800 22px "Barlow Condensed",sans-serif;letter-spacing:-2px;text-shadow:0 0 18px #c0f56a66}
+.loading-mark span{margin:0 2px;color:#c0f56a}
+.loading-heading{margin-top:17px}
+.loading-kicker{color:#a7b49f;font:500 9px "DM Mono",monospace;letter-spacing:2px}
+.loading-heading h1{margin:8px 0 0;color:#f2f4e8;font:800 clamp(38px,9vw,50px)/.86 "Barlow Condensed",Impact,sans-serif;letter-spacing:1px}
+.loading-heading h1 span{color:#c0f56a}
+.loading-art{width:min(100%,248px);height:86px;flex:none;margin:15px 0 8px}
+.loading-art svg{width:100%;height:100%;overflow:visible}
+.loading-ground{stroke:rgba(202,235,184,.2);stroke-width:1}
+.loading-wheel{stroke:#b3c2a8;stroke-width:2;stroke-dasharray:3 2;transform-box:fill-box;transform-origin:center;animation:loading-spin 5s linear infinite}
+.loading-bike{stroke:#e3edda;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.loading-bike-accent{stroke:#c0f56a;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.loading-label{margin-top:1px;color:#d1dcd0;font:500 10px "DM Mono",monospace;letter-spacing:1.7px}
+.loading-track{position:relative;width:100%;height:3px;flex:none;margin-top:12px;background:rgba(244,244,235,.12);overflow:hidden;border-radius:999px}
+.loading-track span{display:block;width:38%;height:100%;background:linear-gradient(90deg,transparent,#c0f56a,#efffd0,transparent);border-radius:inherit;animation:loading-sweep 1.5s ease-in-out infinite}
+.loading-track span.complete{width:100%;animation:none;background:linear-gradient(90deg,#c0f56a,#ebffb0);transition:width .22s ease}
+.loading-foot{margin-top:9px}
+.loading-percent{color:#c0f56a;font:500 9px "DM Mono",monospace;letter-spacing:1px}
+.loading-hint{color:#68776c;font-size:8px}
+.loading-error{max-width:300px;margin-top:14px;color:#ffb095;font:500 12px/1.5 "DM Sans",sans-serif;text-align:center}
+.loading-retry{padding:11px 16px;margin-top:14px;border:1px solid rgba(192,245,106,.6);border-radius:4px;background:rgba(192,245,106,.08);color:#c0f56a;font:500 10px "DM Mono",monospace;letter-spacing:1px;cursor:pointer}
 .loading-retry:hover{background:rgba(192,245,106,.18)}
+.hidden{display:none!important}
 .loading-screen.hidden{display:none!important}
+@keyframes loading-sweep{0%{transform:translateX(-110%)}100%{transform:translateX(280%)}}
+@keyframes loading-pulse{50%{opacity:.35;box-shadow:0 0 3px #c0f56a}}
+@keyframes loading-spin{to{transform:rotate(360deg)}}
+@media(max-height:600px){.loading-screen{padding:12px}.loading-inner{padding:16px 24px}.loading-mark{width:46px;height:46px;margin-top:12px}.loading-heading{margin-top:10px}.loading-art{height:60px;margin:8px 0 4px}}
+@media(prefers-reduced-motion:reduce){.loading-live i,.loading-wheel,.loading-track span{animation:none}.loading-track span{width:38%}}
+.join-screen{position:fixed;inset:0;z-index:9;display:grid;place-items:center;padding:20px;background:rgba(5,12,10,.56);backdrop-filter:blur(7px)}
+.join-screen.hidden{display:none!important}
+.join-card{width:min(100%,390px);padding:30px;border:1px solid rgba(192,245,106,.22);border-radius:8px;background:linear-gradient(145deg,rgba(23,39,33,.97),rgba(8,16,14,.98));box-shadow:0 24px 80px #0009}
+.join-kicker{color:#c0f56a;font:500 9px "DM Mono",monospace;letter-spacing:2px}
+.join-card h2{margin:12px 0 5px;color:#f2f4e8;font:800 38px/.95 "Barlow Condensed",Impact,sans-serif;letter-spacing:1px}
+.join-card p{margin:0 0 22px;color:#aab8aa;font:400 13px/1.5 "DM Sans",sans-serif}
+.join-card label{display:block;margin-bottom:8px;color:#aab8aa;font:500 9px "DM Mono",monospace;letter-spacing:1.5px}
+.join-card input{width:100%;height:46px;padding:0 12px;border:1px solid rgba(223,255,216,.2);border-radius:4px;outline:none;background:rgba(0,0,0,.24);color:#f2f4e8;font:500 15px "DM Sans",sans-serif;user-select:text;-webkit-user-select:text}
+.join-card input:focus{border-color:#c0f56a;box-shadow:0 0 0 2px rgba(192,245,106,.12)}
+.join-card input::placeholder{color:#66756a}
+.join-button{width:100%;height:46px;display:flex;align-items:center;justify-content:space-between;margin:12px 0 0;padding:0 14px;border:0;border-radius:4px;background:#c0f56a;color:#142015;font:700 11px "DM Mono",monospace;letter-spacing:1px}
+.join-button:hover{background:#d7ff9f}
+.join-button span{font-size:20px}
+.join-card small{display:block;margin-top:12px;color:#768579;font:400 10px "DM Sans",sans-serif;text-align:center}
+@media(max-width:480px){.join-card{padding:24px}}
+@media(max-width:500px){#gar{padding:10px}.mod-grid{gap:5px}#gar button.mod-card{padding:8px}}
