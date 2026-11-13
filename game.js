@@ -9,9 +9,14 @@ const TRICKS = [
   { id: "tailwhip", name: "TAILWHIP", key: "F", points: 1.45 },
   { id: "cancan", name: "CAN-CAN", key: "C", points: 1.2 },
   { id: "nacnac", name: "NAC-NAC", key: "V", points: 1.25 },
-  { id: "stoppie", name: "STOPPIE", key: "B", points: 1.35 },
+  { id: "stoppie", name: "STOPPIE", key: "Shift+S", points: 1.35 },
 ];
 const TRICK_DURATION = 1.05;
+const CHALLENGE_DEFS = [
+  { id: "wheelie", title: "HOLD THE LINE", target: 10, reward: 220, suffix: "s" },
+  { id: "distance", title: "CITY RUN", target: 180, reward: 320, suffix: "m" },
+  { id: "tricks", title: "TRICK THREAD", target: 3, reward: 260, suffix: "tricks" },
+];
 const BIKE_CATALOG = [
   { id: "commuter", name: "Starter Commuter", subtitle: "HARDTAIL E-BIKE", price: 0, speed: 0.53, torque: 0.36, brake: 0.53, weight: 0.57, payout: 1, color: 0x20262b, description: "A familiar hardtail e-bike silhouette, with a frame-mounted battery and predictable handling." },
   { id: "kukirin", name: "Kukirin G2 Max / G4", subtitle: "URBAN ALL-ROUNDER", price: 500, speed: 0.77, torque: 0.56, brake: 0.57, weight: 0.79, payout: 1.12, color: 0xd98945, description: "Heavy metal and a lot of top end. The eager throttle needs a steady hand." },
@@ -259,6 +264,19 @@ for (const side of [-1, 1]) {
     const awning = new THREE.Mesh(new THREE.BoxGeometry(width * 0.76, 0.13, 1), new THREE.MeshStandardMaterial({ color: [0xc0f56a, 0xc68662, 0xd5cfb5][i % 3] }));
     awning.position.set(0, Math.min(height - 0.7, 3), -depth / 2 - 0.45);
     building.add(awning);
+    if (height > 8) {
+      for (let ac = 0; ac < 2; ac++) {
+        const unit = box(building, [0.62, 0.3, 0.5], [width / 2 - 0.9 - ac * 0.75, height - 0.15, depth / 2 - 0.7], 0x4c5752, { roughness: 0.8 });
+        unit.castShadow = true;
+      }
+      const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.6, 6), poleMaterial);
+      antenna.position.set(width / 2 - 1.6, height + 1.3, depth / 2 - 0.7);
+      antenna.castShadow = true;
+      building.add(antenna);
+      const antennaTip = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 4), new THREE.MeshStandardMaterial({ color: 0xff5f45, emissive: 0xff5f45, emissiveIntensity: 0.8 }));
+      antennaTip.position.set(width / 2 - 1.6, height + 2.62, depth / 2 - 0.7);
+      building.add(antennaTip);
+    }
     scene.add(building);
     x += width + 2.5;
   }
@@ -269,7 +287,7 @@ const crossingMat = new THREE.MeshStandardMaterial({ color: 0xd8d2ba, roughness:
 const streetSignPoleMat = new THREE.MeshStandardMaterial({ color: 0x313a36, metalness: 0.38, roughness: 0.5 });
 const streetSignMat = new THREE.MeshStandardMaterial({ color: 0x33483d, roughness: 0.72, emissive: 0x152319, emissiveIntensity: 0.12 });
 for (const x of crossStreetXs) {
-  const street = new THREE.Mesh(new THREE.PlaneGeometry(10.8, 52), crossStreetMat);
+  const street = new THREE.Mesh(new THREE.PlaneGeometry(10.8, 120), crossStreetMat);
   street.rotation.x = -Math.PI / 2;
   street.position.set(x, -0.008, 0);
   street.receiveShadow = true;
@@ -280,7 +298,7 @@ for (const x of crossStreetXs) {
       marking.position.set(x + stripe * 0.76, 0.012, side * 6.15);
       scene.add(marking);
     }
-    const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.09, 42), sidewalkMat);
+    const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.09, 120), sidewalkMat);
     sidewalk.position.set(x + side * 7.1, -0.005, 0);
     sidewalk.receiveShadow = true;
     scene.add(sidewalk);
@@ -300,6 +318,11 @@ for (const x of crossStreetXs) {
     scene.add(sign);
   }
 }
+const connectorRoad = new THREE.Mesh(new THREE.PlaneGeometry(900, 11), new THREE.MeshStandardMaterial({ map: asphaltTexture, color: 0xffffff, roughness: 0.94 }));
+connectorRoad.rotation.x = -Math.PI / 2;
+connectorRoad.position.set(0, -0.015, -30);
+connectorRoad.receiveShadow = true;
+scene.add(connectorRoad);
 
 const streetLights = [];
 const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x313a36, metalness: 0.38, roughness: 0.5 });
@@ -576,12 +599,44 @@ function replaceRiderBike() {
 }
 
 const ghostRiders = new Map();
-const state = { running: false, paused: false, speed: 0, pitch: 0, angularVelocity: 0, x: 0, lane: 0, steer: 0, distance: 0, score: 0, airTime: 0, runTime: 0, lastAngle: 0, throttle: false, brake: false, wheelie: false, wasWheelie: false, left: false, right: false, trick: "", trickTime: 0, trickCooldown: 0, crashed: false, frame: 0 };
+const state = { running: false, paused: false, speed: 0, pitch: 0, angularVelocity: 0, x: 0, heading: 0, lane: 0, steer: 0, distance: 0, score: 0, airTime: 0, runTime: 0, lastAngle: 0, throttle: false, brake: false, wheelie: false, wasWheelie: false, left: false, right: false, trick: "", trickTime: 0, trickCooldown: 0, crashed: false, frame: 0, trickChain: 0, trickChainTimer: 0, challenge: null };
 let cameraInitialized = false;
 let cameraX = -7;
 let cameraY = 4.6;
+let cameraZ = 3.5;
 const worldSpeed = 95 / 3.6;
 const clock = new THREE.Clock();
+
+// City circuit: forward-distance keyframes that drive the bike's heading.
+// Each pair of keys is one corner; the bike eases its heading between them.
+// Heading 0 faces +X (east on the main street), -PI/2 faces -Z (south on a cross street),
+// -PI faces -X (west on the connector street), PI/2 faces +Z (north on a cross street).
+const TRACK_HEADING_KEYS = [
+  { d: 0, h: 0 },
+  { d: 180, h: -Math.PI / 2 },
+  { d: 204, h: -Math.PI },
+  { d: 330, h: Math.PI / 2 },
+  { d: 354, h: 0 },
+  { d: 540, h: 0 },
+];
+function smoothstep(t) { const e = t * t * (3 - 2 * t); return e; }
+function headingAt(d) {
+  const keys = TRACK_HEADING_KEYS;
+  const last = keys[keys.length - 1];
+  if (d <= keys[0].d) return keys[0].h;
+  if (d >= last.d) return last.h;
+  for (let i = 1; i < keys.length; i++) {
+    const key = keys[i];
+    const prev = keys[i - 1];
+    if (d <= key.d) {
+      const span = Math.max(0.001, key.d - prev.d);
+      const t = THREE.MathUtils.clamp((d - prev.d) / span, 0, 1);
+      return prev.h + (key.h - prev.h) * smoothstep(t);
+    }
+  }
+  return last.h;
+}
+const bikePosition = new THREE.Vector3(0, 0, 0);
 
 let audioContext;
 let oscillator;
@@ -652,11 +707,29 @@ function setPaused(paused) {
   if (audioGain && audioContext) audioGain.gain.setTargetAtTime(paused ? 0 : 0.025, audioContext.currentTime, 0.08);
   if (paused) toast("PAUSED · PRESS ESC TO RESUME");
 }
+function awardChallengeBonus() {
+  const challenge = state.challenge;
+  if (!challenge || challenge.complete) return;
+  challenge.complete = true;
+  save.cash += challenge.reward;
+  persist();
+  refreshCash();
+  toast(`${challenge.title} · +$${formatNumber(challenge.reward)}`);
+}
+function updateChallengeProgress() {
+  const challenge = state.challenge;
+  if (!challenge || challenge.complete) return;
+  if (challenge.id === "wheelie") challenge.progress = Math.min(challenge.target, state.airTime);
+  else if (challenge.id === "distance") challenge.progress = Math.min(challenge.target, state.distance);
+  else if (challenge.id === "tricks") challenge.progress = Math.min(challenge.target, state.trickChain);
+  if (challenge.progress >= challenge.target) awardChallengeBonus();
+}
 function startRide() {
   if (state.running && state.paused) { setPaused(false); return; }
   ensureAudio();
-  Object.assign(state, { running: true, paused: false, speed: 0, pitch: 0, angularVelocity: 0, lane: 0, steer: 0, distance: 0, score: 0, airTime: 0, runTime: 0, lastAngle: 0, throttle: false, brake: false, wheelie: false, wasWheelie: false, left: false, right: false, trick: "", trickTime: 0, trickCooldown: 0, crashed: false });
+  Object.assign(state, { running: true, paused: false, speed: 0, pitch: 0, angularVelocity: 0, heading: 0, lane: 0, steer: 0, distance: 0, score: 0, airTime: 0, runTime: 0, lastAngle: 0, throttle: false, brake: false, wheelie: false, wasWheelie: false, left: false, right: false, trick: "", trickTime: 0, trickCooldown: 0, crashed: false, trickChain: 0, trickChainTimer: 0, challenge: buildChallenge() });
   state.x = 0;
+  bikePosition.set(0, 0, 0);
   cameraInitialized = false;
   rider.position.set(0, rider.userData.wheelRadius, 0);
   rider.rotation.set(0, 0, 0);
@@ -673,7 +746,20 @@ function startRide() {
   $("bank-button").classList.add("active");
   $("pause-button").textContent = "Ⅱ";
   $("pause-button").setAttribute("aria-label", "Pause game");
+  updateChallengeHud();
   updateHud(0);
+}
+function settleRun() {
+  const bankedCash = getRunPayout();
+  if (bankedCash > 0) save.cash += bankedCash;
+  const distanceRecord = { name: save.riderName, bike: getBike().name, value: Math.round(state.distance * 10) / 10, date: Date.now() };
+  const cashRecord = { name: save.riderName, bike: getBike().name, value: bankedCash, date: Date.now() };
+  if (state.distance > 0) save.records.distance = [distanceRecord, ...save.records.distance.filter((entry) => entry.date !== distanceRecord.date)].slice(0, 20);
+  if (bankedCash > 0) save.records.cash = [cashRecord, ...save.records.cash.filter((entry) => entry.date !== cashRecord.date)].slice(0, 20);
+  persist();
+  refreshCash();
+  saveRunOnline(distanceRecord, cashRecord);
+  return bankedCash;
 }
 function endRide(message) {
   if (!state.running) return;
@@ -684,15 +770,7 @@ function endRide(message) {
   state.brake = false;
   state.wheelie = false;
   state.wasWheelie = false;
-  const bankedCash = getRunPayout();
-  if (bankedCash > 0) save.cash += bankedCash;
-  const distanceRecord = { name: save.riderName, bike: getBike().name, value: Math.round(state.distance * 10) / 10, date: Date.now() };
-  const cashRecord = { name: save.riderName, bike: getBike().name, value: bankedCash, date: Date.now() };
-  if (state.distance > 0) save.records.distance = [distanceRecord, ...save.records.distance.filter((entry) => entry.date !== distanceRecord.date)].slice(0, 20);
-  if (bankedCash > 0) save.records.cash = [cashRecord, ...save.records.cash.filter((entry) => entry.date !== cashRecord.date)].slice(0, 20);
-  persist();
-  refreshCash();
-  saveRunOnline(distanceRecord, cashRecord);
+  const bankedCash = settleRun();
   $("run-message").textContent = message;
   $("run-result").textContent = `+ $${formatNumber(bankedCash)}  ·  ${state.distance.toFixed(1)} M  ·  ${state.airTime.toFixed(1)} S AIR`;
   $("run-banner").classList.remove("hidden");
@@ -701,8 +779,41 @@ function endRide(message) {
   $("bank-button").classList.remove("active");
   if (audioGain && audioContext) audioGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.08);
 }
+function bankRun() {
+  if (!state.running) return;
+  settleRun();
+}
 
 let units = false;
+function buildChallenge() {
+  const config = CHALLENGE_DEFS[Math.floor(Math.random() * CHALLENGE_DEFS.length)];
+  return {
+    ...config,
+    progress: 0,
+    complete: false,
+  };
+}
+function updateChallengeHud() {
+  const challenge = state.challenge;
+  const label = $("challenge-label");
+  const progressBar = $("challenge-progress-bar");
+  const progressText = $("challenge-meta");
+  const rewardText = $("challenge-reward");
+  if (!challenge) {
+    label.textContent = "HOLD THE LINE";
+    progressBar.style.width = "0%";
+    progressText.textContent = "0 / 10s";
+    rewardText.textContent = "+$220";
+    return;
+  }
+  const progressValue = challenge.progress;
+  const nextPercent = Math.min(100, (progressValue / challenge.target) * 100);
+  const suffix = challenge.suffix;
+  label.textContent = challenge.title;
+  progressBar.style.width = `${nextPercent}%`;
+  progressText.textContent = `${challenge.id === "distance" ? state.distance.toFixed(1) : Number(progressValue).toFixed(challenge.id === "wheelie" ? 1 : 0)} / ${challenge.target}${suffix}`;
+  rewardText.textContent = `+$${formatNumber(challenge.reward)}`;
+}
 function updateHud(multiplier) {
   $("speed").textContent = String(Math.round(state.speed * worldSpeed * (units ? 1.60934 : 3.6)));
   $("speed-unit").textContent = units ? "MPH" : "KM/H";
@@ -715,6 +826,7 @@ function updateHud(multiplier) {
   const hint = $("balance-hint");
   hint.textContent = multiplier >= 1.8 ? "✳ SWEET SPOT ✳" : state.pitch > 1.15 ? "EASE IT DOWN" : state.pitch < 0.2 ? "LIFT THE FRONT" : "HOLD YOUR LINE";
   hint.style.color = multiplier >= 1.8 ? "#c0f56a" : state.pitch > 1.15 ? "#ffb095" : "";
+  updateChallengeHud();
 }
 $("speed").onclick = () => {
   units = !units;
@@ -726,7 +838,7 @@ function tryTrick(trick) {
   if (!state.running || state.paused) return;
   if (state.trick || state.trickCooldown > 0) { toast("TRICK IN PROGRESS · STICK THE LANDING"); return; }
   const lifted = state.wheelie || state.brake;
-  const minPitch = state.brake ? 0 : 0.16;
+  const minPitch = trick === "stoppie" ? -0.11 : state.brake ? 0 : 0.16;
   if (!lifted || state.pitch < minPitch || state.speed < 0.18) { toast("HOLD SHIFT TO WHEELIE BEFORE TRICKING"); return; }
   state.trick = trick;
   state.trickTime = 0;
@@ -740,17 +852,30 @@ function animate() {
     const stats = getStats();
     const topSpeed = 0.4 + stats.speed * 0.66;
     const acceleration = 0.34 + stats.torque * 0.3;
-    if (state.throttle) state.speed = Math.min(topSpeed, state.speed + acceleration * dt);
-    else state.speed = Math.max(0, state.speed - (0.08 + stats.weight * 0.035) * dt);
+    const brakeDrag = state.brake ? (0.55 + stats.brake * 0.85) * dt : 0;
+    if (state.throttle) state.speed = Math.min(topSpeed, Math.max(0, state.speed + acceleration * dt - brakeDrag));
+    else state.speed = Math.max(0, state.speed - Math.max((0.08 + stats.weight * 0.035) * dt, brakeDrag));
     const throttleLift = state.throttle && state.wheelie ? (0.82 + stats.torque * 1.18) * (0.55 + state.speed * 0.78) : 0;
-    const rearBrake = state.brake ? 1.55 + stats.brake * 2.0 : 0;
+    const stoppieLift = state.brake && state.wheelie ? (0.95 + stats.brake * 1.55) * (0.32 + state.speed * 0.85) : 0;
+    const lift = state.throttle && state.wheelie ? throttleLift : state.brake && state.wheelie ? stoppieLift : 0;
+    const rearBrake = state.brake && !state.wheelie ? 1.55 + stats.brake * 2.0 : 0;
     const pitchGravity = 0.53 + stats.weight * 0.28;
     const balanceCorrection = state.pitch > 0.1 ? Math.max(0, state.pitch - 0.16) * 0.65 : 0;
-    state.angularVelocity += (throttleLift - rearBrake - pitchGravity - balanceCorrection - state.angularVelocity * (0.92 + stats.weight * 0.35)) * dt;
+    state.angularVelocity += (lift - rearBrake - pitchGravity - balanceCorrection - state.angularVelocity * (0.92 + stats.weight * 0.35)) * dt;
     const priorPitch = state.pitch;
     state.pitch = Math.max(-0.12, state.pitch + state.angularVelocity * dt);
     state.x += state.speed * worldSpeed * dt;
     state.runTime += dt;
+    state.trickChainTimer = Math.max(0, state.trickChainTimer - dt);
+    if (state.trickChainTimer <= 0) state.trickChain = 0;
+    const targetHeading = headingAt(state.x);
+    state.heading += (targetHeading - state.heading) * (1 - Math.exp(-dt * 2.4));
+    const heading = state.heading;
+    const forward = new THREE.Vector3(Math.cos(heading), 0, Math.sin(heading));
+    const left = new THREE.Vector3(-Math.sin(heading), 0, Math.cos(heading));
+    const speedDelta = state.speed * worldSpeed * dt;
+    bikePosition.addScaledVector(forward, speedDelta);
+    bikePosition.addScaledVector(left, state.lane);
     const wheelie = state.pitch > 0.14 && state.speed > 0.045;
     const landedWheelie = state.wasWheelie && !wheelie;
     state.wasWheelie = wheelie;
@@ -762,6 +887,8 @@ function animate() {
         const trickPoints = Math.round((45 + state.speed * 85) * (trickData?.points ?? 1));
         if (state.pitch > 0.14) {
           state.score += trickPoints;
+          state.trickChain += 1;
+          state.trickChainTimer = 3.2;
           toast(`${trickData?.name ?? "TRICK"} · +${trickPoints} POINTS`);
         } else {
           toast("TRICK MISSED · KEEP THE FRONT UP");
@@ -782,13 +909,18 @@ function animate() {
       state.score += metres * multiplier * 1.5;
       state.airTime += dt;
     }
+    updateChallengeProgress();
     const frontWheelSlam = priorPitch > 0.62 && state.pitch < 0.12 && state.angularVelocity < -1.45 && state.speed > 0.37;
-    if (state.pitch > Math.PI / 2 || frontWheelSlam) {
-      endRide(state.pitch > Math.PI / 2 ? "LOOPED OUT" : "FRONT WHEEL DOWN");
-    } else if (landedWheelie) endRide("WHEELIE BANKED");
-    rider.position.set(state.x, rider.userData.wheelRadius, state.lane);
+    if (state.pitch > Math.PI / 2) {
+      endRide("LOOPED OUT");
+    } else if (landedWheelie || frontWheelSlam) {
+      bankRun();
+      state.score = 0;
+      state.distance = 0;
+    }
+    rider.position.set(bikePosition.x, rider.userData.wheelRadius, bikePosition.z);
     rider.rotation.z = state.pitch;
-    rider.rotation.y = -state.steer * 0.10;
+    rider.rotation.y = state.heading - state.steer * 0.10;
     rider.rotation.x = -state.steer * 0.065;
     rider.userData.frame.rotation.set(0, 0, 0);
     for (const wheel of rider.userData.wheels) wheel.rotation.z = -state.x / rider.userData.wheelRadius;
@@ -812,27 +944,31 @@ function animate() {
       : activeTrick === "superman" ? trickPose * 0.12
       : activeTrick === "stoppie" ? trickPose * 0.45
       : 0;
-    const targetX = state.x - 6.5 - state.speed * 1.6;
-    const targetY = 2.55 + state.speed * 0.45 + Math.max(0, state.pitch) * 0.65;
+    const cameraDistance = 6.5 + state.speed * 1.6;
+    const cameraHeight = 2.55 + state.speed * 0.45 + Math.max(0, state.pitch) * 0.65;
+    const camForward = new THREE.Vector3(Math.cos(state.heading), 0, Math.sin(state.heading));
+    const camLeft = new THREE.Vector3(-Math.sin(state.heading), 0, Math.cos(state.heading));
+    const targetCameraPosition = new THREE.Vector3().copy(bikePosition).addScaledVector(camForward, -cameraDistance).addScaledVector(camLeft, 2.8);
+    targetCameraPosition.y = cameraHeight;
     const smoothing = 1 - Math.exp(-dt * 3.8);
-    if (!cameraInitialized) { cameraX = targetX; cameraY = targetY; cameraInitialized = true; }
-    else { cameraX += (targetX - cameraX) * smoothing; cameraY += (targetY - cameraY) * smoothing; }
-    camera.position.set(cameraX, cameraY, state.lane + 2.8);
-    camera.lookAt(state.x + 7, 1.05 + Math.max(0, state.pitch) * 0.65, state.lane);
+    if (!cameraInitialized) { cameraX = targetCameraPosition.x; cameraY = targetCameraPosition.y; cameraZ = targetCameraPosition.z; cameraInitialized = true; }
+    else { cameraX += (targetCameraPosition.x - cameraX) * smoothing; cameraY += (targetCameraPosition.y - cameraY) * smoothing; cameraZ += (targetCameraPosition.z - cameraZ) * smoothing; }
+    camera.position.set(cameraX, cameraY, cameraZ);
+    camera.lookAt(bikePosition.x + Math.cos(state.heading) * 7, 1.05 + Math.max(0, state.pitch) * 0.65, bikePosition.z);
     camera.fov += (61 + state.speed * 3.5 - camera.fov) * smoothing;
     camera.updateProjectionMatrix();
-    sky.position.x = state.x + 20;
+    sky.position.set(bikePosition.x + 20, 0, bikePosition.z);
     updateHud(multiplier);
     state.frame += dt;
     if (state.frame > 0.3) { state.frame = 0; publishGhost(); }
     setEngineSound();
   } else if (!state.running) {
-    const targetX = -6.5;
     const smoothing = 1 - Math.exp(-dt * 1.8);
-    if (!cameraInitialized) { cameraX = targetX; cameraY = 3.3; cameraInitialized = true; }
-    cameraX += (targetX - cameraX) * smoothing;
+    if (!cameraInitialized) { cameraX = -6.5; cameraY = 3.3; cameraZ = 3.5; cameraInitialized = true; }
+    cameraX += (-6.5 - cameraX) * smoothing;
     cameraY += (3.3 - cameraY) * smoothing;
-    camera.position.set(cameraX, cameraY, 3.5);
+    cameraZ += (3.5 - cameraZ) * smoothing;
+    camera.position.set(cameraX, cameraY, cameraZ);
     camera.lookAt(6.5, 1.05, 0);
     camera.fov += (61 - camera.fov) * smoothing;
     camera.updateProjectionMatrix();
@@ -873,7 +1009,11 @@ window.addEventListener("keydown", (event) => {
   const control = keyMap[event.code];
   if (!control || event.repeat) return;
   event.preventDefault();
-  if (state.running && !state.paused) { ensureAudio(); state[control] = true; }
+  if (state.running && !state.paused) {
+    ensureAudio();
+    state[control] = true;
+    if ((control === "wheelie" && state.brake) || (control === "brake" && state.wheelie)) tryTrick("stoppie");
+  }
 });
 window.addEventListener("keyup", (event) => {
   const control = keyMap[event.code];
@@ -881,9 +1021,9 @@ window.addEventListener("keyup", (event) => {
 });
 window.addEventListener("blur", () => { state.throttle = false; state.brake = false; state.wheelie = false; state.left = false; state.right = false; if (state.running) setPaused(true); });
 document.addEventListener("visibilitychange", () => { if (document.hidden && state.running) { state.throttle = false; state.brake = false; state.wheelie = false; state.left = false; state.right = false; setPaused(true); } });
-function bindTouch(button, control) {
+function bindTouch(button, control, onDown) {
   const el = $(button);
-  const down = (event) => { event.preventDefault(); if (!state.running || state.paused) return; ensureAudio(); state[control] = true; };
+  const down = (event) => { event.preventDefault(); if (!state.running || state.paused) return; ensureAudio(); state[control] = true; onDown?.(event); };
   const up = (event) => { event.preventDefault(); state[control] = false; };
   el.addEventListener("pointerdown", down);
   el.addEventListener("pointerup", up);
@@ -893,7 +1033,7 @@ function bindTouch(button, control) {
 }
 bindTouch("throttle-touch", "throttle");
 bindTouch("brake-touch", "brake");
-bindTouch("wheelie-touch", "wheelie");
+bindTouch("wheelie-touch", "wheelie", (event) => { if (state.brake) tryTrick("stoppie"); });
 bindTouch("left-touch", "left");
 bindTouch("right-touch", "right");
 $("trick-picker-touch").addEventListener("pointerdown", (event) => {

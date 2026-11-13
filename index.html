@@ -38,13 +38,19 @@
         <div class="speed-card"><span class="eyebrow">SPEED</span><div class="speed-value"><span id="speed">0</span><span class="speed-unit">KM/H</span></div></div>
         <div class="angle-card"><div class="angle-head"><span class="eyebrow">BALANCE</span><span id="angle-readout">0°</span></div><div class="balance-track"><div class="balance-sweet"></div><div id="balance-needle"></div></div><span class="balance-hint" id="balance-hint">FIND THE SWEET SPOT</span></div>
         <div class="distance-card"><span class="eyebrow">WHEELIE DISTANCE</span><div class="distance-value"><span id="distance">0</span><span class="distance-unit">M</span></div><span class="bank-preview">+$<span id="run-cash">0</span> PENDING</span></div>
+        <div class="challenge-card" id="challenge-card">
+          <span class="eyebrow">CHALLENGE</span>
+          <div class="challenge-label" id="challenge-label">HOLD THE LINE</div>
+          <div class="challenge-progress"><span id="challenge-progress-bar"></span></div>
+          <div class="challenge-meta"><span id="challenge-meta">0 / 10s</span><span id="challenge-reward">+$220</span></div>
+        </div>
         <div class="combo-card" id="combo-card"><span class="combo-multiplier" id="multiplier">1.0<span>×</span></span><span class="eyebrow">COMBO</span></div>
       </section>
 
       <div class="network-status" id="network-status"><span class="status-dot"></span><span id="network-label">OFFLINE · LOCAL RECORDS</span></div>
 
       <section class="start-screen" id="start-screen">
-        <div class="hero-copy"><span class="section-tag"><span class="live-dot"></span> ELECTRIC STREET CULTURE</span><h1>OWN THE<br><span>STREET.</span></h1><p>Hold W + Shift to wheelie. Land clean to bank your cash,<br>or tap BANK RUN whenever you want.</p><button class="primary-button" id="ride-button"><span>RIDE NOW</span><span class="button-arrow">↗</span></button><button class="text-button" id="garage-button"><span>▣</span> OPEN GARAGE <span class="garage-bike-name" id="current-bike-name"></span></button></div>
+        <div class="hero-copy"><span class="section-tag"><span class="live-dot"></span> ELECTRIC STREET CULTURE</span><h1>OWN THE<br><span>STREET.</span></h1><p>Hold W + Shift to wheelie, or hold Shift + S for a stoppie. Land clean to bank your cash,<br>or tap BANK RUN whenever you want.</p><button class="primary-button" id="ride-button"><span>RIDE NOW</span><span class="button-arrow">↗</span></button><button class="text-button" id="garage-button"><span>▣</span> OPEN GARAGE <span class="garage-bike-name" id="current-bike-name"></span></button></div>
         <div class="hero-bottom"><span>01 — CITY STREET CIRCUIT</span><span>BUILT FOR THE LONG RUN <span class="accent-text">✳</span></span></div>
       </section>
 
@@ -52,14 +58,14 @@
       <div class="toast hidden" id="toast" role="status"></div>
 
       <div class="ride-controls" id="ride-controls">
-        <span class="control-key"><kbd>W</kbd> THROTTLE</span><span class="control-separator">·</span><span class="control-key"><kbd>S</kbd> BRAKE</span><span class="control-separator">·</span><span class="control-key"><kbd>A</kbd><kbd>D</kbd> STEER</span><span class="control-separator">·</span><span class="control-key"><kbd>SHIFT</kbd> WHEELIE</span><span class="control-separator">·</span><span class="control-key"><kbd>Q</kbd><kbd>E</kbd><kbd>R</kbd><kbd>F</kbd><kbd>C</kbd><kbd>V</kbd> TRICKS</span>
+        <span class="control-key"><kbd>W</kbd> THROTTLE</span><span class="control-separator">·</span><span class="control-key"><kbd>S</kbd> BRAKE</span><span class="control-separator">·</span><span class="control-key"><kbd>A</kbd><kbd>D</kbd> STEER</span><span class="control-separator">·</span><span class="control-key"><kbd>SHIFT</kbd> WHEELIE</span><span class="control-separator">·</span><span class="control-key"><kbd>SHIFT</kbd> + <kbd>S</kbd> STOPPIE</span><span class="control-separator">·</span><span class="control-key"><kbd>Q</kbd><kbd>E</kbd><kbd>R</kbd><kbd>F</kbd><kbd>C</kbd><kbd>V</kbd> TRICKS</span>
       </div>
       <div class="touch-controls" id="touch-controls">
         <button class="touch-button steer-button" id="left-touch" aria-label="Steer left">←</button>
         <button class="touch-button" id="throttle-touch">HOLD<br><strong>THROTTLE</strong></button>
         <button class="touch-button brake-button" id="brake-touch">HOLD<br><strong>BRAKE</strong></button>
         <button class="touch-button steer-button" id="right-touch" aria-label="Steer right">→</button>
-        <button class="touch-button" id="wheelie-touch">HOLD<br><strong>WHEELIE</strong></button>
+        <button class="touch-button" id="wheelie-touch">HOLD<br><strong>WHEELIE / STOPPIE</strong></button>
         <button class="touch-button trick-button" id="trick-picker-touch">E<br><strong>BARSPIN</strong></button>
         <button class="touch-button trick-button" id="throw-trick-touch">DO<br><strong>TRICK</strong></button>
         <button class="touch-button bank-touch" id="bank-touch">BANK<br><strong>RUN</strong></button>
