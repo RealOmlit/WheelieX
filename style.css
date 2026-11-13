@@ -2,7 +2,9 @@
 html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(180deg,#cde7f5,#a9cfe6);font:600 14px "DM Sans",system-ui,sans-serif;color:#fff}
 canvas#g{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
 .p{position:fixed;background:rgba(12,18,30,.62);border-radius:12px;padding:8px 12px;backdrop-filter:blur(6px)}
-#mm{position:fixed;top:10px;left:10px;width:150px;height:150px;border-radius:18px;border:3px solid #fff8;box-shadow:0 4px 14px #0006}
+#mm{position:fixed;top:10px;left:10px;width:150px;height:150px;border-radius:18px;border:3px solid #fff8;box-shadow:0 4px 14px #0006;cursor:zoom-in;z-index:2;transition:width .2s ease,height .2s ease,top .2s ease,left .2s ease,transform .2s ease}
+#mm.expanded{top:50%;left:50%;width:min(86vw,86vh,720px);height:min(86vw,86vh,720px);transform:translate(-50%,-50%);border-radius:16px;box-shadow:0 0 0 100vmax #0009,0 8px 40px #000b;cursor:zoom-out;z-index:8}
+#mm:focus-visible{outline:3px solid #c0f56a;outline-offset:3px}
 #top{top:10px;left:50%;transform:translateX(-50%);text-align:center;min-width:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:12px 18px}
 #cash{font-size:26px;color:#4ade80}#combo{font-size:16px;color:#facc15;min-height:20px}
 #tr{top:10px;right:10px;text-align:right;max-width:230px}

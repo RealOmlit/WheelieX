@@ -16,7 +16,8 @@ Open [http://localhost:8000](http://localhost:8000). Three.js, MQTT.js, and web 
 
 - Hold **W** (or **Up**) to accelerate; hold **S** (or **Down**) to brake.
 - Steer with **A/D** or **Left/Right**.
-- Hold **Space/Shift** to lift and balance a wheelie; use **W/S** to balance.
+- Hold **Space/Shift** to lift and balance a wheelie; use **W/S** to balance. Ease off before over-rotating or holding the wheelie too long.
+- In the air, hold **W/Up** for a backflip, **S/Down** for a frontflip, and **A/D** for barrel rolls. Counter-steer to level out; land upright to score, or you'll crash.
 - Press **F** to mount or dismount (stop first); click the game and move the mouse to look around. Use **W/A/S/D** to walk when off the bike.
 - Hold **E** for boost after installing a boost mount; **G** opens the garage.
 - Tap the speed readout to toggle kilometres per hour and miles per hour.
@@ -28,11 +29,14 @@ Open [http://localhost:8000](http://localhost:8000). Three.js, MQTT.js, and web 
 - Police wanted system with chase, bust, and escape flow.
 - Username-based live multiplayer over MQTT; play solo if the broker is unavailable.
 - Walk, look around, and see other riders on or off their bikes.
+- Perform backflips, frontflips, and barrel rolls in the air; tricks require clean landings to score.
+- Wheelie combo rewards cap at 3×, with a tighter balance window.
+- Police cars, trees, rocks, buildings, and houses now block the rider and police vehicles.
 - Helmet-cam slip HUD, minimap, boost bar, combo, wipeout, and air-time feedback.
 
 ## Garage and progression
 
-Earn cash from riding, boosts, air time, and boost pads. Unlock bikes and buy upgrades across motor power, torque, balance, and boost. The Mod Shop offers Factory, Trail, and Race suspension setups with visible suspension travel; install Street/Race boost mounts for 300%/400% of the bike price, or purchase the ECU overclock to max stats and unlock boost software.
+Earn cash from riding, boosts, air time, and boost pads. The garage lists bikes in a clearer entry-to-performance progression, with prices reduced. Each performance upgrade adds 1.5% to its stat. The Mod Shop offers Factory, Trail, and Race suspension setups with visible suspension travel; install Street/Race boost mounts for 300%/400% of the bike price, or purchase the ECU overclock to max stats and unlock boost software.
 
 ## Multiplayer
 
