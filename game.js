@@ -990,8 +990,44 @@ onResize();
 animate();
 refreshCash();
 refreshSideBikeLabel();
-setTimeout(() => $("loading-screen").classList.add("done"), 450);
-setTimeout(() => $("loading-screen").classList.add("hidden"), 1000);
+function runLoadingSequence() {
+  const screen = $("loading-screen");
+  const fill = $("loading-fill");
+  const percent = $("loading-percent");
+  if (!screen || !fill || !percent) return;
+
+  let done = false;
+  const finishLoading = () => {
+    if (done) return;
+    done = true;
+    fill.style.width = "100%";
+    percent.textContent = "100%";
+    screen.classList.add("done");
+    setTimeout(() => screen.classList.add("hidden"), 420);
+  };
+
+  let progress = 8;
+  const animate = () => {
+    if (done) return;
+    progress = Math.min(94, progress + Math.random() * 12 + 8);
+    fill.style.width = `${progress}%`;
+    percent.textContent = `${Math.round(progress)}%`;
+    if (document.readyState === "complete") {
+      finishLoading();
+      return;
+    }
+    if (progress < 94) {
+      setTimeout(animate, 140);
+    } else {
+      finishLoading();
+    }
+  };
+
+  animate();
+  window.addEventListener("load", finishLoading, { once: true });
+  setTimeout(finishLoading, 2200);
+}
+runLoadingSequence();
 
 const keyMap = { ArrowUp: "throttle", KeyW: "throttle", Space: "throttle", ArrowDown: "brake", KeyS: "brake", ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right", ShiftLeft: "wheelie", ShiftRight: "wheelie" };
 let trickSelectionIndex = 1;

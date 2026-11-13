@@ -91,7 +91,14 @@
       </div>
 
       <aside class="right-actions"><button class="side-button" id="leaderboard-button"><span>↗</span> LEADERBOARD</button><span class="side-divider"></span><span class="side-caption" id="side-bike-label">STOCK BUILD</span></aside>
-      <div class="loading-screen" id="loading-screen"><span class="loading-mark">W<span>/</span>X</span><span class="loading-label">LOADING THE STREETS</span><div class="loading-track"><span></span></div></div>
+      <div class="loading-screen" id="loading-screen" role="status" aria-live="polite">
+        <div class="loading-inner">
+          <span class="loading-mark">W<span>/</span>X</span>
+          <span class="loading-label">LOADING THE STREETS</span>
+          <div class="loading-track"><span id="loading-fill"></span></div>
+          <span class="loading-percent" id="loading-percent">0%</span>
+        </div>
+      </div>
     </main>
   </body>
 </html>
