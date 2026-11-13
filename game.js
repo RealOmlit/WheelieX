@@ -1,1263 +1,277 @@
-import * as THREE from "three";
-
-const $ = (id) => document.getElementById(id);
-const STORAGE_KEY = "wheeliex-save-v1";
-const TRICKS = [
-  { id: "nohander", name: "NO-HANDER", key: "Q", points: 1 },
-  { id: "barspin", name: "BARSPIN", key: "E", points: 1.1 },
-  { id: "superman", name: "SUPERMAN", key: "R", points: 1.3 },
-  { id: "tailwhip", name: "TAILWHIP", key: "F", points: 1.45 },
-  { id: "cancan", name: "CAN-CAN", key: "C", points: 1.2 },
-  { id: "nacnac", name: "NAC-NAC", key: "V", points: 1.25 },
-  { id: "stoppie", name: "STOPPIE", key: "Shift+S", points: 1.35 },
-];
-const TRICK_DURATION = 1.05;
-const CHALLENGE_DEFS = [
-  { id: "wheelie", title: "HOLD THE LINE", target: 10, reward: 220, suffix: "s" },
-  { id: "distance", title: "CITY RUN", target: 180, reward: 320, suffix: "m" },
-  { id: "tricks", title: "TRICK THREAD", target: 3, reward: 260, suffix: "tricks" },
-];
-const BIKE_CATALOG = [
-  { id: "commuter", name: "Starter Commuter", subtitle: "HARDTAIL E-BIKE", price: 0, speed: 0.53, torque: 0.36, brake: 0.53, weight: 0.57, payout: 1, color: 0x20262b, description: "A familiar hardtail e-bike silhouette, with a frame-mounted battery and predictable handling." },
-  { id: "kukirin", name: "Kukirin G2 Max / G4", subtitle: "URBAN ALL-ROUNDER", price: 500, speed: 0.77, torque: 0.56, brake: 0.57, weight: 0.79, payout: 1.12, color: 0xd98945, description: "Heavy metal and a lot of top end. The eager throttle needs a steady hand." },
-  { id: "surron", name: "Sur-Ron Light Bee X", subtitle: "LIGHTWEIGHT DIRT MACHINE", price: 1500, speed: 0.79, torque: 0.84, brake: 0.86, weight: 0.37, payout: 1.3, color: 0xaceb65, description: "A lightweight frame with punchy lift and a rear brake that answers instantly." },
-  { id: "talaria", name: "Talaria Sting R / Ultra Bee", subtitle: "THE TOP-SHELF BUILD", price: 4000, speed: 1, torque: 0.98, brake: 0.91, weight: 0.48, payout: 1.75, color: 0xc97455, description: "Maximum acceleration, a razor-thin balance window, and a payout to match." },
-  { id: "strom", name: "Strom RC e+", subtitle: "ALL-TERRAIN CRUISER", price: 6200, speed: 0.72, torque: 0.82, brake: 0.82, weight: 0.52, payout: 1.45, color: 0xb5653a, description: "Bolt-on suspension and a torquey hub motor for fire-road flirting." },
-  { id: "veloretti", name: "Veloretti Supervelo", subtitle: "CITY GRINDER", price: 2800, speed: 0.72, torque: 0.7, brake: 0.75, weight: 0.6, payout: 1.35, color: 0x5aa0c9, description: "Featherweight city frame with a whisper-quiet hub motor and quick steering." },
-];
-const STAT_LABELS = [["speed", "TOP SPEED"], ["torque", "TORQUE"], ["brake", "BRAKE"], ["weight", "BATTERY / WEIGHT"]];
-const UPGRADE_LABELS = { torque: "LIFT MOTOR", brake: "REAR BRAKE", speed: "BATTERY PACK" };
-
-function defaultSave() {
-  return { cash: 0, unlocked: ["commuter"], equipped: "commuter", upgrades: { commuter: { torque: 0, brake: 0, speed: 0 } }, records: { distance: [], cash: [] }, riderName: `RIDER-${Math.floor(100 + Math.random() * 900)}` };
+import * as T from "three";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+const $=id=>document.getElementById(id),PI=Math.PI;
+/* ---------- save ---------- */
+let S;try{S=JSON.parse(localStorage.getItem('ebl1'))}catch(e){}
+S=S||{cash:0,own:[0],eq:0,up:{}};const save=()=>{try{localStorage.setItem('ebl1',JSON.stringify(S))}catch(e){}};
+/* ---------- bikes ---------- */
+const B=(n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh)=>({n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh});
+const BIKES=[
+B('Kirkland Signature Cruiser',0,[3,4,8,3],0x2563eb,0xdc2626,0xaaaaaa,0x222222,.34,.12,1.3,.32,.32,.6,.62,.22,0),
+B('Super73-RX Mojave',1500,[4,4,7,4],0x56603a,0xd9b97a,0x888888,0xc49a63,.3,.22,1.25,.28,.26,.95,.52,.45,0),
+B('Talaria XXX TL2500',3500,[5,5,6,4],0x111111,0x333333,0x555555,0x111111,.36,.1,1.3,.2,.3,.6,.7,.1,0),
+B('Surron Hyper Bee',6000,[4,6,6,5],0xef4444,0x111111,0xcccccc,0x111111,.32,.1,1.2,.2,.26,.5,.64,.12,0),
+B('Surron Light Bee X',9000,[5,5,6,5],0x1c1c1c,0xfacc15,0xfacc15,0x111111,.34,.1,1.28,.2,.28,.55,.66,.12,0),
+B('Talaria Sting R MX4',14000,[6,7,5,6],0x0ea5e9,0x111111,0xd4d4d8,0x111111,.38,.1,1.4,.22,.3,.55,.7,.14,1),
+B('E-Ride Pro SS 2.0',20000,[7,7,5,6],0x7c3aed,0x111111,0xa78bfa,0x111111,.34,.11,1.3,.24,.3,.6,.66,.12,0),
+B('Segway Dirt eBike X260',28000,[6,6,7,6],0xf5f5f5,0x111111,0x999999,0x222222,.4,.11,1.45,.24,.32,.62,.74,.15,1),
+B('Cake Kalk INK',38000,[7,7,6,7],0xf8fafc,0x111111,0xdddddd,0x111111,.35,.1,1.3,.22,.3,.55,.68,.1,0),
+B('Surron Ultra Bee HP',52000,[8,8,7,7],0x1f2937,0x22d3ee,0x22d3ee,0x111111,.38,.11,1.4,.26,.32,.6,.72,.14,1),
+B('Surron Storm Bee',70000,[9,9,7,9],0x0f172a,0xf59e0b,0xf59e0b,0x111111,.4,.12,1.5,.28,.34,.62,.76,.16,1),
+B('Stark VARG 80HP',100000,[10,10,8,10],0xdc2626,0x111111,0x666666,0x111111,.4,.12,1.5,.26,.34,.6,.76,.16,1)];
+const lv=i=>S.up[i]||(S.up[i]=[1,1,1,1]),eff=i=>BIKES[i].s.map((s,k)=>s+(lv(i)[k]-1)*.55),cost=(i,l)=>Math.round(100*l*l+BIKES[i].pr*.03*l);
+/* ---------- three setup ---------- */
+const cv=$('g'),R=new T.WebGLRenderer({canvas:cv,antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;
+const scene=new T.Scene();scene.fog=new T.Fog(0xbfdef2,90,230);
+const cam=new T.PerspectiveCamera(62,1,.1,2500);
+scene.add(new T.HemisphereLight(0xffffff,0x667755,1.0));
+const sun=new T.DirectionalLight(0xfff2d8,2.2);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);const sc=sun.shadow.camera;sc.left=sc.bottom=-45;sc.right=sc.top=45;sc.far=250;scene.add(sun,sun.target);
+const sky=new T.Mesh(new T.SphereGeometry(1000,16,12),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 p;void main(){float h=clamp(normalize(p).y,0.,1.);gl_FragColor=vec4(mix(vec3(.75,.87,.95),vec3(.18,.45,.85),pow(h,.55)),1.);}'}));scene.add(sky);
+const mat=(c,o={})=>new T.MeshStandardMaterial({color:c,roughness:.5,metalness:.3,...o});
+const bx=(w,h,l,m,x,y,z)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,l),m);o.position.set(x,y,z);return o};
+const tb=(a,b,r,m)=>{const A=new T.Vector3(...a),Bv=new T.Vector3(...b),o=new T.Mesh(new T.CylinderGeometry(r,r,A.distanceTo(Bv),8),m);o.position.copy(A).add(Bv).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),Bv.clone().sub(A).normalize());return o};
+/* ---------- bike model ---------- */
+function buildBike(d,shirt){
+const g=new T.Group(),P=new T.Group();g.add(P);
+const M=mat(d.c),A=mat(d.a),F=mat(d.f,{metalness:.9,roughness:.3}),K=mat(0x151515,{roughness:.9,metalness:0}),SM=mat(d.sc,{roughness:.8}),SH=mat(shirt,{metalness:0}),PN=mat(0x222244,{metalness:0});
+const wh=z=>{const w=new T.Group();w.position.z=z;const s=new T.Group();w.add(s);
+const t=new T.Mesh(new T.CylinderGeometry(d.wr,d.wr,d.tw,20),K);t.rotation.z=1.5708;s.add(t);
+const r=new T.Mesh(new T.CylinderGeometry(d.wr*.6,d.wr*.6,d.tw+.01,14),A);r.rotation.z=1.5708;s.add(r);
+s.add(bx(d.tw+.03,d.wr*1.5,.05,A,0,0,0));P.add(w);return s};
+const rw=wh(0),fw=wh(d.wb),wb=d.wb,y0=d.wr*.9,hy=d.wr*2+.18,hz=wb-.22,hby=hy+d.hb*.5+.06;
+P.add(bx(d.bw,d.bh,wb*.4,M,0,y0+.12,wb*.42));
+const mo=new T.Mesh(new T.CylinderGeometry(.11,.11,d.bw+.06,12),A);mo.rotation.z=1.5708;mo.position.set(0,y0-.08,wb*.3);P.add(mo);
+P.add(tb([0,0,0],[0,y0,wb*.35],.04,F));
+P.add(tb([0,y0+.2,wb*.55],[0,hy,hz],.05,M));
+P.add(tb([0,y0+.15,wb*.3],[0,d.sy,wb*.18],.04,M));
+P.add(bx(.2,.09,d.sl,SM,0,d.sy,wb*.18));
+[-.07,.07].forEach(sx=>P.add(tb([sx,0,wb],[sx,hy,hz],.03,F)));
+P.add(tb([-.32,hby,hz-.08],[.32,hby,hz-.08],.025,F));P.add(tb([0,hy,hz],[0,hby,hz-.08],.03,F));
+P.add(bx(.14,.03,.35,M,0,d.wr*(d.fh?1.75:1.2),wb+(d.fh?.1:0)));P.add(bx(.16,.03,.4,M,0,d.wr*1.2,-.18));
+const hl=new T.Mesh(new T.SphereGeometry(.07,10,8),new T.MeshBasicMaterial({color:0xffffee}));hl.position.set(0,hby-.06,hz+.08);P.add(hl);
+const tl=new T.Mesh(new T.BoxGeometry(.1,.05,.04),new T.MeshBasicMaterial({color:0xff2222}));tl.position.set(0,d.wr*1.2+.02,-.4);P.add(tl);
+const glow=new T.Mesh(new T.SphereGeometry(.16,10,8),new T.MeshBasicMaterial({color:0xa855f7,transparent:true,opacity:.8}));glow.position.set(0,y0-.08,wb*.3);glow.visible=false;P.add(glow);
+const Rd=new T.Group();P.add(Rd);
+Rd.add(tb([0,d.sy+.1,wb*.12],[0,d.sy+.62,wb*.38],.12,SH));
+const hd=new T.Mesh(new T.SphereGeometry(.13,12,10),mat(0xffffff));hd.position.set(0,d.sy+.82,wb*.45);Rd.add(hd);
+[-1,1].forEach(s=>{Rd.add(tb([s*.2,d.sy+.55,wb*.36],[s*.32,hby,hz-.08],.04,SH));Rd.add(tb([s*.14,d.sy+.1,wb*.12],[s*.22,y0-.1,wb*.32],.055,PN))});
+g.traverse(o=>{if(o.isMesh)o.castShadow=true});
+return{g,P,rw,fw,R:Rd,glow,wr:d.wr,wb,d};}
+function tag(txt,col){const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');x.font='bold 30px system-ui';x.textAlign='center';x.fillStyle='rgba(0,0,0,.5)';x.fillRect(0,8,256,48);x.fillStyle=col;x.fillText(txt,128,43);const s=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),depthTest:false}));s.scale.set(3,.75,1);s.position.y=2.4;s.renderOrder=9;return s}
+function pose(r,X,Y,Z,H,Ro,Pt,V,dt){r.g.position.set(X,Y+r.wr,Z);r.g.rotation.set(0,H,Ro);r.P.rotation.x=-Pt;const s=V*dt/r.wr;r.rw.rotation.x+=s;r.fw.rotation.x+=s}
+/* ---------- world ---------- */
+const S_=90,chunks=new Map(),rng=s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const gGeo=new T.PlaneGeometry(S_,S_).rotateX(-PI/2),rGeo=new T.PlaneGeometry(24,S_).rotateX(-PI/2),bGeo=new T.BoxGeometry(1,1,1).translate(0,.5,0);
+const GM=[0x5a5e66,0x5f9e4b,0xcaa56b,0x8f949c].map(c=>mat(c,{roughness:1,metalness:0}));
+const rt=(()=>{const c=document.createElement('canvas');c.width=64;c.height=512;const x=c.getContext('2d');x.fillStyle='#34373d';x.fillRect(0,0,64,512);x.fillStyle='#fff';x.fillRect(1,0,2,512);x.fillRect(61,0,2,512);x.fillStyle='#f5c518';x.fillRect(30,0,1.5,512);x.fillRect(33,0,1.5,512);x.fillStyle='#ddd';const u=51.2;for(let i=0;i<10;i++){const y=i*u+u/3;x.fillRect(15.5,y,1.5,u/3);x.fillRect(46,y,1.5,u/3)}const t=new T.CanvasTexture(c);t.anisotropy=4;return t})();
+const roadM=mat(0xffffff,{map:rt,roughness:.9,metalness:0}),swM=mat(0x9a9a9a,{roughness:1,metalness:0}),poleM=mat(0x444444),lampM=new T.MeshBasicMaterial({color:0xfff2b0});
+const BM=[0x8a94a6,0x6b7a90,0xa7b0c0,0x4b5563,0x9aa5b8].map(c=>mat(c,{roughness:.8})),HM=[0xf2e2c7,0xe8b4a0,0xb9d3e8,0xd9e8b9].map(c=>mat(c,{roughness:.9,metalness:0}));
+const roofM=mat(0x7a3b2e,{roughness:.9}),trM=mat(0x5b3a1e,{roughness:1,metalness:0}),lfM=mat(0x2f7d32,{roughness:1,metalness:0}),rkM=mat(0x8b7355,{roughness:1}),cacM=mat(0x3f8f3f,{roughness:1});
+const trGeo=new T.CylinderGeometry(.25,.3,2,6),cnGeo=new T.ConeGeometry(1.6,4,7),pGeo=new T.CylinderGeometry(.1,.1,7,6),lGeo=new T.SphereGeometry(.4,8,6),rkGeo=new T.DodecahedronGeometry(1),cacGeo=new T.CylinderGeometry(.35,.35,3,8),hrGeo=new T.ConeGeometry(5.6,2.5,4).rotateY(PI/4);
+const orbGeo=new T.CylinderGeometry(.55,.55,.14,16).rotateX(PI/2),orbM=mat(0xffd21f,{emissive:0xaa7700,metalness:.8,roughness:.3}),padGeo=new T.PlaneGeometry(4,8).rotateX(-PI/2),padM=new T.MeshBasicMaterial({color:0x66ddff});
+const RM=[0xd97706,0x9a7b4f,0x9ca3af,0xb45309].map(c=>mat(c,{roughness:.8}));
+function mkChunk(cx,cz){
+const r=rng((cx*73856093)^(cz*19349663)),g=new T.Group(),c={g,id:[cx,cz],ramps:[],cols:[],orbs:[],pads:[],dis:[]},ox=cx*S_,oz=cz*S_;g.position.set(ox,0,oz);
+const hw=cx===0,b=hw?r()*3|0:r()*4|0;
+const gm=new T.Mesh(gGeo,GM[b]);gm.receiveShadow=true;g.add(gm);
+const bk=new Map(),add=(m,x,y,z,cs,dyn)=>{m.position.set(x,y,z);if(dyn||m.geometry.type==='ExtrudeGeometry'){m.castShadow=!!cs;m.receiveShadow=true;g.add(m);return m}m.updateMatrix();const q=m.geometry.clone().applyMatrix4(m.matrix);const a=bk.get(m.material)||bk.set(m.material,[]).get(m.material);a.push(q);return m};
+const rp=ex=>{for(let i=0;i<25;i++){const x=(r()-.5)*84,z=(r()-.5)*84;if(!hw||Math.abs(x)>ex)return[x,z]}return[40,40]};
+const ramp=(x,z,ry,L,w,H,mi)=>{const sh=new T.Shape();sh.moveTo(0,0);sh.lineTo(L,0);sh.lineTo(L,H);sh.closePath();const geo=new T.ExtrudeGeometry(sh,{depth:w,bevelEnabled:false}).translate(-L/2,0,-w/2);c.dis.push(geo);const m=add(new T.Mesh(geo,RM[mi]),x,0,z,1);m.rotation.y=ry;c.ramps.push({x:ox+x,z:oz+z,L,w,H,co:Math.cos(ry),si:Math.sin(ry)})};
+const tree=(x,z)=>{add(new T.Mesh(trGeo,trM),x,1,z);add(new T.Mesh(cnGeo,lfM),x,3.6,z,1)};
+const col=(x,z,w,d)=>c.cols.push({x:ox+x,z:oz+z,hw:w/2+.4,hd:d/2+.4});
+if(hw){add(new T.Mesh(rGeo,roadM),0,.03,0);
+[-13.5,13.5].forEach(x=>{const m=new T.Mesh(bGeo,swM);m.scale.set(3,.2,S_);add(m,x,0,0)});
+[-30,0,30].forEach(z=>[-14.5,14.5].forEach(sx=>{add(new T.Mesh(pGeo,poleM),sx,3.5,z);add(new T.Mesh(lGeo,lampM),sx*.9,7.1,z)}));
+if(r()<.55)ramp((r()-.5)*14,(r()-.5)*70,r()<.5?-PI/2:PI/2,9,5,2.2,0);
+for(let i=0;i<7;i++){const o=new T.Mesh(orbGeo,orbM);const x=(r()*2-1)*9,z=-40+i*12;add(o,x,1.3,z,0,1);c.orbs.push({m:o,x:ox+x,z:oz+z,on:true})}
+if(r()<.4){const x=(r()<.5?-1:1)*5,pz=(r()-.5)*60;add(new T.Mesh(padGeo,padM),x,.06,pz);c.pads.push({x:ox+x,z:oz+pz})}}
+else{for(let i=0;i<5;i++){const[x,z]=rp(0),o=new T.Mesh(orbGeo,orbM);add(o,x,1.3,z,0,1);c.orbs.push({m:o,x:ox+x,z:oz+z,on:true})}}
+if(b===0)for(let i=0;i<9;i++){const[x,z]=rp(27),w=8+r()*8,d=8+r()*8,h=10+r()*38,m=new T.Mesh(bGeo,BM[r()*5|0]);m.scale.set(w,h,d);add(m,x,0,z,1);col(x,z,w,d)}
+if(b===1)for(let i=0;i<6;i++){const[x,z]=rp(24),m=new T.Mesh(bGeo,HM[r()*4|0]);m.scale.set(7,4,7);add(m,x,0,z,1);add(new T.Mesh(hrGeo,roofM),x,5.25,z,1);col(x,z,7,7)}
+if(b===2){for(let i=0;i<8;i++){const[x,z]=rp(17),m=new T.Mesh(rkGeo,rkM),s=.8+r()*2;m.scale.set(s,s*.7,s);add(m,x,s*.3,z,1)}
+for(let i=0;i<6;i++){const[x,z]=rp(17);add(new T.Mesh(cacGeo,cacM),x,1.5,z,1)}
+for(let i=0;i<2;i++){const[x,z]=rp(17);ramp(x,z,r()*6.28,9,5,2.2,1)}}
+if(b===3)for(let i=0;i<4;i++){const[x,z]=rp(0);ramp(x,z,r()*6.28,8+r()*5,5+r()*3,2+r()*1.8,2+(i&1))}
+if(b!==2)for(let i=0;i<7;i++){const[x,z]=rp(17);tree(x,z)}
+bk.forEach((a,m)=>{const mg=mergeGeometries(a);a.forEach(q=>q.dispose());c.dis.push(mg);const o=new T.Mesh(mg,m);o.castShadow=m!==roadM&&m!==GM[b]&&m!==swM;o.receiveShadow=true;g.add(o)});
+return c}
+function gH(x,z){let h=0;const a=Math.round(x/S_),b=Math.round(z/S_);gH.sl=0;gH.e=[0,0];
+for(let i=-1;i<2;i++)for(let j=-1;j<2;j++){const c=chunks.get((a+i)+','+(b+j));if(!c)continue;for(const q of c.ramps){const dx=x-q.x,dz=z-q.z,u=dx*q.co-dz*q.si,l=dx*q.si+dz*q.co;if(Math.abs(u)<q.L/2&&Math.abs(l)<q.w/2){const hh=(u+q.L/2)/q.L*q.H;if(hh>h){h=hh;gH.sl=q.H/q.L;gH.e=[q.co,-q.si]}}}}return h}
+function nbr(x,z,f){const a=Math.round(x/S_),b=Math.round(z/S_);for(let i=-1;i<2;i++)for(let j=-1;j<2;j++){const c=chunks.get((a+i)+','+(b+j));if(c)f(c)}}
+function loadChunks(x,z){const a=Math.round(x/S_),b=Math.round(z/S_);
+for(let i=-2;i<3;i++)for(let j=-2;j<3;j++){const k=(a+i)+','+(b+j);if(!chunks.has(k)){const c=mkChunk(a+i,b+j);chunks.set(k,c);scene.add(c.g)}}
+for(const[k,c]of chunks)if(Math.abs(c.id[0]-a)>3||Math.abs(c.id[1]-b)>3){scene.remove(c.g);c.dis.forEach(q=>q.dispose());chunks.delete(k)}}
+/* ---------- particles ---------- */
+const NP=260,pp=new Float32Array(NP*3),pc=new Float32Array(NP*3),pq=[],pg=new T.BufferGeometry();
+for(let i=0;i<NP;i++){pp[i*3+1]=-999;pq.push({l:0,v:[0,0,0],g:0})}
+pg.setAttribute('position',new T.BufferAttribute(pp,3));pg.setAttribute('color',new T.BufferAttribute(pc,3));
+const pts=new T.Points(pg,new T.PointsMaterial({size:.25,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending}));pts.frustumCulled=false;scene.add(pts);
+let pi=0;const emit=(p3,vx,vy,vz,l,r,g,b,gr)=>{const i=pi++%NP,q=pq[i];pp.set([p3.x,p3.y,p3.z],i*3);pc.set([r,g,b],i*3);q.l=l;q.v=[vx,vy,vz];q.g=gr};
+const stepP=dt=>{for(let i=0;i<NP;i++){const q=pq[i];if(q.l>0){q.l-=dt;q.v[1]-=q.g*dt;pp[i*3]+=q.v[0]*dt;pp[i*3+1]+=q.v[1]*dt;pp[i*3+2]+=q.v[2]*dt;if(q.l<=0)pp[i*3+1]=-999}}pg.attributes.position.needsUpdate=true;pg.attributes.color.needsUpdate=true};
+/* ---------- audio ---------- */
+let AC,mg,mo1,mo2,mgn,sir,sg,ng={},muted=false;
+function ainit(){if(AC){AC.resume();return}try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return}
+mg=AC.createGain();mg.gain.value=muted?0:.5;mg.connect(AC.destination);
+mo1=AC.createOscillator();mo1.type='sawtooth';mo2=AC.createOscillator();mo2.type='sine';const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=1600;mgn=AC.createGain();mgn.gain.value=0;
+mo1.connect(f);mo2.connect(f);f.connect(mgn);mgn.connect(mg);mo1.start();mo2.start();
+const nb=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+const ns=(t,fr,q)=>{const s=AC.createBufferSource();s.buffer=nb;s.loop=true;const fl=AC.createBiquadFilter();fl.type=t;fl.frequency.value=fr;fl.Q.value=q;const g=AC.createGain();g.gain.value=0;s.connect(fl);fl.connect(g);g.connect(mg);s.start();return g};
+ng.scr=ns('bandpass',1700,3);ng.spk=ns('highpass',5000,1);ng.bst=ns('bandpass',600,.6);sir=AC.createOscillator();sir.type='triangle';sg=AC.createGain();sg.gain.value=0;sir.connect(sg);sg.connect(mg);sir.start()}
+addEventListener('pointerdown',ainit);addEventListener('keydown',ainit);
+$('bm').onclick=()=>{muted=!muted;$('bm').textContent=muted?'🔇':'🔊';if(mg)mg.gain.value=muted?0:.5};
+/* ---------- input ---------- */
+const keys={};addEventListener('keydown',e=>{keys[e.code]=1;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(e.code==='KeyG')tg(!gOpen);if(e.code==='Escape'&&gOpen)tg(false)});
+addEventListener('keyup',e=>keys[e.code]=0);addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
+document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{keys[k]=1;e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0))});
+/* ---------- state ---------- */
+const MYC=new T.Color().setHSL(Math.random(),.8,.5).getHex();
+let me=buildBike(BIKES[S.eq],MYC);scene.add(me.g);
+let x=0,y=0,z=0,h=0,v=0,p=0,pw=0,vy=0,air=false,wreck=0,boostE=100,boosting=false,zt=0,wt=0,cb=1,pad=0,airT=0,roll=0,lastGH=0,lastRd=0,tt=0,units=0,svT=0,gOpen=false,gi=S.eq,ga=0,netT=0,camInit=true;
+const earn=a=>{S.cash+=a};
+function pop(t,col){const d=document.createElement('div');d.className='pp';d.textContent=t;d.style.color=col||'#4ade80';d.style.marginLeft=((Math.random()-.5)*200-50)+'px';$('pop').appendChild(d);setTimeout(()=>d.remove(),1450)}
+/* ---------- multiplayer ---------- */
+const ROOM='ebikelife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),NAME='Rider'+(100+Math.random()*900|0),rem=new Map();let cli=null,online=false;
+try{cli=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'ebl_'+ID,reconnectPeriod:4000,connectTimeout:8000,resubscribe:true});
+cli.on('connect',()=>{online=true;cli.subscribe(ROOM+'/s')});cli.on('close',()=>online=false);cli.on('error',e=>{online=false;console.error('MQTT connection failed:',e&&e.message||e)});
+cli.on('message',(t,m)=>{try{const d=JSON.parse(m.toString());if(d.i===ID||!BIKES[d.b])return;let r=rem.get(d.i);
+if(!r){r={rig:null,b:-1,x:d.x,y:d.y,z:d.z,h:d.h,p:d.p,r:d.r,v:0,col:'#'+(d.c>>>0).toString(16).padStart(6,'0')};r.tag=tag(d.n,'#fff');rem.set(d.i,r)}
+if(r.b!==d.b){if(r.rig)scene.remove(r.rig.g);r.rig=buildBike(BIKES[d.b],d.c);r.rig.g.add(r.tag);scene.add(r.rig.g);r.b=d.b}
+Object.assign(r,{tx:d.x,ty:d.y,tz:d.z,th:d.h,tp:d.p,tr:d.r,tv:d.v,n:d.n,seen:performance.now()})}catch(e){}})}catch(e){}
+const ghosts=[];for(let i=0;i<4;i++){const rig=buildBike(BIKES[(Math.random()*12)|0],new T.Color().setHSL(Math.random(),.7,.5).getHex());rig.g.add(tag('Ghost '+(i+1),'#bbb'));scene.add(rig.g);ghosts.push({rig,x:(i-1.5)*5,z:(Math.random()-.5)*300,dir:i%2?1:-1,sp:16+Math.random()*10,ph:Math.random()*6,v:0,p:0,h:0})}
+/* ---------- police ---------- */
+function buildCop(){const g=new T.Group(),W=mat(0xf4f4f4,{metalness:.2}),Bk=mat(0x14171c,{metalness:.2}),K=mat(0x111111,{roughness:.9});
+g.add(bx(1.9,.55,4.6,Bk,0,.6,0),bx(1.92,.35,2.8,W,0,.62,0),bx(1.6,.55,2.0,Bk,0,1.12,-.3));
+[[-.95,1.45],[.95,1.45],[-.95,-1.45],[.95,-1.45]].forEach(([a,b])=>{const w=new T.Mesh(new T.CylinderGeometry(.38,.38,.3,14),K);w.rotation.z=1.5708;w.position.set(a,.38,b);g.add(w)});
+const lr=new T.Mesh(new T.BoxGeometry(.7,.14,.3),new T.MeshBasicMaterial({color:0xff1111})),lb=new T.Mesh(new T.BoxGeometry(.7,.14,.3),new T.MeshBasicMaterial({color:0x2255ff}));lr.position.set(-.4,1.47,-.3);lb.position.set(.4,1.47,-.3);g.add(lr,lb);
+[-.65,.65].forEach(a=>{const l=new T.Mesh(new T.BoxGeometry(.4,.15,.05),new T.MeshBasicMaterial({color:0xffffee}));l.position.set(a,.7,2.3);g.add(l)});
+g.traverse(o=>{if(o.isMesh)o.castShadow=true});return{g,lr,lb}}
+const cops=[0,1].map(i=>({c:buildCop(),x:i?4:-4,z:i?-200:200,h:0,v:14,dir:i?1:-1,d:999}));cops.forEach(q=>scene.add(q.c.g));
+let wanted=0,chaseT=0,escT=0;
+function copReset(){cops.forEach((q,i)=>{q.z=z+(i?-1:1)*250;q.x=i?4:-4;q.v=14;q.dir=i?1:-1})}
+function updCops(dt){const hwOK=Math.abs(x)<150,f=((tt*6)|0)%2;
+cops.forEach((q,i)=>{q.c.g.visible=!!wanted||hwOK;if(!q.c.g.visible)return;const dx=x-q.x,dz=z-q.z;q.d=Math.hypot(dx,dz);
+if(wanted){let e=Math.atan2(dx,dz)-q.h;e=Math.atan2(Math.sin(e),Math.cos(e));q.h+=Math.max(-2.6*dt,Math.min(2.6*dt,e));q.v+=(Math.min(36,20+chaseT*.5+i*2)-q.v)*Math.min(1,1.2*dt);q.x+=Math.sin(q.h)*q.v*dt;q.z+=Math.cos(q.h)*q.v*dt;
+nbr(q.x,q.z,c=>{for(const o of c.cols)if(Math.abs(q.x-o.x)<o.hw&&Math.abs(q.z-o.z)<o.hd){const px=o.hw-Math.abs(q.x-o.x),pz=o.hd-Math.abs(q.z-o.z);if(px<pz)q.x+=Math.sign(q.x-o.x||1)*px;else q.z+=Math.sign(q.z-o.z||1)*pz;q.v*=.6}})}
+else{q.h=q.dir>0?0:PI;q.v=14;q.x=i?4:-4;q.z+=q.dir*q.v*dt;if(Math.abs(q.z-z)>260)q.z=z-q.dir*230}
+q.c.g.position.set(q.x,gH(q.x,q.z),q.z);q.c.g.rotation.y=q.h;
+q.c.lr.material.color.setHex(f?0xff1111:0x330000);q.c.lb.material.color.setHex(f?0x000033:0x2255ff)});
+if(!wanted&&hwOK){for(const q of cops)if(q.d<80&&(Math.abs(v)>19||p>.5)){wanted=1;chaseT=0;escT=0;pop('🚨 POLICE CHASE!','#f87171');break}}
+if(wanted){chaseT+=dt;earn(dt*8);const md=Math.min(...cops.map(q=>q.d));
+if(md<3.4&&y<1.5&&chaseT>3){const fn=Math.floor(S.cash*.15);S.cash-=fn;pop('BUSTED! -$'+fn.toLocaleString(),'#ef4444');wanted=0;v=0;p=0;pw=0;copReset()}
+else if(md>140){escT+=dt;if(escT>6){const r=Math.floor(300+chaseT*25);earn(r);pop('ESCAPED! +$'+r,'#4ade80');wanted=0;copReset()}}else escT=0}
+$('pl').style.boxShadow=wanted?(f?'inset 0 0 120px 20px rgba(255,0,0,.4)':'inset 0 0 120px 20px rgba(0,80,255,.4)'):'none'}
+/* ---------- garage ---------- */
+const G=$('gar'),SN=['Motor Power','Torque','Balance','Boost'];
+function setBike(i){scene.remove(me.g);me=buildBike(BIKES[i],MYC);scene.add(me.g)}
+function vo(){if(gOpen&&innerWidth>700)cam.setViewOffset(innerWidth,innerHeight,-innerWidth*.2,0,innerWidth,innerHeight);else cam.clearViewOffset();cam.updateProjectionMatrix()}
+function tg(o){gOpen=o;G.style.display=o?'block':'none';if(o){gi=S.eq;rg();v=0;p=0;pw=0;air=false;vy=0;y=gH(x,z)}else if(gi!==S.eq)setBike(S.eq);vo()}
+function rg(){let t=`<h2>GARAGE <span>$${Math.floor(S.cash).toLocaleString()}</span><button data-a="close">✕</button></h2><div class="grid">`;
+BIKES.forEach((b,i)=>{t+=`<div class="card${i===gi?' sel':''}" data-a="pv" data-i="${i}"><b>${b.n}</b><small>${S.own.includes(i)?(i===S.eq?'EQUIPPED':'OWNED'):'$'+b.pr.toLocaleString()}</small>${b.s.map(q=>`<div class="bar"><i style="width:${q*10}%"></i></div>`).join('')}</div>`});
+const b=BIKES[gi],own=S.own.includes(gi),e=eff(gi),L=lv(gi);t+=`</div><h3>${b.n}</h3>`;
+t+=own?(gi===S.eq?'':'<button class="big" data-a="eq">EQUIP</button>'):`<button class="big" data-a="buy" ${S.cash<b.pr?'disabled':''}>BUY $${b.pr.toLocaleString()}</button>`;
+SN.forEach((n,k)=>{const l=L[k];t+=`<div class="row"><span>${n}</span><div class="bar"><i style="width:${Math.min(100,e[k]*7.5)}%"></i></div><em>Lv ${l}</em>${own&&l<10?`<button data-a="up" data-k="${k}" ${S.cash<cost(gi,l)?'disabled':''}>$${cost(gi,l).toLocaleString()}</button>`:`<button disabled>${l>=10?'MAX':'—'}</button>`}</div>`});
+G.innerHTML=t}
+G.onclick=e=>{const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const a=t.dataset.a;
+if(a==='close'){tg(false);return}
+if(a==='pv'){gi=+t.dataset.i;setBike(gi)}
+else if(a==='eq'){S.eq=gi}
+else if(a==='buy'){const pr=BIKES[gi].pr;if(S.cash>=pr){S.cash-=pr;S.own.push(gi);S.eq=gi}}
+else if(a==='up'){const k=+t.dataset.k,l=lv(gi)[k],c=cost(gi,l);if(l<10&&S.cash>=c){S.cash-=c;lv(gi)[k]++}}
+save();rg()};
+$('bg').onclick=()=>tg(!gOpen);$('sp').onclick=()=>units^=1;
+setTimeout(()=>$('help').remove(),15000);
+/* ---------- HUD draw ---------- */
+const mm=$('mm'),mx=mm.getContext('2d'),wm=$('wm'),wx=wm.getContext('2d');
+function drawMM(){const k=1.5,sh=Math.sin(h),ch=Math.cos(h),P=(wx_,wz)=>{const dx=wx_-x,dz=wz-z;return[150+(-dx*ch+dz*sh)*k,150-(dx*sh+dz*ch)*k]};
+mx.fillStyle='#3d5a3a';mx.fillRect(0,0,300,300);mx.fillStyle='#50545c';mx.beginPath();[[-12,-200],[12,-200],[12,200],[-12,200]].forEach(([a,b],i)=>{const q=P(a,z+b);i?mx.lineTo(q[0],q[1]):mx.moveTo(q[0],q[1])});mx.fill();
+nbr(x,z,c=>{mx.fillStyle='#8d96a5';c.cols.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)});mx.fillStyle='#fbbf24';c.ramps.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)});mx.fillStyle='#4ade80';c.orbs.forEach(q=>{if(q.on){const s=P(q.x,q.z);mx.fillRect(s[0]-1.5,s[1]-1.5,3,3)}})});
+mx.font='bold 18px system-ui';mx.textAlign='center';
+const dot=(X,Z,col,n)=>{const s=P(X,Z);if(s[0]<-10||s[0]>310||s[1]<-10||s[1]>310)return;mx.fillStyle=col;mx.beginPath();mx.arc(s[0],s[1],7,0,7);mx.fill();mx.strokeStyle='#000';mx.lineWidth=2;mx.stroke();mx.fillStyle='#fff';mx.strokeText(n,s[0],s[1]-11);mx.fillText(n,s[0],s[1]-11)};
+for(const r of rem.values())dot(r.x,r.z,r.col,r.n||'');
+if(!rem.size&&Math.abs(x)<150)ghosts.forEach((q,i)=>dot(q.x,q.z,'#999','Ghost '+(i+1)));
+cops.forEach(q=>{if(q.c.g.visible)dot(q.x,q.z,((tt*6)|0)%2?'#ff2222':'#2f6bff',wanted?'POLICE':'')});
+mx.fillStyle='#fff';mx.strokeStyle='#000';mx.beginPath();mx.moveTo(150,134);mx.lineTo(160,160);mx.lineTo(150,154);mx.lineTo(140,160);mx.closePath();mx.fill();mx.stroke()}
+function drawWM(zw){if(p<.04){wm.style.opacity=0;return}wm.style.opacity=1;wx.clearRect(0,0,240,130);const a=q=>PI+q/1.6*PI,arc=(q0,q1,c)=>{wx.beginPath();wx.strokeStyle=c;wx.lineWidth=14;wx.arc(120,120,90,a(q0),a(q1));wx.stroke()};
+arc(0,1.6,'rgba(255,255,255,.25)');arc(.8-zw,.8+zw,'#22c55e');arc(1.22,1.6,'#ef4444');wx.strokeStyle='#fff';wx.lineWidth=4;wx.beginPath();wx.moveTo(120,120);wx.lineTo(120+Math.cos(a(Math.min(p,1.6)))*82,120+Math.sin(a(Math.min(p,1.6)))*82);wx.stroke()}
+/* ---------- main loop ---------- */
+function resize(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;vo()}addEventListener('resize',resize);resize();
+loadChunks(0,0);let last=performance.now();const tv=new T.Vector3();
+function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;tt+=dt;
+const k=c=>keys[c],thr=k('KeyW')||k('ArrowUp')?1:0,br=k('KeyS')||k('ArrowDown')?1:0,st=((k('KeyD')||k('ArrowRight'))?1:0)-((k('KeyA')||k('ArrowLeft'))?1:0),pull=k('Space')||k('ShiftLeft')||k('ShiftRight')?1:0,bo=k('KeyE')||k('KeyF');
+const E=eff(S.eq),zw=.1+.012*E[2];let sparks=0,skid=0;
+if(gOpen){ga+=dt*.5;y=gH(x,z);boosting=false}
+else if(wreck>0){wreck-=dt;v*=Math.exp(-2*dt);x+=Math.sin(h)*v*dt;z+=Math.cos(h)*v*dt;if(wreck<=0){wreck=0;v=0;p=0;pw=0;air=false;vy=0;y=gH(x,z);camInit=true}}
+else{
+boosting=!!bo&&boostE>1;
+if(boosting){boostE=Math.max(0,boostE-dt*30/(.6+E[3]*.14));earn(dt*6)}else boostE=Math.min(100,boostE+dt*(5+E[3]*1.4));
+if(pad>0)pad-=dt;
+const vmax=(16+E[0]*2.6)*(boosting?1.28:1)*(pad>0?1.2:1);
+if(thr)v+=(4+E[1]*1.1)*(1-Math.max(0,v)/vmax)*dt*1.6;
+if(boosting)v+=(8+E[3]*1.3)*dt*(1-v/(vmax*1.1));
+if(pad>0)v+=14*dt;
+if(v>vmax)v-=(v-vmax)*1.2*dt;
+v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br)v=0;
+if(br){if(v>.2){v-=16*dt;skid=v>6&&!air?1:0}else v=Math.max(-5,v-5*dt)}
+const lift=Math.min(1,Math.abs(v)/5),wh=p>.1?1:0;
+const a=(thr*(.3+E[1]*.04)+pull*2.7+(boosting?.8:0))*lift-3.2*p-1.6*pw-br*7*(p>0?1:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
+pw+=a*dt;p+=pw*dt;if(p<0){p=0;pw=Math.max(0,pw)}
+earn(dt*Math.max(0,v)*.12);
+if(p>.15){wt+=dt;if(Math.abs(p-.8)<zw)zt+=dt;else zt=Math.max(0,zt-dt*1.5);cb=Math.min(10,1+zt*.9);earn(dt*(6+6*p)*Math.floor(cb));if(p>1.22){sparks=1;earn(dt*30*Math.floor(cb))}}else{wt=0;zt=0;cb=1}
+if(p>1.45){wreck=1.7;wt=0;zt=0;cb=1;pop('WIPEOUT!','#f43f5e')}
+h-=st*(1.9/(1+Math.abs(v)*.04))*(p>.2?.55+.05*E[2]:1)*Math.min(1,Math.abs(v)/3)*(v<0?-1:1)*dt;
+roll+=(st*.4*Math.min(1,Math.abs(v)/10)-roll)*Math.min(1,8*dt);
+x+=Math.sin(h)*v*dt;z+=Math.cos(h)*v*dt;
+nbr(x,z,c=>{for(const q of c.cols)if(Math.abs(x-q.x)<q.hw&&Math.abs(z-q.z)<q.hd){const px=q.hw-Math.abs(x-q.x),pz=q.hd-Math.abs(z-q.z);if(px<pz)x+=Math.sign(x-q.x||1)*px;else z+=Math.sign(z-q.z||1)*pz;v*=.4}});
+const gh=gH(x,z),rd=gH.sl*(Math.sin(h)*gH.e[0]+Math.cos(h)*gH.e[1]);
+if(air){vy-=22*dt;y+=vy*dt;airT+=dt;if(y<=gh){y=gh;air=false;if(airT>.6){const b=Math.floor(airT*60);earn(b);pop('AIR TIME +$'+b,'#38bdf8')}airT=0;vy=0}else if(y-gh>1)earn(dt*20)}
+else{if(lastGH>gh+.25&&v>3){air=true;vy=Math.max(0,lastRd*v);y=lastGH}else y=gh}
+lastGH=gh;lastRd=rd;
+nbr(x,z,c=>{for(const o of c.orbs)if(o.on){o.m.rotation.y+=dt*2;o.m.position.y=1.3+Math.sin(tt*3+o.x)*.15;const dx=x-o.x,dz=z-o.z;if(dx*dx+dz*dz<4&&Math.abs(y+.8-o.m.position.y)<3){o.on=false;o.m.visible=false;earn(50)}}
+for(const q of c.pads)if(pad<.5&&Math.abs(x-q.x)<2.4&&Math.abs(z-q.z)<4.8&&!air){pad=1.5;boostE=Math.min(100,boostE+30);earn(25);pop('BOOST PAD!','#a78bfa')}});
+if(wreck>0){/* wipeout just began */}
 }
-function readSave() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultSave();
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return defaultSave();
-    const base = defaultSave();
-    return {
-      ...base, ...parsed,
-      cash: Number.isFinite(parsed.cash) ? Math.min(Number.MAX_SAFE_INTEGER, Math.max(0, Math.floor(parsed.cash))) : 0,
-      unlocked: Array.isArray(parsed.unlocked) ? [...new Set(["commuter", ...parsed.unlocked.filter((id) => BIKE_CATALOG.some((bike) => bike.id === id))])] : base.unlocked,
-      upgrades: parsed.upgrades && typeof parsed.upgrades === "object" ? parsed.upgrades : base.upgrades,
-      records: parsed.records && typeof parsed.records === "object" ? { distance: Array.isArray(parsed.records.distance) ? parsed.records.distance : [], cash: Array.isArray(parsed.records.cash) ? parsed.records.cash : [] } : base.records,
-    };
-  } catch (error) {
-    console.warn("Could not load the saved WheelieX progress.", error);
-    return defaultSave();
-  }
-}
-let save = readSave();
-if (!BIKE_CATALOG.some((bike) => bike.id === save.equipped) || !save.unlocked.includes(save.equipped)) save.equipped = "commuter";
-function persist() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(save)); }
-  catch (error) { console.error("Could not save WheelieX progress.", error); toast("PROGRESS COULD NOT BE SAVED"); }
-}
-function getBike(id = save.equipped) { return BIKE_CATALOG.find((bike) => bike.id === id) || BIKE_CATALOG[0]; }
-function getStats(bike = getBike()) {
-  const upgrades = save.upgrades[bike.id] || { torque: 0, brake: 0, speed: 0 };
-  return { ...bike, upgrades, torque: Math.min(1, bike.torque + upgrades.torque * 0.065), brake: Math.min(1, bike.brake + upgrades.brake * 0.065), speed: Math.min(1, bike.speed + upgrades.speed * 0.065) };
-}
-function formatNumber(number) { return Math.floor(number).toLocaleString("en-US"); }
-function getRunPayout() {
-  return state.distance > 0 ? Math.max(25, Math.floor(state.score * getStats().payout)) : 0;
-}
-function getUpgradeCost(level) {
-  return Math.floor(250 * (level + 1) * (level + 1));
-}
-function spendCash(amount) {
-  if (!Number.isSafeInteger(amount) || amount < 0 || save.cash < amount) return false;
-  save.cash -= amount;
-  return true;
-}
-
-const sceneContainer = $("scene");
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x9ab3ad);
-scene.fog = new THREE.Fog(0x9ab3ad, 34, 145);
-const camera = new THREE.PerspectiveCamera(49, 1, 0.1, 260);
-camera.position.set(-7, 4.6, 8);
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.12;
-sceneContainer.appendChild(renderer.domElement);
-
-scene.add(new THREE.HemisphereLight(0xdce9da, 0x566159, 2.2));
-const sun = new THREE.DirectionalLight(0xffe6c1, 3.1);
-sun.position.set(-15, 23, 12);
-sun.castShadow = true;
-sun.shadow.mapSize.set(1024, 1024);
-sun.shadow.camera.left = -28;
-sun.shadow.camera.right = 28;
-sun.shadow.camera.top = 25;
-sun.shadow.camera.bottom = -25;
-scene.add(sun);
-const fill = new THREE.DirectionalLight(0xb4d9d3, 0.85);
-fill.position.set(6, 8, -15);
-scene.add(fill);
-
-const sky = new THREE.Mesh(new THREE.SphereGeometry(190, 32, 18), new THREE.ShaderMaterial({
-  side: THREE.BackSide,
-  uniforms: { topColor: { value: new THREE.Color(0x789794) }, middleColor: { value: new THREE.Color(0xc5c7b1) }, bottomColor: { value: new THREE.Color(0xe4c49e) } },
-  vertexShader: "varying vec3 vWorldPosition; void main(){ vec4 worldPosition=modelMatrix*vec4(position,1.0); vWorldPosition=worldPosition.xyz; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }",
-  fragmentShader: "uniform vec3 topColor; uniform vec3 middleColor; uniform vec3 bottomColor; varying vec3 vWorldPosition; void main(){ float h=normalize(vWorldPosition).y; float top=smoothstep(-0.02,0.65,h); float low=1.0-smoothstep(-0.55,0.05,h); vec3 color=mix(middleColor,topColor,top); color=mix(color,bottomColor,low*0.68); gl_FragColor=vec4(color,1.0); }",
-}));
-scene.add(sky);
-
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(900, 200), new THREE.MeshStandardMaterial({ color: 0x596660, roughness: 0.97 }));
-ground.rotation.x = -Math.PI / 2;
-ground.position.y = -0.07;
-ground.receiveShadow = true;
-scene.add(ground);
-const asphaltCanvas = document.createElement("canvas");
-asphaltCanvas.width = 256;
-asphaltCanvas.height = 256;
-const asphaltContext = asphaltCanvas.getContext("2d");
-asphaltContext.fillStyle = "#353a37";
-asphaltContext.fillRect(0, 0, 256, 256);
-let asphaltSeed = 481516;
-for (let i = 0; i < 14500; i++) {
-  asphaltSeed = (asphaltSeed * 16807) % 2147483647;
-  const x = asphaltSeed % 256;
-  asphaltSeed = (asphaltSeed * 16807) % 2147483647;
-  const y = asphaltSeed % 256;
-  asphaltSeed = (asphaltSeed * 16807) % 2147483647;
-  const light = asphaltSeed % 3 === 0;
-  asphaltContext.fillStyle = light ? "rgba(185,190,173,0.12)" : "rgba(12,17,15,0.17)";
-  asphaltContext.fillRect(x, y, light ? 2 : 1, 1);
-}
-const asphaltTexture = new THREE.CanvasTexture(asphaltCanvas);
-asphaltTexture.colorSpace = THREE.SRGBColorSpace;
-asphaltTexture.wrapS = THREE.RepeatWrapping;
-asphaltTexture.wrapT = THREE.RepeatWrapping;
-asphaltTexture.repeat.set(180, 3);
-asphaltTexture.anisotropy = 4;
-const road = new THREE.Mesh(new THREE.PlaneGeometry(900, 11), new THREE.MeshStandardMaterial({ map: asphaltTexture, color: 0xffffff, roughness: 0.94 }));
-road.rotation.x = -Math.PI / 2;
-road.position.y = -0.015;
-road.receiveShadow = true;
-scene.add(road);
-const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x938f7f, roughness: 0.96 });
-for (const side of [-1, 1]) {
-  const sidewalk = new THREE.Mesh(new THREE.PlaneGeometry(900, 3.2), sidewalkMat);
-  sidewalk.rotation.x = -Math.PI / 2;
-  sidewalk.position.set(0, -0.035, side * 7.5);
-  sidewalk.receiveShadow = true;
-  scene.add(sidewalk);
-}
-const curbMat = new THREE.MeshStandardMaterial({ color: 0xb7b5a3, roughness: 0.9 });
-for (const z of [-5.75, 5.75]) {
-  const curb = new THREE.Mesh(new THREE.BoxGeometry(900, 0.2, 0.3), curbMat);
-  curb.position.set(0, 0.03, z);
-  curb.receiveShadow = true;
-  scene.add(curb);
-}
-const dashMat = new THREE.MeshStandardMaterial({ color: 0xe7dcb7, emissive: 0x302a1d, emissiveIntensity: 0.25 });
-for (let x = -420; x < 450; x += 13) {
-  const dash = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.025, 0.11), dashMat);
-  dash.position.set(x, 0.005, 0);
-  scene.add(dash);
-}
-const sidewalkSeamMat = new THREE.MeshStandardMaterial({ color: 0x65685e, roughness: 1 });
-for (let x = -420; x < 450; x += 9) {
-  for (const side of [-1, 1]) {
-    const seam = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.008, 3.1), sidewalkSeamMat);
-    seam.position.set(x, -0.032, side * 7.5);
-    scene.add(seam);
-  }
-}
-const markerMaterials = [0xc0f56a, 0xd5cfb5, 0xd5cfb5];
-for (let x = -390; x <= 420; x += 30) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, -6.2);
-  for (let n = 0; n < 3; n++) {
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.13, 1.05, 0.10), new THREE.MeshStandardMaterial({ color: markerMaterials[n] }));
-    post.position.set(0, 0.52, n * 0.14);
-    group.add(post);
-  }
-  const label = makeTextSprite(`${Math.abs(x + 390)} M`, { background: "rgba(21,29,25,.75)", color: "#e5efdc", fontSize: 24 });
-  label.position.set(0.3, 1.65, 0);
-  label.scale.set(1.45, 0.43, 1);
-  group.add(label);
-  scene.add(group);
-}
-
-function makeTextSprite(text, { background = "rgba(17,25,27,.82)", color = "#c0f56a", fontSize = 32 } = {}) {
-  const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 128;
-  const texture = new THREE.CanvasTexture(canvas);
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
-  updateTextSprite(sprite, text, { background, color, fontSize });
-  return sprite;
-}
-function updateTextSprite(sprite, text, { background = "rgba(17,25,27,.82)", color = "#c0f56a", fontSize = 32 } = {}) {
-  const canvas = sprite.material.map.image;
-  const context = canvas.getContext("2d");
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = background;
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.font = `700 ${fontSize}px "DM Mono", monospace`;
-  context.fillStyle = color;
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.fillText(text, canvas.width / 2, canvas.height / 2 + 1);
-  sprite.material.map.needsUpdate = true;
-}
-
-const buildingMaterials = [0x78877d, 0xa59a84, 0x778588, 0xc1aa88, 0x7d8479, 0x909a8d].map((color) => new THREE.MeshStandardMaterial({ color, roughness: 0.97 }));
-const windowMat = new THREE.MeshStandardMaterial({ color: 0x293d3b, roughness: 0.62, emissive: 0x202c27, emissiveIntensity: 0.12 });
-const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x594a38, roughness: 1 });
-const foliageMats = [0x516f50, 0x697b53, 0x79825c].map((color) => new THREE.MeshStandardMaterial({ color, roughness: 1 }));
-const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x313a36, metalness: 0.38, roughness: 0.5 });
-const crossStreetXs = [-300, -180, -60, 60, 180, 300];
-for (let x = -385, i = 0; x <= 410; x += 27, i++) {
-  for (const side of [-1, 1]) {
-    if (crossStreetXs.some((crossing) => Math.abs(x + (i % 2) * 7 - crossing) < 9)) continue;
-    const tree = new THREE.Group();
-    tree.position.set(x + (i % 2) * 7, 0, side * 10.8);
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.22, 2.2, 7), treeTrunkMat);
-    trunk.position.y = 1.1;
-    trunk.castShadow = true;
-    tree.add(trunk);
-    for (let crown = 0; crown < 3; crown++) {
-      const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.88 - crown * 0.08, 1), foliageMats[(i + crown) % foliageMats.length]);
-      leaf.position.set((crown - 1) * 0.43, 2.45 + (crown === 1 ? 0.47 : 0), (crown % 2 ? 0.22 : -0.18));
-      leaf.scale.set(1, 1.18, 0.9);
-      leaf.castShadow = true;
-      tree.add(leaf);
-    }
-    scene.add(tree);
-  }
-}
-for (const side of [-1, 1]) {
-  for (let x = -390, i = 0; x < 430; i++) {
-    const width = 8 + ((i * 13 + 5) % 9);
-    const depth = 7 + ((i * 5 + 2) % 7);
-    const height = 7 + ((i * 11 + 3) % 16);
-    if (crossStreetXs.some((crossing) => Math.abs(x + width / 2 - crossing) < 13)) {
-      x += width + 2.5;
-      continue;
-    }
-    const z = side * (13 + (i % 3) * 2);
-    const building = new THREE.Group();
-    building.position.set(x + width / 2, 0, z);
-    const body = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), buildingMaterials[i % buildingMaterials.length]);
-    body.position.y = height / 2;
-    body.castShadow = true;
-    body.receiveShadow = true;
-    building.add(body);
-    const floorCount = Math.max(2, Math.floor(height / 2.5));
-    for (let floor = 0; floor < floorCount; floor++) {
-      for (let col = 0; col < Math.max(2, Math.floor(width / 2.8)); col++) {
-        const window = new THREE.Mesh(new THREE.PlaneGeometry(0.82, 0.9), windowMat);
-        window.position.set(-width / 2 + 1.3 + col * 2.65, 1.5 + floor * 2.4, -depth / 2 - 0.012);
-        building.add(window);
-      }
-    }
-    const awning = new THREE.Mesh(new THREE.BoxGeometry(width * 0.76, 0.13, 1), new THREE.MeshStandardMaterial({ color: [0xc0f56a, 0xc68662, 0xd5cfb5][i % 3] }));
-    awning.position.set(0, Math.min(height - 0.7, 3), -depth / 2 - 0.45);
-    building.add(awning);
-    if (height > 8) {
-      for (let ac = 0; ac < 2; ac++) {
-        const unit = box(building, [0.62, 0.3, 0.5], [width / 2 - 0.9 - ac * 0.75, height - 0.15, depth / 2 - 0.7], 0x4c5752, { roughness: 0.8 });
-        unit.castShadow = true;
-      }
-      const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.6, 6), poleMaterial);
-      antenna.position.set(width / 2 - 1.6, height + 1.3, depth / 2 - 0.7);
-      antenna.castShadow = true;
-      building.add(antenna);
-      const antennaTip = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 4), new THREE.MeshStandardMaterial({ color: 0xff5f45, emissive: 0xff5f45, emissiveIntensity: 0.8 }));
-      antennaTip.position.set(width / 2 - 1.6, height + 2.62, depth / 2 - 0.7);
-      building.add(antennaTip);
-    }
-    scene.add(building);
-    x += width + 2.5;
-  }
-}
-
-const crossStreetMat = new THREE.MeshStandardMaterial({ color: 0x373c39, roughness: 0.95 });
-const crossingMat = new THREE.MeshStandardMaterial({ color: 0xd8d2ba, roughness: 0.85 });
-const streetSignPoleMat = new THREE.MeshStandardMaterial({ color: 0x313a36, metalness: 0.38, roughness: 0.5 });
-const streetSignMat = new THREE.MeshStandardMaterial({ color: 0x33483d, roughness: 0.72, emissive: 0x152319, emissiveIntensity: 0.12 });
-for (const x of crossStreetXs) {
-  const street = new THREE.Mesh(new THREE.PlaneGeometry(10.8, 120), crossStreetMat);
-  street.rotation.x = -Math.PI / 2;
-  street.position.set(x, -0.008, 0);
-  street.receiveShadow = true;
-  scene.add(street);
-  for (const side of [-1, 1]) {
-    for (let stripe = -4; stripe <= 4; stripe++) {
-      const marking = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.018, 0.76), crossingMat);
-      marking.position.set(x + stripe * 0.76, 0.012, side * 6.15);
-      scene.add(marking);
-    }
-    const sidewalk = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.09, 120), sidewalkMat);
-    sidewalk.position.set(x + side * 7.1, -0.005, 0);
-    sidewalk.receiveShadow = true;
-    scene.add(sidewalk);
-    const sign = new THREE.Group();
-    sign.position.set(x + side * 8.8, 0, side * 8.1);
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 2.5, 8), streetSignPoleMat);
-    post.position.y = 1.25;
-    sign.add(post);
-    const board = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.48, 1.25), streetSignMat);
-    board.position.set(0, 2.14, 0);
-    board.castShadow = true;
-    sign.add(board);
-    const label = makeTextSprite("CITY CIRCUIT", { background: "rgba(35,52,43,.96)", color: "#e5efdc", fontSize: 22 });
-    label.position.set(0, 2.15, side * 0.025);
-    label.scale.set(1.05, 0.26, 1);
-    sign.add(label);
-    scene.add(sign);
-  }
-}
-const connectorRoad = new THREE.Mesh(new THREE.PlaneGeometry(900, 11), new THREE.MeshStandardMaterial({ map: asphaltTexture, color: 0xffffff, roughness: 0.94 }));
-connectorRoad.rotation.x = -Math.PI / 2;
-connectorRoad.position.set(0, -0.015, -30);
-connectorRoad.receiveShadow = true;
-scene.add(connectorRoad);
-
-const streetLights = [];
-const bulbMaterial = new THREE.MeshStandardMaterial({ color: 0xe8edbd, emissive: 0xd2db8a, emissiveIntensity: 1.5 });
-for (let x = -405; x <= 420; x += 30) {
-  for (const side of [-1, 1]) {
-    const pole = new THREE.Group();
-    pole.position.set(x, 0, side * 8);
-    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.085, 5.9, 6), poleMaterial);
-    stem.position.y = 2.95;
-    pole.add(stem);
-    const arm = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.07, 0.07), poleMaterial);
-    arm.position.set(0.55, 5.78, 0);
-    pole.add(arm);
-    const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.47, 0.12, 0.24), bulbMaterial);
-    bulb.position.set(1.14, 5.7, 0);
-    pole.add(bulb);
-    scene.add(pole);
-    streetLights.push(pole);
-  }
-}
-
-function box(group, dimensions, position, color, options = {}) {
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(...dimensions), new THREE.MeshStandardMaterial({ color, roughness: options.roughness ?? 0.68, metalness: options.metalness ?? 0.08 }));
-  mesh.position.set(...position);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  group.add(mesh);
-  return mesh;
-}
-function tubeBetween(group, start, end, radius, material, side = 0) {
-  const from = new THREE.Vector3(start[0], start[1], side);
-  const to = new THREE.Vector3(end[0], end[1], side);
-  const direction = to.clone().sub(from);
-  const tube = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, direction.length(), 8), material);
-  tube.position.copy(from.add(to).multiplyScalar(0.5));
-  tube.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
-  tube.castShadow = true;
-  tube.receiveShadow = true;
-  group.add(tube);
-  return tube;
-}
-function makeBike(bike) {
-  const root = new THREE.Group();
-  const frame = new THREE.Group();
-  const commuterBuild = bike.id === "commuter";
-  frame.scale.x = commuterBuild ? 1 : 0.65;
-  frame.position.x = commuterBuild ? 0 : 0.83 * frame.scale.x;
-  root.add(frame);
-  const mainMat = new THREE.MeshStandardMaterial({ color: bike.color, roughness: 0.46, metalness: 0.24 });
-  const darkMat = new THREE.MeshStandardMaterial({ color: 0x252c29, roughness: 0.7, metalness: 0.1 });
-  const metalMat = new THREE.MeshStandardMaterial({ color: 0xb4b6a7, roughness: 0.34, metalness: 0.72 });
-  const wheelRadius = commuterBuild ? 0.37 : 0.31;
-  const tireThickness = commuterBuild ? 0.035 : 0.055;
-  const rear = new THREE.Vector3(commuterBuild ? 0 : -0.83, 0, 0);
-  const front = new THREE.Vector3(commuterBuild ? 1.12 : 1.55, 0, 0);
-  const wheelGeo = new THREE.TorusGeometry(wheelRadius - tireThickness, tireThickness, 10, 32);
-  const tireMat = new THREE.MeshStandardMaterial({ color: 0x1d2422, roughness: 0.93 });
-  const hubMat = new THREE.MeshStandardMaterial({ color: 0xaeb4a3, metalness: 0.72, roughness: 0.34 });
-  const handlebar = new THREE.Group();
-  frame.add(handlebar);
-  const wheels = [];
-  for (const point of [rear, front]) {
-    const wheel = new THREE.Group();
-    wheel.position.copy(point);
-    const tire = new THREE.Mesh(wheelGeo, tireMat);
-    wheel.add(tire);
-    const hubRadius = commuterBuild ? 0.045 : 0.075;
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(hubRadius, hubRadius, commuterBuild ? 0.12 : 0.16, 12), hubMat);
-    hub.rotation.x = Math.PI / 2;
-    wheel.add(hub);
-    const spokeCount = commuterBuild ? 24 : 8;
-    const rimRadius = wheelRadius - tireThickness;
-    for (let s = 0; s < spokeCount; s++) {
-      const spokeAngle = Math.PI * 2 * s / spokeCount;
-      const spokeLength = rimRadius - hubRadius * 0.55;
-      const spoke = new THREE.Mesh(new THREE.CylinderGeometry(commuterBuild ? 0.004 : 0.008, commuterBuild ? 0.004 : 0.008, spokeLength, 4), metalMat);
-      spoke.position.set(Math.sin(spokeAngle) * (rimRadius + hubRadius * 0.55) / 2, Math.cos(spokeAngle) * (rimRadius + hubRadius * 0.55) / 2, 0);
-      spoke.rotation.z = -spokeAngle;
-      wheel.add(spoke);
-    }
-    if (commuterBuild) {
-      const rotor = new THREE.Mesh(new THREE.TorusGeometry(wheelRadius * 0.43, 0.009, 6, 28), metalMat);
-      rotor.position.z = 0.075;
-      wheel.add(rotor);
-      const farRotor = rotor.clone();
-      farRotor.position.z = -0.075;
-      wheel.add(farRotor);
-    }
-    wheel.traverse((part) => { if (part.isMesh) { part.castShadow = true; part.receiveShadow = true; } });
-    frame.add(wheel);
-    wheels.push(wheel);
-  }
-  if (commuterBuild) {
-    const crank = [0.5, 0.34];
-    const seat = [0.42, 1.02];
-    const headTop = [0.94, 1.02];
-    const headBottom = [0.91, 0.66];
-    for (const side of [-0.105, 0.105]) {
-      tubeBetween(frame, rear.toArray(), crank, 0.027, mainMat, side);
-      tubeBetween(frame, rear.toArray(), seat, 0.024, mainMat, side);
-      tubeBetween(frame, crank, seat, 0.031, mainMat, side);
-      tubeBetween(frame, headTop, headBottom, 0.035, metalMat, side);
-      tubeBetween(frame, headBottom, front.toArray(), 0.032, darkMat, side);
-    }
-    tubeBetween(frame, seat, headTop, 0.034, mainMat);
-    tubeBetween(frame, crank, headBottom, 0.043, mainMat);
-    const battery = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.15, 0.17), new THREE.MeshStandardMaterial({ color: 0x343b3f, roughness: 0.55, metalness: 0.28 }));
-    battery.position.set(0.7, 0.53, 0);
-    battery.rotation.z = Math.atan2(headBottom[1] - crank[1], headBottom[0] - crank[0]);
-    battery.castShadow = true;
-    frame.add(battery);
-    const batteryBadge = box(frame, [0.045, 0.085, 0.008], [0.7, 0.53, 0.09], 0xb89c54, { roughness: 0.5, metalness: 0.45 });
-    batteryBadge.rotation.z = battery.rotation.z;
-    tubeBetween(frame, seat, [seat[0] - 0.03, 1.25], 0.025, metalMat);
-    box(frame, [0.34, 0.065, 0.14], [0.34, 1.28, 0], 0x15191b, { roughness: 0.82 });
-    const chainring = new THREE.Mesh(new THREE.TorusGeometry(0.145, 0.012, 6, 28), metalMat);
-    chainring.position.set(crank[0], crank[1], 0.12);
-    frame.add(chainring);
-    const crankAxle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.28, 12), darkMat);
-    crankAxle.rotation.x = Math.PI / 2;
-    crankAxle.position.set(crank[0], crank[1], 0);
-    frame.add(crankAxle);
-    for (const side of [-1, 1]) {
-      const pedalArm = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.025, 0.025), darkMat);
-      pedalArm.position.set(crank[0], crank[1], side * 0.16);
-      pedalArm.rotation.z = side * Math.PI / 2;
-      frame.add(pedalArm);
-      box(frame, [0.1, 0.035, 0.07], [crank[0], crank[1] + side * 0.12, side * 0.16], 0x24292b);
-    }
-    tubeBetween(frame, [0.04, 0.055], [crank[0] - 0.13, crank[1] + 0.1], 0.008, darkMat, 0.15);
-    tubeBetween(frame, [0.04, -0.035], [crank[0] - 0.13, crank[1] - 0.1], 0.008, darkMat, 0.15);
-    tubeBetween(frame, [0.97, 1.01], [1.01, 1.14], 0.025, metalMat);
-    handlebar.position.set(1.01, 1.14, 0);
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.68, 10), darkMat);
-    handle.rotation.x = Math.PI / 2;
-    handlebar.add(handle);
-    for (const side of [-1, 1]) {
-      const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.13, 8), darkMat);
-      grip.rotation.x = Math.PI / 2;
-      grip.position.z = side * 0.34;
-      handlebar.add(grip);
-      const brakeLever = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.018, 0.018), metalMat);
-      brakeLever.position.set(-0.025, -0.03, side * 0.23);
-      brakeLever.rotation.z = -0.22;
-      handlebar.add(brakeLever);
-    }
-    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 8), new THREE.MeshStandardMaterial({ color: 0xf3e9bc, emissive: 0xb8a674, emissiveIntensity: 0.5 }));
-    lamp.position.set(1.04, 0.88, 0);
-    frame.add(lamp);
-    const motorCase = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.22, 12), darkMat);
-    motorCase.rotation.x = Math.PI / 2;
-    motorCase.position.set(crank[0], crank[1], 0);
-    frame.add(motorCase);
-    tubeBetween(frame, [0.58, 0.28], [0.68, -0.35], 0.014, metalMat, -0.13);
-  } else {
-    box(frame, [1.32, 0.13, 0.12], [0.12, 0.55, 0], bike.color, { metalness: 0.42 });
-    box(frame, [0.11, 0.71, 0.11], [-0.08, 0.34, 0], bike.color, { metalness: 0.42 });
-    box(frame, [0.11, 0.70, 0.11], [0.78, 0.36, 0], bike.color, { metalness: 0.42 });
-    box(frame, [0.12, 0.63, 0.13], [1.42, 0.36, 0], 0x646c62, { metalness: 0.7 });
-    box(frame, [0.50, 0.42, 0.4], [0.12, 0.91, 0], bike.color, { roughness: 0.48, metalness: 0.22 });
-    box(frame, [0.34, 0.16, 0.34], [-0.35, 0.79, 0], 0x222926);
-    box(frame, [0.61, 0.11, 0.31], [-0.29, 1.04, 0], 0x252b27);
-    box(frame, [0.66, 0.16, 0.34], [0.74, 0.85, 0], 0x272d2a);
-    box(frame, [0.62, 0.085, 0.42], [-1.12, 0.57, 0], 0x242a27);
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.75, 8), darkMat);
-    handle.rotation.x = Math.PI / 2;
-    handle.position.set(1.36, 1.16, 0);
-    handlebar.add(handle);
-    box(handlebar, [0.4, 0.12, 0.43], [1.52, 1.18, 0], bike.color);
-  }
-  const riderModel = new THREE.Group();
-  riderModel.scale.y = 0.8;
-  frame.add(riderModel);
-  const jacket = new THREE.MeshStandardMaterial({ color: 0x397d5c, roughness: 0.66 });
-  const jacketShadow = new THREE.MeshStandardMaterial({ color: 0x263e34, roughness: 0.75 });
-  const pants = new THREE.MeshStandardMaterial({ color: 0x303a38, roughness: 0.85 });
-  const skin = new THREE.MeshStandardMaterial({ color: 0xbb8461, roughness: 0.88 });
-  const helmet = new THREE.MeshStandardMaterial({ color: 0xc0f56a, metalness: 0.15, roughness: 0.32 });
-  const visor = new THREE.MeshStandardMaterial({ color: 0x263634, metalness: 0.55, roughness: 0.25 });
-  function addLimbSegment(parent, start, end, radius, material) {
-    const from = new THREE.Vector3(...start);
-    const to = new THREE.Vector3(...end);
-    const direction = to.clone().sub(from);
-    const length = direction.length();
-    const segment = new THREE.Mesh(new THREE.CapsuleGeometry(radius, Math.max(0.04, length - radius * 2), 4, 8), material);
-    segment.position.copy(from.add(to).multiplyScalar(0.5));
-    segment.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
-    segment.castShadow = true;
-    parent.add(segment);
-  }
-  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.23, 0.43, 5, 10), jacket);
-  torso.position.set(0.24, 1.46, 0);
-  torso.rotation.z = -0.48;
-  torso.castShadow = true;
-  riderModel.add(torso);
-  const chestPanel = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.28, 0.36), jacketShadow);
-  chestPanel.position.set(0.43, 1.49, 0);
-  chestPanel.rotation.z = -0.48;
-  riderModel.add(chestPanel);
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.105, 0.18, 10), skin);
-  neck.position.set(0.53, 1.77, 0);
-  neck.rotation.z = -0.2;
-  riderModel.add(neck);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.205, 18, 12), skin);
-  head.scale.set(0.88, 1.08, 0.92);
-  head.position.set(0.57, 1.99, 0);
-  head.castShadow = true;
-  riderModel.add(head);
-  const helmetShell = new THREE.Mesh(new THREE.SphereGeometry(0.225, 18, 12), helmet);
-  helmetShell.scale.set(1.08, 0.82, 1.08);
-  helmetShell.position.set(0.57, 2.075, 0);
-  riderModel.add(helmetShell);
-  const helmetPeak = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.045, 0.26), helmet);
-  helmetPeak.position.set(0.76, 2.015, 0);
-  riderModel.add(helmetPeak);
-  const glasses = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.075, 0.30), visor);
-  glasses.position.set(0.744, 1.995, 0);
-  riderModel.add(glasses);
-  const arms = [];
-  for (const side of [-1, 1]) {
-    const arm = new THREE.Group();
-    arm.position.set(0.34, 1.65, side * 0.24);
-    arm.userData.side = side;
-    addLimbSegment(arm, [0, 0, 0], [0.36, -0.23, side * 0.06], 0.105, jacket);
-    const handReach = commuterBuild ? 0.61 : 0.92;
-    addLimbSegment(arm, [0.36, -0.23, side * 0.06], [handReach, -0.47, side * 0.12], 0.078, jacket);
-    const glove = new THREE.Mesh(new THREE.SphereGeometry(0.105, 10, 8), darkMat);
-    glove.position.set(handReach, -0.47, side * 0.12);
-    arm.add(glove);
-    riderModel.add(arm);
-    arms.push(arm);
-  }
-  const hips = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.22, 0.45), pants);
-  hips.position.set(-0.02, 1.13, 0);
-  hips.rotation.z = -0.28;
-  riderModel.add(hips);
-  const legs = [];
-  for (const side of [-1, 1]) {
-    const leg = new THREE.Group();
-    leg.position.set(-0.08, 1.16, side * 0.16);
-    leg.userData.side = side;
-    addLimbSegment(leg, [0, 0, 0], [-0.16, -0.36, side * 0.04], 0.12, pants);
-    addLimbSegment(leg, [-0.16, -0.36, side * 0.04], [0.31, -0.56, side * 0.07], 0.09, pants);
-    const boot = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.14, 0.20), darkMat);
-    boot.position.set(0.36, -0.61, side * 0.07);
-    leg.add(boot);
-    riderModel.add(leg);
-    legs.push(leg);
-  }
-  if (!commuterBuild) {
-    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 8), new THREE.MeshStandardMaterial({ color: 0xf3e9bc, emissive: 0xb8a674, emissiveIntensity: 0.5 }));
-    lamp.position.set(1.78, 0.94, 0);
-    frame.add(lamp);
-    box(frame, [0.32, 0.1, 0.38], [-0.96, 0.58, 0], 0x343b36);
-  }
-  root.userData = { frame, wheels, color: bike.color, riderModel, arms, legs, handlebar, wheelRadius };
-  return root;
-}
-
-const rider = makeBike(getBike());
-scene.add(rider);
-rider.position.set(0, rider.userData.wheelRadius, 0);
-function replaceRiderBike() {
-  scene.remove(rider);
-  const fresh = makeBike(getBike());
-  rider.clear();
-  rider.add(...fresh.children);
-  rider.userData = fresh.userData;
-  rider.position.set(state.x, rider.userData.wheelRadius, state.lane);
-  rider.rotation.z = state.pitch;
-  scene.add(rider);
-  refreshSideBikeLabel();
-}
-
-const ghostRiders = new Map();
-const state = { running: false, paused: false, speed: 0, pitch: 0, angularVelocity: 0, x: 0, heading: 0, lane: 0, steer: 0, distance: 0, score: 0, airTime: 0, runTime: 0, lastAngle: 0, throttle: false, brake: false, wheelie: false, wasWheelie: false, left: false, right: false, trick: "", trickTime: 0, trickCooldown: 0, crashed: false, frame: 0, trickChain: 0, trickChainTimer: 0, challenge: null };
-let cameraInitialized = false;
-let cameraX = -7;
-let cameraY = 4.6;
-let cameraZ = 3.5;
-const worldSpeed = 95 / 3.6;
-const clock = new THREE.Clock();
-
-// City circuit: forward-distance keyframes that drive the bike's heading.
-// Each pair of keys is one corner; the bike eases its heading between them.
-// Heading 0 faces +X (east on the main street), -PI/2 faces -Z (south on a cross street),
-// -PI faces -X (west on the connector street), PI/2 faces +Z (north on a cross street).
-const TRACK_HEADING_KEYS = [
-  { d: 0, h: 0 },
-  { d: 180, h: -Math.PI / 2 },
-  { d: 204, h: -Math.PI },
-  { d: 330, h: Math.PI / 2 },
-  { d: 354, h: 0 },
-  { d: 540, h: 0 },
-];
-function smoothstep(t) { const e = t * t * (3 - 2 * t); return e; }
-function headingAt(d) {
-  const keys = TRACK_HEADING_KEYS;
-  const last = keys[keys.length - 1];
-  if (d <= keys[0].d) return keys[0].h;
-  if (d >= last.d) return last.h;
-  for (let i = 1; i < keys.length; i++) {
-    const key = keys[i];
-    const prev = keys[i - 1];
-    if (d <= key.d) {
-      const span = Math.max(0.001, key.d - prev.d);
-      const t = THREE.MathUtils.clamp((d - prev.d) / span, 0, 1);
-      return prev.h + (key.h - prev.h) * smoothstep(t);
-    }
-  }
-  return last.h;
-}
-const bikePosition = new THREE.Vector3(0, 0, 0);
-
-let audioContext;
-let oscillator;
-let audioGain;
-let audioEnabled = true;
-function ensureAudio() {
-  if (!audioEnabled) return;
-  if (!audioContext) {
-    audioContext = new AudioContext();
-    oscillator = audioContext.createOscillator();
-    const overtone = audioContext.createOscillator();
-    const overtoneGain = audioContext.createGain();
-    audioGain = audioContext.createGain();
-    const filter = audioContext.createBiquadFilter();
-    oscillator.type = "sawtooth";
-    oscillator.frequency.value = 46;
-    overtone.type = "triangle";
-    overtone.frequency.value = 92;
-    overtoneGain.gain.value = 0.16;
-    audioGain.gain.value = 0;
-    filter.type = "lowpass";
-    filter.frequency.value = 380;
-    oscillator.connect(filter);
-    overtone.connect(overtoneGain);
-    overtoneGain.connect(filter);
-    filter.connect(audioGain);
-    audioGain.connect(audioContext.destination);
-    oscillator.start();
-    overtone.start();
-  }
-  if (audioContext.state === "suspended") audioContext.resume();
-}
-function setEngineSound() {
-  if (!audioContext || !audioEnabled || !state.running) return;
-  const stats = getStats();
-  const now = audioContext.currentTime;
-  oscillator.frequency.setTargetAtTime(35 + state.speed * (150 + stats.speed * 70) + (state.throttle ? 23 : 0), now, 0.12);
-  audioGain.gain.setTargetAtTime(state.paused ? 0 : 0.008 + state.speed * 0.036 + (state.throttle ? 0.018 : 0), now, 0.16);
-}
-
-function toast(message) {
-  const element = $("toast");
-  element.textContent = message;
-  element.classList.remove("hidden");
-  clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => element.classList.add("hidden"), 2300);
-}
-function refreshCash() {
-  $("cash").textContent = formatNumber(save.cash);
-  $("garage-cash").textContent = formatNumber(save.cash);
-}
-function refreshSideBikeLabel() {
-  $("current-bike-name").textContent = getBike().name;
-  $("side-bike-label").textContent = getBike().subtitle;
-}
-function setPaused(paused) {
-  if (!state.running) return;
-  state.paused = paused;
-  if (paused) {
-    state.throttle = false;
-    state.brake = false;
-    state.wheelie = false;
-    state.left = false;
-    state.right = false;
-  }
-  $("pause-button").textContent = paused ? "▶" : "Ⅱ";
-  $("pause-button").setAttribute("aria-label", paused ? "Resume game" : "Pause game");
-  if (audioGain && audioContext) audioGain.gain.setTargetAtTime(paused ? 0 : 0.025, audioContext.currentTime, 0.08);
-  if (paused) toast("PAUSED · PRESS ESC TO RESUME");
-}
-function awardChallengeBonus() {
-  const challenge = state.challenge;
-  if (!challenge || challenge.complete) return;
-  challenge.complete = true;
-  save.cash += challenge.reward;
-  persist();
-  refreshCash();
-  toast(`${challenge.title} · +$${formatNumber(challenge.reward)}`);
-}
-function updateChallengeProgress() {
-  const challenge = state.challenge;
-  if (!challenge || challenge.complete) return;
-  if (challenge.id === "wheelie") challenge.progress = Math.min(challenge.target, state.airTime);
-  else if (challenge.id === "distance") challenge.progress = Math.min(challenge.target, state.distance);
-  else if (challenge.id === "tricks") challenge.progress = Math.min(challenge.target, state.trickChain);
-  if (challenge.progress >= challenge.target) awardChallengeBonus();
-}
-function startRide() {
-  if (state.running && state.paused) { setPaused(false); return; }
-  ensureAudio();
-  Object.assign(state, { running: true, paused: false, speed: 0, pitch: 0, angularVelocity: 0, heading: 0, lane: 0, steer: 0, distance: 0, score: 0, airTime: 0, runTime: 0, lastAngle: 0, throttle: false, brake: false, wheelie: false, wasWheelie: false, left: false, right: false, trick: "", trickTime: 0, trickCooldown: 0, crashed: false, trickChain: 0, trickChainTimer: 0, challenge: buildChallenge() });
-  state.x = 0;
-  bikePosition.set(0, 0, 0);
-  cameraInitialized = false;
-  rider.position.set(0, rider.userData.wheelRadius, 0);
-  rider.rotation.set(0, 0, 0);
-  rider.userData.frame.rotation.set(0, 0, 0);
-  rider.userData.riderModel.rotation.set(0, 0, 0);
-  rider.userData.arms.forEach((arm) => arm.rotation.set(0, 0, 0));
-  rider.userData.legs.forEach((leg) => leg.rotation.set(0, 0, 0));
-  rider.userData.handlebar.rotation.set(0, 0, 0);
-  rider.userData.wheels.forEach((wheel) => { wheel.rotation.set(0, 0, 0); });
-  $("start-screen").classList.add("hidden");
-  $("run-banner").classList.add("hidden");
-  $("ride-hud").classList.add("visible");
-  $("touch-controls").classList.add("active");
-  $("bank-button").classList.add("active");
-  $("pause-button").textContent = "Ⅱ";
-  $("pause-button").setAttribute("aria-label", "Pause game");
-  updateChallengeHud();
-  updateHud(0);
-}
-function settleRun() {
-  const bankedCash = getRunPayout();
-  if (bankedCash > 0) save.cash += bankedCash;
-  const distanceRecord = { name: save.riderName, bike: getBike().name, value: Math.round(state.distance * 10) / 10, date: Date.now() };
-  const cashRecord = { name: save.riderName, bike: getBike().name, value: bankedCash, date: Date.now() };
-  if (state.distance > 0) save.records.distance = [distanceRecord, ...save.records.distance.filter((entry) => entry.date !== distanceRecord.date)].slice(0, 20);
-  if (bankedCash > 0) save.records.cash = [cashRecord, ...save.records.cash.filter((entry) => entry.date !== cashRecord.date)].slice(0, 20);
-  persist();
-  refreshCash();
-  saveRunOnline(distanceRecord, cashRecord);
-  return bankedCash;
-}
-function endRide(message) {
-  if (!state.running) return;
-  state.running = false;
-  state.paused = false;
-  state.crashed = true;
-  state.throttle = false;
-  state.brake = false;
-  state.wheelie = false;
-  state.wasWheelie = false;
-  const bankedCash = settleRun();
-  $("run-message").textContent = message;
-  $("run-result").textContent = `+ $${formatNumber(bankedCash)}  ·  ${state.distance.toFixed(1)} M  ·  ${state.airTime.toFixed(1)} S AIR`;
-  $("run-banner").classList.remove("hidden");
-  $("ride-hud").classList.remove("visible");
-  $("touch-controls").classList.remove("active");
-  $("bank-button").classList.remove("active");
-  if (audioGain && audioContext) audioGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.08);
-}
-function bankRun() {
-  if (!state.running) return;
-  settleRun();
-}
-
-let units = false;
-function buildChallenge() {
-  const config = CHALLENGE_DEFS[Math.floor(Math.random() * CHALLENGE_DEFS.length)];
-  return {
-    ...config,
-    progress: 0,
-    complete: false,
-  };
-}
-function updateChallengeHud() {
-  const challenge = state.challenge;
-  const label = $("challenge-label");
-  const progressBar = $("challenge-progress-bar");
-  const progressText = $("challenge-meta");
-  const rewardText = $("challenge-reward");
-  if (!challenge) {
-    label.textContent = "HOLD THE LINE";
-    progressBar.style.width = "0%";
-    progressText.textContent = "0 / 10s";
-    rewardText.textContent = "+$220";
-    return;
-  }
-  const progressValue = challenge.progress;
-  const nextPercent = Math.min(100, (progressValue / challenge.target) * 100);
-  const suffix = challenge.suffix;
-  label.textContent = challenge.title;
-  progressBar.style.width = `${nextPercent}%`;
-  progressText.textContent = `${challenge.id === "distance" ? state.distance.toFixed(1) : Number(progressValue).toFixed(challenge.id === "wheelie" ? 1 : 0)} / ${challenge.target}${suffix}`;
-  rewardText.textContent = `+$${formatNumber(challenge.reward)}`;
-}
-function updateHud(multiplier) {
-  $("speed").textContent = String(Math.round(state.speed * worldSpeed * (units ? 1.60934 : 3.6)));
-  $("speed-unit").textContent = units ? "MPH" : "KM/H";
-  $("distance").textContent = state.distance.toFixed(1);
-  $("run-cash").textContent = formatNumber(getRunPayout());
-  $("angle-readout").textContent = `${Math.round(THREE.MathUtils.radToDeg(state.pitch))}°`;
-  $("multiplier").innerHTML = state.trick ? `${state.trick.toUpperCase()} · ${multiplier.toFixed(1)}<span>×</span>` : `${multiplier.toFixed(1)}<span>×</span>`;
-  const balancePosition = THREE.MathUtils.clamp(state.pitch / (Math.PI / 2) * 100, 0, 100);
-  $("balance-needle").style.left = `${balancePosition}%`;
-  const hint = $("balance-hint");
-  hint.textContent = multiplier >= 1.8 ? "✳ SWEET SPOT ✳" : state.pitch > 1.15 ? "EASE IT DOWN" : state.pitch < 0.2 ? "LIFT THE FRONT" : "HOLD YOUR LINE";
-  hint.style.color = multiplier >= 1.8 ? "#c0f56a" : state.pitch > 1.15 ? "#ffb095" : "";
-  updateChallengeHud();
-}
-$("speed").onclick = () => {
-  units = !units;
-  $("speed").textContent = String(Math.round(state.speed * worldSpeed * (units ? 1.60934 : 3.6)));
-  $("speed-unit").textContent = units ? "MPH" : "KM/H";
-};
-
-function tryTrick(trick) {
-  if (!state.running || state.paused) return;
-  if (state.trick || state.trickCooldown > 0) { toast("TRICK IN PROGRESS · STICK THE LANDING"); return; }
-  const lifted = state.wheelie || state.brake;
-  const minPitch = trick === "stoppie" ? -0.11 : state.brake ? 0 : 0.16;
-  if (!lifted || state.pitch < minPitch || state.speed < 0.18) { toast("HOLD SHIFT TO WHEELIE BEFORE TRICKING"); return; }
-  state.trick = trick;
-  state.trickTime = 0;
-  state.trickCooldown = 1.35;
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.04);
-  if (state.running && !state.paused) {
-    const stats = getStats();
-    const topSpeed = 0.4 + stats.speed * 0.66;
-    const acceleration = 0.34 + stats.torque * 0.3;
-    const brakeDrag = state.brake ? (0.55 + stats.brake * 0.85) * dt : 0;
-    if (state.throttle) state.speed = Math.min(topSpeed, Math.max(0, state.speed + acceleration * dt - brakeDrag));
-    else state.speed = Math.max(0, state.speed - Math.max((0.08 + stats.weight * 0.035) * dt, brakeDrag));
-    const throttleLift = state.throttle && state.wheelie ? (0.82 + stats.torque * 1.18) * (0.55 + state.speed * 0.78) : 0;
-    const stoppieLift = state.brake && state.wheelie ? (0.95 + stats.brake * 1.55) * (0.32 + state.speed * 0.85) : 0;
-    const lift = state.throttle && state.wheelie ? throttleLift : state.brake && state.wheelie ? stoppieLift : 0;
-    const rearBrake = state.brake && !state.wheelie ? 1.55 + stats.brake * 2.0 : 0;
-    const pitchGravity = 0.53 + stats.weight * 0.28;
-    const balanceCorrection = state.pitch > 0.1 ? Math.max(0, state.pitch - 0.16) * 0.65 : 0;
-    state.angularVelocity += (lift - rearBrake - pitchGravity - balanceCorrection - state.angularVelocity * (0.92 + stats.weight * 0.35)) * dt;
-    const priorPitch = state.pitch;
-    state.pitch = Math.max(-0.12, state.pitch + state.angularVelocity * dt);
-    state.x += state.speed * worldSpeed * dt;
-    state.runTime += dt;
-    state.trickChainTimer = Math.max(0, state.trickChainTimer - dt);
-    if (state.trickChainTimer <= 0) state.trickChain = 0;
-    const targetHeading = headingAt(state.x);
-    state.heading += (targetHeading - state.heading) * (1 - Math.exp(-dt * 2.4));
-    const heading = state.heading;
-    const forward = new THREE.Vector3(Math.cos(heading), 0, Math.sin(heading));
-    const left = new THREE.Vector3(-Math.sin(heading), 0, Math.cos(heading));
-    const speedDelta = state.speed * worldSpeed * dt;
-    bikePosition.addScaledVector(forward, speedDelta);
-    bikePosition.addScaledVector(left, state.lane);
-    const wheelie = state.pitch > 0.14 && state.speed > 0.045;
-    const landedWheelie = state.wasWheelie && !wheelie;
-    state.wasWheelie = wheelie;
-    state.trickCooldown = Math.max(0, state.trickCooldown - dt);
-    if (state.trick) {
-      state.trickTime += dt;
-      if (state.trickTime >= TRICK_DURATION) {
-        const trickData = TRICKS.find((item) => item.id === state.trick);
-        const trickPoints = Math.round((45 + state.speed * 85) * (trickData?.points ?? 1));
-        if (state.pitch > 0.14) {
-          state.score += trickPoints;
-          state.trickChain += 1;
-          state.trickChainTimer = 3.2;
-          toast(`${trickData?.name ?? "TRICK"} · +${trickPoints} POINTS`);
-        } else {
-          toast("TRICK MISSED · KEEP THE FRONT UP");
-        }
-        state.trick = "";
-      }
-    }
-    const steering = Number(state.right) - Number(state.left);
-    state.steer += (steering - state.steer) * (1 - Math.exp(-dt * 8));
-    state.lane = THREE.MathUtils.clamp(state.lane + state.steer * (0.55 + state.speed) * 2.8 * dt, -4.65, 4.65);
-    let multiplier = 1;
-    if (wheelie && state.wheelie) {
-      const sweetSpot = 0.52;
-      const balance = THREE.MathUtils.clamp(1 - Math.abs(state.pitch - sweetSpot) / 0.62, 0, 1);
-      multiplier = 1 + balance * 1.8;
-      const metres = state.speed * worldSpeed * dt;
-      state.distance += metres;
-      state.score += metres * multiplier * 1.5;
-      state.airTime += dt;
-    }
-    updateChallengeProgress();
-    const frontWheelSlam = priorPitch > 0.62 && state.pitch < 0.12 && state.angularVelocity < -1.45 && state.speed > 0.37;
-    if (state.pitch > Math.PI / 2) {
-      endRide("LOOPED OUT");
-    } else if (landedWheelie || frontWheelSlam) {
-      bankRun();
-      state.score = 0;
-      state.distance = 0;
-    }
-    rider.position.set(bikePosition.x, rider.userData.wheelRadius, bikePosition.z);
-    rider.rotation.z = state.pitch;
-    rider.rotation.y = state.heading - state.steer * 0.10;
-    rider.rotation.x = -state.steer * 0.065;
-    rider.userData.frame.rotation.set(0, 0, 0);
-    for (const wheel of rider.userData.wheels) wheel.rotation.z = -state.x / rider.userData.wheelRadius;
-    const trickProgress = state.trick ? THREE.MathUtils.clamp(state.trickTime / TRICK_DURATION, 0, 1) : 0;
-    const trickPose = Math.sin(trickProgress * Math.PI);
-    rider.userData.arms.forEach((arm) => {
-      const nohander = state.trick === "nohander";
-      const superman = state.trick === "superman";
-      arm.rotation.z = nohander ? trickPose * 1.22 : superman ? -trickPose * 0.44 : 0;
-      arm.rotation.x = superman ? arm.userData.side * trickPose * 0.5 : 0;
-    });
-    const activeTrick = state.trick;
-    rider.userData.handlebar.rotation.y = activeTrick === "barspin" ? trickProgress * Math.PI * 2 : 0;
-    rider.userData.frame.rotation.y = activeTrick === "tailwhip" ? trickProgress * Math.PI * 2 : 0;
-    rider.userData.legs.forEach((leg, index) => {
-      leg.rotation.z = activeTrick === "superman" ? trickPose * 0.75
-        : activeTrick === "cancan" && index === 0 ? -trickPose * 1.15
-          : activeTrick === "nacnac" && index === 1 ? trickPose * 1.2 : 0;
-    });
-    rider.userData.riderModel.rotation.z = activeTrick === "nohander" ? -trickPose * 0.12
-      : activeTrick === "superman" ? trickPose * 0.12
-      : activeTrick === "stoppie" ? trickPose * 0.45
-      : 0;
-    const cameraDistance = 6.5 + state.speed * 1.6;
-    const cameraHeight = 2.55 + state.speed * 0.45 + Math.max(0, state.pitch) * 0.65;
-    const camForward = new THREE.Vector3(Math.cos(state.heading), 0, Math.sin(state.heading));
-    const camLeft = new THREE.Vector3(-Math.sin(state.heading), 0, Math.cos(state.heading));
-    const targetCameraPosition = new THREE.Vector3().copy(bikePosition).addScaledVector(camForward, -cameraDistance).addScaledVector(camLeft, 2.8);
-    targetCameraPosition.y = cameraHeight;
-    const smoothing = 1 - Math.exp(-dt * 3.8);
-    if (!cameraInitialized) { cameraX = targetCameraPosition.x; cameraY = targetCameraPosition.y; cameraZ = targetCameraPosition.z; cameraInitialized = true; }
-    else { cameraX += (targetCameraPosition.x - cameraX) * smoothing; cameraY += (targetCameraPosition.y - cameraY) * smoothing; cameraZ += (targetCameraPosition.z - cameraZ) * smoothing; }
-    camera.position.set(cameraX, cameraY, cameraZ);
-    camera.lookAt(bikePosition.x + Math.cos(state.heading) * 7, 1.05 + Math.max(0, state.pitch) * 0.65, bikePosition.z);
-    camera.fov += (61 + state.speed * 3.5 - camera.fov) * smoothing;
-    camera.updateProjectionMatrix();
-    sky.position.set(bikePosition.x + 20, 0, bikePosition.z);
-    updateHud(multiplier);
-    state.frame += dt;
-    if (state.frame > 0.3) { state.frame = 0; publishGhost(); }
-    setEngineSound();
-  } else if (!state.running) {
-    const smoothing = 1 - Math.exp(-dt * 1.8);
-    if (!cameraInitialized) { cameraX = -6.5; cameraY = 3.3; cameraZ = 3.5; cameraInitialized = true; }
-    cameraX += (-6.5 - cameraX) * smoothing;
-    cameraY += (3.3 - cameraY) * smoothing;
-    cameraZ += (3.5 - cameraZ) * smoothing;
-    camera.position.set(cameraX, cameraY, cameraZ);
-    camera.lookAt(6.5, 1.05, 0);
-    camera.fov += (61 - camera.fov) * smoothing;
-    camera.updateProjectionMatrix();
-  }
-  renderer.render(scene, camera);
-}
-
-function onResize() {
-  const width = sceneContainer.clientWidth;
-  const height = sceneContainer.clientHeight;
-  if (!width || !height) return;
-  camera.aspect = width / height;
-  camera.fov = width < 550 ? 55 : 49;
-  camera.updateProjectionMatrix();
-  renderer.setSize(width, height, false);
-}
-window.addEventListener("resize", onResize);
-onResize();
-animate();
-refreshCash();
-refreshSideBikeLabel();
+/* chunks & sun & sky */
+const pcx=Math.round(x/S_),pcz=Math.round(z/S_);if(loadChunks.k!==pcx+','+pcz){loadChunks.k=pcx+','+pcz;loadChunks(x,z)}
+sun.position.set(x+60,90,z+40);sun.target.position.set(x,0,z);
+/* rig pose */
+pose(me,x,y,z,h,roll,p,v,dt);
+if(wreck>0){const t=1.7-wreck;me.P.rotation.x=-p-t*5;me.R.position.set(.6*t,Math.max(-.3,3*t-5*t*t),-3*t);me.R.rotation.x=-t*8}else{me.R.position.set(0,0,0);me.R.rotation.x=0}
+me.glow.visible=boosting||pad>0;if(me.glow.visible)me.glow.scale.setScalar(1+Math.sin(tt*40)*.25);
+me.g.updateMatrixWorld(true);
+if(sparks){tv.set(0,.1,-.55);me.P.localToWorld(tv);for(let i=0;i<4;i++)emit(tv,-Math.sin(h)*v*.3+(Math.random()-.5)*3,Math.random()*3+1,-Math.cos(h)*v*.3+(Math.random()-.5)*3,.5,1,.6+Math.random()*.3,.1,9)}
+if(boosting||pad>0){tv.set(0,.3,-.3);me.P.localToWorld(tv);for(let i=0;i<3;i++)emit(tv,-Math.sin(h)*8+(Math.random()-.5)*1.5,Math.random()*.6,-Math.cos(h)*8+(Math.random()-.5)*1.5,.45,.5+Math.random()*.3,.3,1,0)}
+stepP(dt);
+/* camera */
+if(gOpen){cam.position.set(x+Math.cos(ga)*4.2,y+1.6,z+Math.sin(ga)*4.2);cam.lookAt(x,y+.7,z);cam.fov=45}
+else{const cd=7+Math.abs(v)*.04,tx=x-Math.sin(h)*cd,tz=z-Math.cos(h)*cd,ty=y+3+p*.6;
+if(camInit){cam.position.set(tx,ty,tz);camInit=false}else{const kk=1-Math.exp(-6*dt);cam.position.x+=(tx-cam.position.x)*kk;cam.position.y+=(ty-cam.position.y)*kk;cam.position.z+=(tz-cam.position.z)*kk}
+cam.lookAt(x+Math.sin(h)*4,y+1.2+p*1.2,z+Math.cos(h)*4);
+const tf=62+Math.min(14,Math.abs(v)*.25)+(boosting?10:0);cam.fov+=(tf-cam.fov)*Math.min(1,5*dt)}
+cam.updateProjectionMatrix();sky.position.copy(cam.position);
+/* ghosts */
+const showG=!rem.size&&Math.abs(x)<150;
+ghosts.forEach(q=>{q.rig.g.visible=showG;if(!showG)return;q.z+=q.dir*q.sp*dt;q.x=(ghosts.indexOf(q)-1.5)*5+Math.sin(tt*.5+q.ph)*3;q.h=q.dir>0?0:PI;q.v=q.sp;q.p=Math.max(0,.8+.25*Math.sin(tt*.9+q.ph));
+if(Math.abs(q.z-z)>260)q.z=z-q.dir*240;const gy=gH(q.x,q.z);pose(q.rig,q.x,gy,q.z,q.h,0,q.p,q.v,dt)});
+if(!gOpen)updCops(dt);
+/* remotes */
+const kk=1-Math.exp(-12*dt),nowt=performance.now();
+for(const[id,r]of rem){if(nowt-r.seen>4000){if(r.rig)scene.remove(r.rig.g);rem.delete(id);continue}
+r.x+=(r.tx-r.x)*kk;r.y+=(r.ty-r.y)*kk;r.z+=(r.tz-r.z)*kk;r.p+=(r.tp-r.p)*kk;r.r+=(r.tr-r.r)*kk;r.v=r.tv;let d=r.th-r.h;d=Math.atan2(Math.sin(d),Math.cos(d));r.h+=d*kk;pose(r.rig,r.x,r.y,r.z,r.h,r.r,r.p,r.v,dt)}
+/* network send */
+if(cli&&online&&now-netT>100){netT=now;try{cli.publish(ROOM+'/s',JSON.stringify({i:ID,n:NAME,x:+x.toFixed(2),y:+y.toFixed(2),z:+z.toFixed(2),h:+h.toFixed(3),p:+p.toFixed(3),r:+roll.toFixed(3),v:+v.toFixed(1),b:S.eq,c:MYC}),{qos:0})}catch(e){}}
+/* audio */
+if(AC){const t=AC.currentTime,sp=Math.abs(v),bs=boosting?1:0;mo1.frequency.setTargetAtTime(55+sp*6+bs*40,t,.05);mo2.frequency.setTargetAtTime(300+sp*26+bs*200,t,.05);
+mgn.gain.setTargetAtTime(gOpen?.02:.04+.07*thr+Math.min(.04,sp*.001),t,.05);ng.scr.gain.setTargetAtTime(skid?.25:0,t,.05);ng.spk.gain.setTargetAtTime(sparks?.18:0,t,.03);ng.bst.gain.setTargetAtTime(bs?.22:0,t,.1);const nd=Math.min(...cops.map(q=>q.d));sir.frequency.setTargetAtTime(900+300*Math.sin(tt*7),t,.02);sg.gain.setTargetAtTime(wanted?.07*Math.max(.2,1-nd/200):0,t,.1)}
+/* HUD */
+if(S.cash!==undefined){$('cash').textContent='$'+Math.floor(S.cash).toLocaleString()}
+$('combo').textContent=p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(wreck>0?'WIPEOUT!':'');
+$('sp').innerHTML=Math.round(Math.abs(v)*(units?3.6:2.237))+` <small>${units?'KM/H':'MPH'}</small>`;
+$('bb').style.width=boostE+'%';$('wanted').textContent=wanted?`🚨 WANTED ${chaseT.toFixed(0)}s${escT>0?' · escaping '+Math.max(0,6-escT).toFixed(0):''}`:'';
+$('net').textContent=online?`Connected: ${1+rem.size} Rider${rem.size?'s':''} Online${rem.size?'':' · AI ghosts riding'}`:'Offline · AI Ghost Riders';
+$('sl').style.opacity=boosting?.9:Math.max(0,Math.min(.5,(Math.abs(v)-32)/40));
+pt+=dt;svT+=dt;if(svT>3){svT=0;save();if(gOpen)rg()}
+drawMM();drawWM(zw);
+R.render(scene,cam)}
+addEventListener('beforeunload',save);document.addEventListener('visibilitychange',save);
+requestAnimationFrame(loop);
 window.WheelieXLoading?.finish();
-
-const keyMap = { ArrowUp: "throttle", KeyW: "throttle", Space: "throttle", ArrowDown: "brake", KeyS: "brake", ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right", ShiftLeft: "wheelie", ShiftRight: "wheelie" };
-let trickSelectionIndex = 1;
-function trickHotkey(code) {
-  return TRICKS.find((trick) => trick.key === code.replace("Key", ""))?.id;
-}
-window.addEventListener("keydown", (event) => {
-  if (event.code === "Escape") { if (state.running) setPaused(!state.paused); return; }
-  const trick = trickHotkey(event.code);
-  if (trick && !event.repeat) {
-    event.preventDefault();
-    tryTrick(trick);
-    return;
-  }
-  const control = keyMap[event.code];
-  if (!control || event.repeat) return;
-  event.preventDefault();
-  if (state.running && !state.paused) {
-    ensureAudio();
-    state[control] = true;
-    if ((control === "wheelie" && state.brake) || (control === "brake" && state.wheelie)) tryTrick("stoppie");
-  }
-});
-window.addEventListener("keyup", (event) => {
-  const control = keyMap[event.code];
-  if (control) { event.preventDefault(); state[control] = false; }
-});
-window.addEventListener("blur", () => { state.throttle = false; state.brake = false; state.wheelie = false; state.left = false; state.right = false; if (state.running) setPaused(true); });
-document.addEventListener("visibilitychange", () => { if (document.hidden && state.running) { state.throttle = false; state.brake = false; state.wheelie = false; state.left = false; state.right = false; setPaused(true); } });
-function bindTouch(button, control, onDown) {
-  const el = $(button);
-  const down = (event) => { event.preventDefault(); if (!state.running || state.paused) return; ensureAudio(); state[control] = true; onDown?.(event); };
-  const up = (event) => { event.preventDefault(); state[control] = false; };
-  el.addEventListener("pointerdown", down);
-  el.addEventListener("pointerup", up);
-  el.addEventListener("pointercancel", up);
-  el.addEventListener("pointerleave", up);
-  el.addEventListener("contextmenu", (event) => event.preventDefault());
-}
-bindTouch("throttle-touch", "throttle");
-bindTouch("brake-touch", "brake");
-bindTouch("wheelie-touch", "wheelie", (event) => { if (state.brake) tryTrick("stoppie"); });
-bindTouch("left-touch", "left");
-bindTouch("right-touch", "right");
-$("trick-picker-touch").addEventListener("pointerdown", (event) => {
-  event.preventDefault();
-  trickSelectionIndex = (trickSelectionIndex + 1) % TRICKS.length;
-  const selected = TRICKS[trickSelectionIndex];
-  $("trick-picker-touch").innerHTML = `${selected.key}<br><strong>${selected.name}</strong>`;
-});
-$("throw-trick-touch").addEventListener("pointerdown", (event) => { event.preventDefault(); tryTrick(TRICKS[trickSelectionIndex].id); });
-
-$("ride-button").addEventListener("click", startRide);
-$("retry-button").addEventListener("click", startRide);
-$("bank-button").addEventListener("click", () => { if (state.running) endRide("RUN BANKED"); });
-$("bank-touch").addEventListener("pointerdown", (event) => {
-  event.preventDefault();
-  if (state.running) endRide("RUN BANKED");
-});
-$("pause-button").addEventListener("click", () => { if (state.running) setPaused(!state.paused); });
-$("sound-toggle").addEventListener("click", () => {
-  audioEnabled = !audioEnabled;
-  $("sound-toggle").textContent = audioEnabled ? "◖" : "◌";
-  if (audioGain && audioContext) audioGain.gain.setTargetAtTime(audioEnabled && state.running && !state.paused ? 0.025 : 0, audioContext.currentTime, 0.08);
-  if (audioEnabled) ensureAudio();
-  toast(audioEnabled ? "MOTOR SOUND ON" : "MOTOR SOUND OFF");
-});
-
-function openModal(id) {
-  $(id).classList.remove("hidden");
-  state.throttle = false;
-  state.brake = false;
-  if (state.running) setPaused(true);
-}
-function closeModal(id) {
-  $(id).classList.add("hidden");
-  if (state.running) setPaused(false);
-}
-$("garage-button").addEventListener("click", () => { renderGarage(); openModal("garage-modal"); });
-$("run-garage-button").addEventListener("click", () => { renderGarage(); openModal("garage-modal"); });
-$("leaderboard-button").addEventListener("click", () => { renderLeaderboard(); openModal("leaderboard-modal"); });
-document.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => closeModal(button.dataset.close)));
-document.querySelectorAll(".modal-backdrop").forEach((modal) => modal.addEventListener("click", (event) => { if (event.target === modal) closeModal(modal.id); }));
-window.addEventListener("keydown", (event) => { if (event.key === "Escape") document.querySelectorAll(".modal-backdrop:not(.hidden)").forEach((modal) => closeModal(modal.id)); });
-
-function renderGarage() {
-  refreshCash();
-  $("bike-list").innerHTML = BIKE_CATALOG.map((bike, index) => {
-    const unlocked = save.unlocked.includes(bike.id);
-    const selected = bike.id === getBike().id;
-    const priceLabel = unlocked ? selected ? "EQUIPPED" : "OWNED" : save.cash >= bike.price ? `BUY · $${formatNumber(bike.price)}` : `NEED $${formatNumber(bike.price - save.cash)}`;
-    return `<button class="bike-option ${selected ? "selected" : ""}" data-bike="${bike.id}"><span class="bike-number">0${index + 1}</span><span><span class="bike-option-name">${bike.name}</span><span class="bike-option-sub">${bike.subtitle}</span></span><span class="bike-price">${priceLabel}</span></button>`;
-  }).join("");
-  $("bike-list").querySelectorAll("[data-bike]").forEach((button) => button.addEventListener("click", () => renderBikeDetail(button.dataset.bike)));
-  renderBikeDetail(getBike().id);
-}
-function renderBikeDetail(id) {
-  const bike = getBike(id);
-  const stats = getStats(bike);
-  const unlocked = save.unlocked.includes(bike.id);
-  const selected = bike.id === getBike().id;
-  const statMarkup = STAT_LABELS.map(([key, label]) => {
-    const value = stats[key];
-    return `<div class="stat-row"><span>${label}</span><span class="stat-bar"><span style="width:${Math.round(value * 100)}%"></span></span><span class="stat-number">${Math.round(value * 100)}</span></div>`;
-  }).join("");
-  let action = "";
-  if (!unlocked) {
-    const affordable = save.cash >= bike.price;
-    action = `<button class="primary-button" id="buy-bike" ${affordable ? "" : "disabled"}><span>${affordable ? `UNLOCK · $${formatNumber(bike.price)}` : `NEED $${formatNumber(bike.price - save.cash)} MORE`}</span><span class="button-arrow">${affordable ? "↗" : "-"}</span></button>`;
-  }
-  else if (!selected) action = `<button class="primary-button" id="equip-bike"><span>EQUIP BIKE</span><span class="button-arrow">↗</span></button>`;
-  else action = `<button class="primary-button" id="equipped-bike" disabled><span>CURRENT RIDE</span><span>✓</span></button>`;
-  const upgradeMarkup = unlocked ? `<div class="upgrade-buttons">${["torque", "brake", "speed"].map((key) => {
-    const level = stats.upgrades[key] || 0;
-    const cost = getUpgradeCost(level);
-    const affordable = save.cash >= cost;
-    return `<button class="upgrade-button" data-upgrade="${key}" ${level >= 3 || !affordable ? "disabled" : ""}>${UPGRADE_LABELS[key]} · LV ${level}/3<br><span>${level >= 3 ? "MAXED" : affordable ? `UPGRADE · $${formatNumber(cost)}` : `NEED $${formatNumber(cost - save.cash)} MORE`}</span></button>`;
-  }).join("")}</div>` : "";
-  $("bike-detail").innerHTML = `<span class="bike-detail-tag">${bike.subtitle} · ×${bike.payout.toFixed(2)} PAYOUT</span><h3>${bike.name}</h3><p class="bike-description">${bike.description}</p>${statMarkup}<div class="bike-actions">${action}${upgradeMarkup}</div>`;
-  $("bike-detail").querySelector("#buy-bike")?.addEventListener("click", () => {
-    if (save.unlocked.includes(bike.id)) return;
-    if (!spendCash(bike.price)) { toast("NOT ENOUGH CASH · KEEP RIDING"); return; }
-    save.unlocked.push(bike.id);
-    save.upgrades[bike.id] ||= { torque: 0, brake: 0, speed: 0 };
-    persist();
-    refreshCash();
-    renderGarage();
-    toast(`${bike.name.toUpperCase()} UNLOCKED`);
-  });
-  $("bike-detail").querySelector("#equip-bike")?.addEventListener("click", () => {
-    save.equipped = bike.id;
-    persist();
-    replaceRiderBike();
-    renderGarage();
-    toast(`${bike.name.toUpperCase()} EQUIPPED`);
-  });
-  $("bike-detail").querySelectorAll("[data-upgrade]").forEach((button) => button.addEventListener("click", () => {
-    const key = button.dataset.upgrade;
-    const level = stats.upgrades[key] || 0;
-    const cost = getUpgradeCost(level);
-    if (level >= 3 || !spendCash(cost)) { toast("NOT ENOUGH CASH FOR THIS UPGRADE"); return; }
-    save.upgrades[bike.id] ||= { torque: 0, brake: 0, speed: 0 };
-    save.upgrades[bike.id][key] = level + 1;
-    persist();
-    refreshCash();
-    renderGarage();
-    toast(`${UPGRADE_LABELS[key]} UPGRADED · LV ${level + 1}`);
-  }));
-}
-
-let leaderboardMode = "distance";
-const remoteBoards = { distance: null, cash: null };
-function renderLeaderboard() {
-  const records = remoteBoards[leaderboardMode] || save.records[leaderboardMode];
-  const sorted = [...records].sort((a, b) => b.value - a.value).slice(0, 10);
-  $("leaderboard-score-title").textContent = leaderboardMode === "distance" ? "DISTANCE" : "CASH EARNED";
-  $("leaderboard-source").textContent = remoteBoards[leaderboardMode] ? "GLOBAL RECORDS · FIREBASE" : "LOCAL RECORDS · THIS DEVICE";
-  $("leaderboard-rows").innerHTML = sorted.length ? sorted.map((record, index) => `<div class="leaderboard-row"><span class="leaderboard-rider"><span class="leaderboard-rank">${String(index + 1).padStart(2, "0")}</span><span>${escapeHtml(record.name || "RIDER")}</span><span class="leaderboard-bike">${escapeHtml(record.bike || "E-BIKE")}</span></span><span class="leaderboard-score">${leaderboardMode === "distance" ? `${Number(record.value).toFixed(1)} M` : `$${formatNumber(record.value)}`}</span></div>`).join("") : `<div class="leaderboard-empty">NO RUNS LOGGED YET.<br>THE FIRST LINE IS YOURS.</div>`;
-}
-document.querySelectorAll("[data-board]").forEach((button) => button.addEventListener("click", () => {
-  leaderboardMode = button.dataset.board;
-  document.querySelectorAll("[data-board]").forEach((tab) => tab.classList.toggle("active", tab === button));
-  renderLeaderboard();
-}));
-function escapeHtml(text) {
-  return String(text).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
-}
-
-// Replace these values with the Firebase web app config and Realtime Database URL.
-const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_APP_ID",
-};
-const firebaseConfigured = FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY" && FIREBASE_CONFIG.projectId !== "YOUR_PROJECT_ID" && FIREBASE_CONFIG.databaseURL.startsWith("https://") && !FIREBASE_CONFIG.databaseURL.includes("YOUR_PROJECT_ID");
-let firebaseDatabase;
-let firebaseApi;
-const playerId = globalThis.crypto?.randomUUID?.() || `rider-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-let ghostPublishTimer;
-async function connectFirebase() {
-  if (!firebaseConfigured) return;
-  try {
-    const [appModule, databaseModule] = await Promise.all([
-      import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"),
-      import("https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"),
-    ]);
-    const app = appModule.initializeApp(FIREBASE_CONFIG);
-    firebaseDatabase = databaseModule.getDatabase(app);
-    firebaseApi = databaseModule;
-    const ghostsRef = databaseModule.ref(firebaseDatabase, "wheeliex/players");
-    databaseModule.onValue(ghostsRef, (snapshot) => updateGhosts(snapshot.val() || {}), (error) => console.error("Firebase live riders could not be read.", error));
-    const boardRefs = { distance: databaseModule.ref(firebaseDatabase, "wheeliex/leaderboards/distance"), cash: databaseModule.ref(firebaseDatabase, "wheeliex/leaderboards/cash") };
-    for (const [mode, boardRef] of Object.entries(boardRefs)) {
-      databaseModule.onValue(boardRef, (snapshot) => {
-        const value = snapshot.val();
-        remoteBoards[mode] = value ? Object.values(value).filter((entry) => entry && Number.isFinite(entry.value)) : [];
-        if (!$("leaderboard-modal").classList.contains("hidden")) renderLeaderboard();
-      }, (error) => {
-        console.error(`Firebase ${mode} leaderboard could not be read.`, error);
-        remoteBoards[mode] = null;
-      });
-    }
-    const myRef = databaseModule.ref(firebaseDatabase, `wheeliex/players/${playerId}`);
-    await databaseModule.onDisconnect(myRef).remove();
-    $("network-status").classList.add("connected");
-    $("network-label").textContent = "LIVE · FIREBASE CONNECTED";
-  } catch (error) {
-    console.error("Firebase could not be initialized. Check the Firebase config and database rules.", error);
-    $("network-label").textContent = "OFFLINE · CHECK FIREBASE CONFIG";
-  }
-}
-function publishGhost() {
-  if (!firebaseDatabase || !firebaseApi || !state.running) return;
-  if (ghostPublishTimer) return;
-  ghostPublishTimer = setTimeout(() => { ghostPublishTimer = undefined; }, 250);
-  const ref = firebaseApi.ref(firebaseDatabase, `wheeliex/players/${playerId}`);
-  firebaseApi.set(ref, { name: save.riderName, bike: getBike().name, x: state.x, angle: state.pitch, speed: state.speed * 95, updatedAt: Date.now() }).catch((error) => console.error("Could not publish the live rider.", error));
-}
-function updateGhosts(players) {
-  const now = Date.now();
-  const active = new Set();
-  for (const [id, player] of Object.entries(players)) {
-    if (id === playerId || !player || !Number.isFinite(player.x) || !Number.isFinite(player.angle) || now - Number(player.updatedAt || 0) > 15000) continue;
-    active.add(id);
-    let ghost = ghostRiders.get(id);
-    if (!ghost) {
-      const bikeData = BIKE_CATALOG.find((item) => item.name === player.bike) || BIKE_CATALOG[0];
-      const bike = makeBike({ ...bikeData, color: 0x64ced1 });
-      const nameTag = makeTextSprite(`${String(player.name || "RIDER").slice(0, 18)} · ${Math.round(player.angle * 180 / Math.PI)}°`, { background: "rgba(13,23,23,.82)", color: "#b8ffff", fontSize: 24 });
-      nameTag.scale.set(2.2, 0.55, 1);
-      bike.add(nameTag);
-      nameTag.position.set(0.2, 2.0, 0);
-      scene.add(bike);
-      ghost = { bike, nameTag };
-      ghostRiders.set(id, ghost);
-    }
-    ghost.bike.position.set(player.x, ghost.bike.userData.wheelRadius, -2.2);
-    ghost.bike.rotation.z = player.angle;
-    updateTextSprite(ghost.nameTag, `${String(player.name || "RIDER").slice(0, 18)} · ${Math.round(player.angle * 180 / Math.PI)}°`, { background: "rgba(13,23,23,.82)", color: "#b8ffff", fontSize: 24 });
-  }
-  for (const [id, ghost] of ghostRiders) {
-    if (!active.has(id)) { scene.remove(ghost.bike); ghostRiders.delete(id); }
-  }
-}
-async function saveRunOnline(distanceRecord, cashRecord) {
-  if (!firebaseDatabase || !firebaseApi) return;
-  try {
-    const { push, ref, set, query, orderByChild, limitToLast, get, remove } = firebaseApi;
-    for (const [mode, record] of [["distance", distanceRecord], ["cash", cashRecord]]) {
-      if (record.value <= 0) continue;
-      const boardRef = ref(firebaseDatabase, `wheeliex/leaderboards/${mode}`);
-      const entryRef = push(boardRef);
-      await set(entryRef, record);
-      const topRef = query(boardRef, orderByChild("value"), limitToLast(50));
-      const snapshot = await get(topRef);
-      const entries = snapshot.val();
-      if (entries) {
-        const sorted = Object.entries(entries).sort((a, b) => Number(a[1].value) - Number(b[1].value));
-        const current = Object.keys(entries).length;
-        if (current > 50) await Promise.all(sorted.slice(0, current - 50).map(([key]) => remove(ref(firebaseDatabase, `wheeliex/leaderboards/${mode}/${key}`))));
-      }
-    }
-  } catch (error) {
-    console.error("Could not save the run to the Firebase leaderboards.", error);
-    toast("RUN SAVED LOCALLY · GLOBAL UPLOAD FAILED");
-  }
-}
-connectFirebase();

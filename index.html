@@ -1,163 +1,81 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#11191b">
-    <meta name="description" content="Hold your balance. Own the street. Play WheelieX, a free 3D electric bike stunt game.">
-    <title>WheelieX — Own the street</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./style.css">
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"
-        }
-      }
-    </script>
-  </head>
-  <body>
-    <main id="game" aria-label="WheelieX game">
-      <div id="scene"></div>
-      <div class="vignette" aria-hidden="true"></div>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0f1b14">
+<meta name="description" content="E-Bike Life — hold your balance, clear the boost pads, and outrun the cops in this free browser 3D electric bike stunt game.">
+<title>E-Bike Life</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1b14'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23c0f56a' font-family='Arial,sans-serif' font-weight='bold'%3EW%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="loading-screen" id="loading-screen" role="status" aria-live="polite">
+  <div class="loading-inner">
+    <span class="loading-mark">W<span>/</span>X</span>
+    <span class="loading-label" id="loading-label">LOADING THE STREETS</span>
+    <div class="loading-track"><span id="loading-fill"></span></div>
+    <span class="loading-percent" id="loading-percent">INITIALIZING 3D ENGINE</span>
+    <span class="loading-error hidden" id="loading-error" role="alert"></span>
+    <button class="loading-retry hidden" id="loading-retry" type="button">RELOAD GAME ↻</button>
+  </div>
+</div>
+<canvas id="g"></canvas><div id="sl"></div>
+<canvas id="mm" width="300" height="300"></canvas>
+<div id="top" class="p"><div id="cash">$0</div><div id="combo"></div><div id="wanted"></div></div><div id="pl"></div>
+<div id="tr" class="p"><div id="net">Connecting…</div><button id="bg">🏍 Garage [G]</button><button id="bm">🔊</button></div>
+<div id="pop"></div><canvas id="wm" width="240" height="130"></canvas>
+<div id="br" class="p"><div id="sp"></div><div class="bar"><i id="bb" style="width:100%"></i></div><small>BOOST [E] · tap speed for units</small></div>
+<div id="help" class="p">W/↑ throttle · S/↓ brake · A/D steer · Space/Shift pop wheelie (W/S to balance) · E/F boost · G garage · speed or wheelie near cops = chase!</div>
+<div id="tc">
+<button data-k="KeyA" style="left:12px;bottom:90px">◀</button><button data-k="KeyD" style="left:86px;bottom:90px">▶</button>
+<button data-k="Space" style="left:12px;bottom:16px;width:138px">WHEELIE</button>
+<button data-k="KeyW" style="right:12px;bottom:90px">▲</button><button data-k="KeyS" style="right:86px;bottom:90px">■</button>
+<button data-k="KeyE" style="right:12px;bottom:16px;width:138px;background:#7c3aed">⚡ BOOST</button></div>
+<div id="gar"></div>
+<script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script>
+  (() => {
+    const screen = document.getElementById("loading-screen");
+    const fill = document.getElementById("loading-fill");
+    const percent = document.getElementById("loading-percent");
+    const label = document.getElementById("loading-label");
+    const error = document.getElementById("loading-error");
+    const retry = document.getElementById("loading-retry");
+    const gameModule = document.getElementById("game-module");
+    gameModule.addEventListener("error", () => fail("The game engine could not be loaded. Check your internet connection and reload."));
+    let finished = false;
 
-      <header class="topbar">
-        <a class="brand" href="./" aria-label="WheelieX home"><span class="brand-mark">W<span>/</span>X</span><span class="brand-name">WHEELIE<span>X</span></span></a>
-        <div class="top-stats">
-          <div class="cash-pill"><span class="coin-icon">$</span><span id="cash">0</span><span class="cash-label">CASH</span></div>
-          <button class="bank-button" id="bank-button" aria-label="Bank run cash" title="Bank this run">BANK RUN</button>
-          <button class="icon-button" id="sound-toggle" aria-label="Toggle sound" title="Toggle sound">◖</button>
-          <button class="icon-button" id="pause-button" aria-label="Pause game" title="Pause">Ⅱ</button>
-        </div>
-      </header>
-
-      <section class="ride-hud" id="ride-hud" aria-live="polite">
-        <div class="speed-card"><span class="eyebrow">SPEED</span><div class="speed-value"><span id="speed">0</span><span class="speed-unit">KM/H</span></div></div>
-        <div class="angle-card"><div class="angle-head"><span class="eyebrow">BALANCE</span><span id="angle-readout">0°</span></div><div class="balance-track"><div class="balance-sweet"></div><div id="balance-needle"></div></div><span class="balance-hint" id="balance-hint">FIND THE SWEET SPOT</span></div>
-        <div class="distance-card"><span class="eyebrow">WHEELIE DISTANCE</span><div class="distance-value"><span id="distance">0</span><span class="distance-unit">M</span></div><span class="bank-preview">+$<span id="run-cash">0</span> PENDING</span></div>
-        <div class="challenge-card" id="challenge-card">
-          <span class="eyebrow">CHALLENGE</span>
-          <div class="challenge-label" id="challenge-label">HOLD THE LINE</div>
-          <div class="challenge-progress"><span id="challenge-progress-bar"></span></div>
-          <div class="challenge-meta"><span id="challenge-meta">0 / 10s</span><span id="challenge-reward">+$220</span></div>
-        </div>
-        <div class="combo-card" id="combo-card"><span class="combo-multiplier" id="multiplier">1.0<span>×</span></span><span class="eyebrow">COMBO</span></div>
-      </section>
-
-      <div class="network-status" id="network-status"><span class="status-dot"></span><span id="network-label">OFFLINE · LOCAL RECORDS</span></div>
-
-      <section class="start-screen" id="start-screen">
-        <div class="hero-copy"><span class="section-tag"><span class="live-dot"></span> ELECTRIC STREET CULTURE</span><h1>OWN THE<br><span>STREET.</span></h1><p>Hold W + Shift to wheelie, or hold Shift + S for a stoppie. Land clean to bank your cash,<br>or tap BANK RUN whenever you want.</p><button class="primary-button" id="ride-button"><span>RIDE NOW</span><span class="button-arrow">↗</span></button><button class="text-button" id="garage-button"><span>▣</span> OPEN GARAGE <span class="garage-bike-name" id="current-bike-name"></span></button></div>
-        <div class="hero-bottom"><span>01 — CITY STREET CIRCUIT</span><span>BUILT FOR THE LONG RUN <span class="accent-text">✳</span></span></div>
-      </section>
-
-      <section class="run-banner hidden" id="run-banner" aria-live="assertive"><span class="eyebrow">RUN OVER</span><strong id="run-message">KEEP IT RUBBER SIDE DOWN</strong><span id="run-result">+ $0</span><button class="primary-button" id="retry-button"><span>RUN IT BACK</span><span class="button-arrow">↗</span></button><button class="text-button" id="run-garage-button">▣ &nbsp;GARAGE</button></section>
-      <div class="toast hidden" id="toast" role="status"></div>
-
-      <div class="ride-controls" id="ride-controls">
-        <span class="control-key"><kbd>W</kbd> THROTTLE</span><span class="control-separator">·</span><span class="control-key"><kbd>S</kbd> BRAKE</span><span class="control-separator">·</span><span class="control-key"><kbd>A</kbd><kbd>D</kbd> STEER</span><span class="control-separator">·</span><span class="control-key"><kbd>SHIFT</kbd> WHEELIE</span><span class="control-separator">·</span><span class="control-key"><kbd>SHIFT</kbd> + <kbd>S</kbd> STOPPIE</span><span class="control-separator">·</span><span class="control-key"><kbd>Q</kbd><kbd>E</kbd><kbd>R</kbd><kbd>F</kbd><kbd>C</kbd><kbd>V</kbd> TRICKS</span>
-      </div>
-      <div class="touch-controls" id="touch-controls">
-        <button class="touch-button steer-button" id="left-touch" aria-label="Steer left">←</button>
-        <button class="touch-button" id="throttle-touch">HOLD<br><strong>THROTTLE</strong></button>
-        <button class="touch-button brake-button" id="brake-touch">HOLD<br><strong>BRAKE</strong></button>
-        <button class="touch-button steer-button" id="right-touch" aria-label="Steer right">→</button>
-        <button class="touch-button" id="wheelie-touch">HOLD<br><strong>WHEELIE / STOPPIE</strong></button>
-        <button class="touch-button trick-button" id="trick-picker-touch">E<br><strong>BARSPIN</strong></button>
-        <button class="touch-button trick-button" id="throw-trick-touch">DO<br><strong>TRICK</strong></button>
-        <button class="touch-button bank-touch" id="bank-touch">BANK<br><strong>RUN</strong></button>
-      </div>
-
-      <div class="modal-backdrop hidden" id="garage-modal">
-        <section class="garage-panel" role="dialog" aria-modal="true" aria-labelledby="garage-title">
-          <header class="panel-header"><div><span class="section-tag">YOUR LINEUP</span><h2 id="garage-title">THE GARAGE<span class="accent-text">.</span></h2></div><div class="garage-header-right"><div class="cash-pill"><span class="coin-icon">$</span><span id="garage-cash">0</span><span class="cash-label">CASH</span></div><button class="close-button" data-close="garage-modal" aria-label="Close garage">×</button></div></header>
-          <p class="garage-economy-note"><span>RIDE</span> TO EARN <b>·</b> <span>BANK</span> YOUR RUN <b>·</b> BUILD YOUR RIDE</p>
-          <div class="garage-layout"><div class="bike-list" id="bike-list"></div><div class="bike-detail" id="bike-detail"></div></div>
-          <footer class="panel-footer"><span>EVERY BUILD HAS A DIFFERENT FEEL.</span><button class="text-button" data-close="garage-modal">BACK TO THE STREET ↗</button></footer>
-        </section>
-      </div>
-
-      <div class="modal-backdrop hidden" id="leaderboard-modal">
-        <section class="leaderboard-panel" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title">
-          <header class="panel-header"><div><span class="section-tag">THE STREETS REMEMBER</span><h2 id="leaderboard-title">LEADERBOARD<span class="accent-text">.</span></h2></div><button class="close-button" data-close="leaderboard-modal" aria-label="Close leaderboard">×</button></header>
-          <div class="leaderboard-tabs"><button class="tab-button active" data-board="distance">LONGEST WHEELIE</button><button class="tab-button" data-board="cash">TOP EARNERS</button></div>
-          <div class="leaderboard-columns"><span>RANK / RIDER</span><span id="leaderboard-score-title">DISTANCE</span></div>
-          <div class="leaderboard-rows" id="leaderboard-rows"></div>
-          <footer class="panel-footer"><span id="leaderboard-source">LOCAL RECORDS · THIS DEVICE</span><button class="text-button" data-close="leaderboard-modal">BACK TO THE STREET ↗</button></footer>
-        </section>
-      </div>
-
-      <aside class="right-actions"><button class="side-button" id="leaderboard-button"><span>↗</span> LEADERBOARD</button><span class="side-divider"></span><span class="side-caption" id="side-bike-label">STOCK BUILD</span></aside>
-      <div class="loading-screen" id="loading-screen" role="status" aria-live="polite">
-        <div class="loading-inner">
-          <span class="loading-mark">W<span>/</span>X</span>
-          <span class="loading-label" id="loading-label">LOADING THE STREETS</span>
-          <div class="loading-track"><span id="loading-fill"></span></div>
-          <span class="loading-percent" id="loading-percent">INITIALIZING 3D ENGINE</span>
-          <span class="loading-error hidden" id="loading-error" role="alert"></span>
-          <button class="loading-retry hidden" id="loading-retry" type="button">RELOAD GAME ↻</button>
-        </div>
-      </div>
-    </main>
-    <script type="module" src="./game.js" id="game-module"></script>
-    <script>
-      (() => {
-        const screen = document.getElementById("loading-screen");
-        const fill = document.getElementById("loading-fill");
-        const percent = document.getElementById("loading-percent");
-        const label = document.getElementById("loading-label");
-        const error = document.getElementById("loading-error");
-        const retry = document.getElementById("loading-retry");
-        const gameModule = document.getElementById("game-module");
-        let finished = false;
-
-        const finish = () => {
-          if (finished) return;
-          finished = true;
-          fill.classList.add("complete");
-          fill.style.width = "100%";
-          percent.textContent = "READY";
-          screen.classList.add("done");
-          window.setTimeout(() => screen.classList.add("hidden"), 500);
-        };
-        const fail = (message) => {
-          if (finished) return;
-          finished = true;
-          screen.classList.add("failed");
-          label.textContent = "THE STREETS DIDN'T LOAD";
-          percent.textContent = "STARTUP ERROR";
-          error.textContent = message || "Check your connection and try again.";
-          error.classList.remove("hidden");
-          retry.classList.remove("hidden");
-        };
-
-        const safeFinish = () => {
-          if (!finished) {
-            finish();
-          }
-        };
-
-        retry.addEventListener("click", () => window.location.reload());
-        window.WheelieXLoading = { finish: safeFinish, fail };
-        window.addEventListener("load", safeFinish, { once: true });
-        window.setTimeout(() => {
-          if (!finished) {
-            safeFinish();
-          }
-        }, 8000);
-        gameModule.addEventListener("error", () => {
-          fail("The game engine could not be loaded. Check your internet connection and reload.");
-        });
-        window.addEventListener("error", (event) => {
-          if (event.target !== window || finished) return;
-          fail(event.message || "Game startup failed. Check your connection and reload.");
-        });
-        window.addEventListener("unhandledrejection", () => {
-          if (!finished) fail("Game startup failed. Check your connection and reload.");
-        });
-      })();
-    </script>
-  </body>
-</html>
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      fill.classList.add("complete");
+      fill.style.width = "100%";
+      percent.textContent = "READY";
+      screen.classList.add("done");
+      window.setTimeout(() => screen.classList.add("hidden"), 500);
+    };
+    const fail = (message) => {
+      if (finished) return;
+      finished = true;
+      screen.classList.add("failed");
+      label.textContent = "THE STREETS DIDN'T LOAD";
+      percent.textContent = "STARTUP ERROR";
+      error.textContent = message || "Check your connection and try again.";
+      error.classList.remove("hidden");
+      retry.classList.remove("hidden");
+    };
+    const safeFinish = () => { if (!finished) finish(); };
+    retry.addEventListener("click", () => window.location.reload());
+    window.WheelieXLoading = { finish: safeFinish, fail };
+    window.addEventListener("load", safeFinish, { once: true });
+    window.setTimeout(() => { if (!finished) safeFinish(); }, 8000);
+  })();
+</script>
+<script id="game-module" type="module" src="./game.js"></script>
+<noscript><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#bfdef2;color:#0f1b14;font-family:system-ui,sans-serif;font-size:14px;line-height:1.5;padding:20px;text-align:center">E-Bike Life needs WebGL support and an internet connection to load the 3D engine. Please try again in a modern browser.</div></noscript>
+</body></html>
