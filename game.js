@@ -526,13 +526,14 @@ else{
 boosting=!!bo&&boostE>1;
 if(boosting){boostE=Math.max(0,boostE-dt*30/(.6+E[3]*.14));earn(dt*6)}else if(hasBoost)boostE=Math.min(100,boostE+dt*(5+E[3]*1.4));else boostE=0;
 if(pad>0)pad-=dt;
-const bike=BIKES[S.eq],motorScale=1+Math.min(.45,Math.max(0,E[0]/bike.s[0]-1)*.2),vmax=(bike.maxMph/2.237)*motorScale*(boosting?(boostTier>1?1.55:1.28):1)*(pad>0&&hasBoost?1.2:1);
+const bike=BIKES[S.eq],motorScale=1+Math.min(.45,Math.max(0,E[0]/bike.s[0]-1)*.2),vmax=(bike.maxMph/2.237)*motorScale*(boosting?(boostTier>1?1.55:1.28):1)*(pad>0&&hasBoost?1.2:1);if(!Number.isFinite(vmax))vmax=25;
 if(thr)v+=(3+E[1]*.45)*(1-Math.max(0,v)/vmax)*dt*1.35;
 if(boosting)v+=(8+E[3]*1.3)*dt*(1-v/(vmax*1.1));
 if(pad>0&&hasBoost)v+=14*dt;
 if(v>vmax)v-=(v-vmax)*1.2*dt;
 v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br)v=0;
 if(br){if(v>.2){v-=16*dt;skid=v>6&&!air?1:0}else v=Math.max(-5,v-5*dt)}
+if(!Number.isFinite(v))v=0;
 const lift=Math.min(1,Math.abs(v)/5),wh=p>.1?1:0;
 const a=(thr*(.42+E[1]*.05)+pull*3.2+(boosting?.8:0))*lift-3.6*p-1.9*pw-br*8*(p>0?1:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
 pw+=a*dt;const prevP=p;p+=pw*dt;if(p<0){p=0;pw=Math.max(0,pw)}
@@ -547,7 +548,7 @@ if(trick){trickT+=dt;if(trickT>0.9){const pts=Math.round(60+Math.abs(v)*45);earn
 h-=st*(1.9/(1+Math.abs(v)*.04))*(p>.2?.55+.05*E[2]:1)*Math.min(1,Math.abs(v)/3)*(v<0?-1:1)*dt;
 roll+=(st*.4*Math.min(1,Math.abs(v)/10)-roll)*Math.min(1,8*dt);
 x+=Math.sin(h)*v*dt;z+=Math.cos(h)*v*dt;
-nbr(x,z,c=>{for(const q of c.cols)if(y<=q.h&&Math.abs(x-q.x)<q.hw&&Math.abs(z-q.z)<q.hd){const px=q.hw-Math.abs(x-q.x),pz=q.hd-Math.abs(z-q.z);if(px<pz)x+=Math.sign(x-q.x||1)*px;else z+=Math.sign(z-q.z||1)*pz;v*=.4}});
+nbr(x,z,c=>{for(const q of c.cols)if(y<=q.h&&Math.abs(x-q.x)<q.hw&&Math.abs(z-q.z)<q.hd){const px=q.hw-Math.abs(x-q.x),pz=q.hd-Math.abs(z-q.z);if(px<pz)x+=Math.sign(x-q.x||1)*px;else z+=Math.sign(z-q.z||1)*pz;}});
 const gh=gH(x,z),rd=gH.sl*(Math.sin(h)*gH.e[0]+Math.cos(h)*gH.e[1]),frontGH=gH(x+Math.sin(h)*me.wb*.46,z+Math.cos(h)*me.wb*.46),rearGH=gH(x-Math.sin(h)*me.wb*.46,z-Math.cos(h)*me.wb*.46);
 if(!air&&Math.abs(v)>2){frontLoad=Math.max(0,Math.min(kit.frontTravel*.28,(frontGH-gh)*.75));rearLoad=Math.max(0,Math.min(kit.rearTravel*.28,(rearGH-gh)*.75))}
 if(air){
@@ -611,6 +612,7 @@ $('mt').textContent=riding?'DISMOUNT':'MOUNT';
 $('bb').style.width=hasBoost?boostE+'%':'0%';$('boost-note').textContent=hasBoost?'BOOST [E] · tap speed for units':'NO BOOST MOUNT · MOD SHOP';
 $('net').textContent=online?`Connected: ${1+rem.size} rider${rem.size===1?'':'s'} online`:networkText;
 $('wanted').textContent=wanted?`🚨 ${'★'.repeat(wanted)}${'☆'.repeat(6-wanted)} · ${chaseT.toFixed(0)}s${escT>0?' · losing them':''}`:heat>.08?`🚔 POLICE ALERT ${Math.round(heat/1.35*100)}%`:'';
+const dbgEl=$('dbg');if(dbgEl)dbgEl.textContent=`r=${riding?'1':'0'} g=${gOpen?'1':'0'} s=${settingsOpen?'1':'0'} w=${wreck>0?'1':'0'} a=${air?'1':'0'} thr=${thr} br=${br} v=${v} E0=${E[0].toFixed(2)} E1=${E[1].toFixed(2)} p=${p.toFixed(2)} pw=${pw.toFixed(2)} dt=${dt.toFixed(3)} x=${x.toFixed(2)} z=${z.toFixed(2)} y=${y.toFixed(2)}`;
 $('sl').style.opacity=boosting?.9:Math.max(0,Math.min(.5,(Math.abs(v)-32)/40));
 pt+=dt;svT+=dt;if(svT>3){svT=0;save();if(gOpen)rg()}
 drawMM();drawWM(zw);
