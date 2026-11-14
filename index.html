@@ -48,11 +48,11 @@
 </div>
 <canvas id="g"></canvas><div id="sl"></div>
 <canvas id="mm" width="300" height="300" tabindex="0" role="button" aria-label="Expand player map" aria-expanded="false" title="Click to enlarge player map"></canvas>
-<div id="top" class="p"><div id="cash">$0</div><div id="combo"></div><div id="wanted"></div></div><div id="pl"></div>
+<div id="top" class="p"><div id="cash"><span class="cash-mark">$</span><span><small>BANK BALANCE</small><strong id="cash-value">$0</strong></span></div><div id="clock">06:00 · DAY</div><div id="combo"></div><div id="wanted"></div></div><div id="pl"></div>
 <div id="tr" class="p"><div id="net" aria-live="polite">Enter your name to connect</div><button id="bg">🏍 Garage [G]</button><button id="st">⚙ Settings</button><button id="bm">🔊</button></div>
 <div id="pop"></div><canvas id="wm" width="240" height="130"></canvas>
 <div id="br" class="p"><div id="sp"></div><div class="bar"><i id="bb" style="width:0%"></i></div><small id="boost-note">NO BOOST MOUNT · MOD SHOP</small></div>
-<div id="help" class="p">W/↑ throttle · S/↓ brake · A/D steer · Space suspension bounce · Shift wheelie (ease off before you fall) · AIR: W/S flips, A/D barrel rolls · F mount/dismount · mouse look · E boost · G garage</div>
+<div id="help" class="p">W/↑ throttle · S/↓ brake · A/D steer · Space suspension bounce · Shift wheelie · F ground-touch in orange / mount · AIR: W/S flips, A/D rolls · E boost · G garage · W/A/S/D walk when off-bike</div>
 <div id="tc">
 <button data-k="KeyA" style="left:12px;bottom:90px">◀</button><button data-k="KeyD" style="left:86px;bottom:90px">▶</button>
 <button data-k="ShiftLeft" style="left:12px;bottom:162px;width:138px;background:#16a34a">WHEELIE</button>
@@ -68,6 +68,12 @@
     <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option><option value="insane">Insane</option><option value="death">Death</option>
   </select>
   <p>Higher difficulty means faster police, earlier detection, and longer escapes.</p>
+  <fieldset class="accessibility">
+    <legend>ACCESSIBILITY</legend>
+    <label class="setting-toggle" for="a11y-reduced-motion"><span>Reduce flashing and motion</span><input id="a11y-reduced-motion" type="checkbox"></label>
+    <label class="setting-toggle" for="a11y-large-text"><span>Larger interface text</span><input id="a11y-large-text" type="checkbox"></label>
+    <label class="setting-toggle" for="a11y-high-contrast"><span>High-contrast interface</span><input id="a11y-high-contrast" type="checkbox"></label>
+  </fieldset>
 </div>
 <script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>

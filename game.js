@@ -4,15 +4,20 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 const $=id=>document.getElementById(id),PI=Math.PI;
 /* ---------- save ---------- */
 let S;try{S=JSON.parse(localStorage.getItem('ebl1'))}catch(e){}
-S=S||{cash:0,own:[0],eq:0,up:{}};S.suspension=S.suspension||{};S.boostMount=S.boostMount||{};S.hacks=S.hacks||{};
+S=S||{cash:0,own:[0],eq:0,up:{},houses:[]};S.suspension=S.suspension||{};S.boostMount=S.boostMount||{};S.hacks=S.hacks||{};S.houses=S.houses||[];
+S.units=S.units==null?1:!!S.units;S.accessibility={reducedMotion:!!S.accessibility?.reducedMotion,largeText:!!S.accessibility?.largeText,highContrast:!!S.accessibility?.highContrast};
 const resetLegacyBoost=!!(S.overclock||S.hackedStats);
 delete S.overclock;
 delete S.hackedStats;
 S.policeDifficulty=['easy','medium','hard','insane','death'].includes(S.policeDifficulty)?S.policeDifficulty:'medium';
+const acc=S.accessibility||{};
+document.body.classList.toggle('a11y-reduced-motion',!!acc.reducedMotion);
+document.body.classList.toggle('a11y-large-text',!!acc.largeText);
+document.body.classList.toggle('a11y-high-contrast',!!acc.highContrast);
 const save=()=>{try{localStorage.setItem('ebl1',JSON.stringify(S))}catch(e){}};
 if(resetLegacyBoost)save();
 /* ---------- bikes ---------- */
-const B=(n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph)=>({n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph});
+const B=(n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph,kind='bike')=>({n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph,kind});
 const BIKES=[
 B('City E-Cruiser',0,[3,3,8,2],0x2563eb,0xdc2626,0xaaaaaa,0x222222,.31,.07,1.18,.32,.32,.6,.62,.22,0,25),
 B('Super73 RX Mojave',1200,[4,4,8,3],0x56603a,0xd9b97a,0x888888,0xc49a63,.255,.11,1.25,.28,.26,.95,.52,.45,0,28),
@@ -25,13 +30,20 @@ B('Segway X260',9500,[6,7,8,5],0xf5f5f5,0x111111,0x999999,0x222222,.29,.09,1.37,
 B('CAKE Kalk INK',22000,[8,7,9,7],0xf8fafc,0x111111,0xdddddd,0x111111,.28,.08,1.33,.22,.3,.55,.68,.1,0,28),
 B('Sur-Ron Ultra Bee',32000,[9,9,7,8],0x1f2937,0x22d3ee,0x22d3ee,0x111111,.31,.11,1.4,.26,.32,.6,.72,.14,1,59),
 B('Sur-Ron Storm Bee',40000,[9,10,6,9],0x0f172a,0xf59e0b,0xf59e0b,0x111111,.32,.12,1.5,.28,.34,.62,.76,.16,1,68),
-B('Stark VARG 80 HP',55000,[10,10,8,10],0xdc2626,0x111111,0x666666,0x111111,.31,.12,1.5,.26,.34,.6,.76,.16,1,75)];
+B('Stark VARG 80 HP',55000,[10,10,8,10],0xdc2626,0x111111,0x666666,0x111111,.31,.12,1.5,.26,.34,.6,.76,.16,1,75),
+B('Volt City Scooter',450,[3,3,7,2],0x65a30d,0x111827,0xb0bec5,0x263238,.14,.07,.86,.2,.13,.55,0,.9,0,18,'scooter'),
+B('Volt Pro Scooter',1200,[5,5,8,4],0x0ea5e9,0x111827,0xcbd5e1,0x111827,.16,.08,.98,.22,.15,.62,0,1.05,0,25,'scooter')];
+const HOUSES=[
+{name:'Starter Home',tier:0,price:6000,tag:'Single-story · starter house'},
+{name:'Home',tier:1,price:18000,tag:'Two-story · family house'},
+{name:'Mansion',tier:2,price:45000,tag:'Three-story · wings & loft'}];
+const HOME_TIER=i=>HOUSES.find(h=>h.tier===i);
 /* Bike indices are stored in saves; this only changes the garage's display order. */
-const BIKE_ORDER=[0,1,8,3,7,4,2,5,9,6,10,11];
+const BIKE_ORDER=[0,1,8,3,7,4,2,5,9,6,10,11,12,13];
 const SUSPENSIONS=[
-{n:'Factory',travel:.16,frontTravel:.16,rearTravel:.15,frontSpring:60,frontDamping:8,rearSpring:68,rearDamping:9,price:0},
-{n:'Trail long-travel',travel:.34,frontTravel:.36,rearTravel:.32,frontSpring:42,frontDamping:7,rearSpring:50,rearDamping:8,price:.18},
-{n:'Race firm',travel:.21,frontTravel:.22,rearTravel:.2,frontSpring:100,frontDamping:11,rearSpring:112,rearDamping:12,price:.3}];
+{n:'Factory',travel:.16,frontTravel:.16,rearTravel:.15,frontSpring:60,frontDamping:12,rearSpring:68,rearDamping:13,price:0},
+{n:'Trail long-travel',travel:.34,frontTravel:.36,rearTravel:.32,frontSpring:42,frontDamping:10,rearSpring:50,rearDamping:11,price:.18},
+{n:'Race firm',travel:.21,frontTravel:.22,rearTravel:.2,frontSpring:100,frontDamping:15,rearSpring:112,rearDamping:16,price:.3}];
 const HACK_RARITIES=[
 {id:'common',name:'Common',chance:50,boost:.05,color:'#94a3b8'},
 {id:'uncommon',name:'Uncommon',chance:25,boost:.1,color:'#4ade80'},
@@ -47,9 +59,9 @@ const modPrice=(i,m)=>Math.round(Math.max(500,BIKES[i].pr)*m),mountPrice=(i,t)=>
 const cv=$('g'),R=new T.WebGLRenderer({canvas:cv,antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;
 const scene=new T.Scene();scene.fog=new T.Fog(0xbfdef2,90,230);
 const cam=new T.PerspectiveCamera(62,1,.1,2500);
-scene.add(new T.HemisphereLight(0xffffff,0x667755,1.0));
+const hemi=new T.HemisphereLight(0xffffff,0x667755,1.0);scene.add(hemi);
 const sun=new T.DirectionalLight(0xfff2d8,2.2);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);const sc=sun.shadow.camera;sc.left=sc.bottom=-45;sc.right=sc.top=45;sc.far=250;scene.add(sun,sun.target);
-const sky=new T.Mesh(new T.SphereGeometry(1000,16,12),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 p;void main(){float h=clamp(normalize(p).y,0.,1.);gl_FragColor=vec4(mix(vec3(.75,.87,.95),vec3(.18,.45,.85),pow(h,.55)),1.);}'}));scene.add(sky);
+const skyMaterial=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms:{daylight:{value:1}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform float daylight;varying vec3 p;void main(){float h=clamp(normalize(p).y,0.,1.);vec3 day=mix(vec3(.75,.87,.95),vec3(.18,.45,.85),pow(h,.55));vec3 night=mix(vec3(.015,.025,.06),vec3(.035,.07,.15),pow(h,.55));gl_FragColor=vec4(mix(night,day,daylight),1.);}'}),sky=new T.Mesh(new T.SphereGeometry(1000,16,12),skyMaterial);scene.add(sky);
 const mat=(c,o={})=>new T.MeshStandardMaterial({color:c,roughness:.5,metalness:.3,...o});
 const boxGeo=new T.BoxGeometry(1,1,1);
 const bx=(w,h,l,m,x,y,z)=>{const o=new T.Mesh(boxGeo,m);o.scale.set(w,h,l);o.position.set(x,y,z);return o};
@@ -64,12 +76,13 @@ const M=mat(d.c,{roughness:.38,metalness:.28}),A=mat(d.a,{roughness:.42,metalnes
 const wh=()=>{const w=new T.Group(),s=new T.Group();w.add(s);
 const t=new T.Mesh(new T.CylinderGeometry(d.wr,d.wr,d.tw,20),K);t.rotation.z=1.5708;s.add(t);
 const hub=new T.Mesh(new T.CylinderGeometry(d.wr*.2,d.wr*.2,d.tw+.035,16),F);hub.rotation.z=PI/2;s.add(hub);
-const disc=new T.Mesh(new T.CylinderGeometry(d.wr*.46,d.wr*.46,.025,32),F);disc.rotation.z=PI/2;disc.position.x=-d.tw*.34;s.add(disc);
-for(let i=0;i<8;i++){const a=i*PI/4,hole=new T.Mesh(new T.CylinderGeometry(.012,.012,.03,8),rubber);hole.rotation.z=PI/2;hole.position.set(-d.tw*.34,Math.sin(a)*d.wr*.34,Math.cos(a)*d.wr*.34);s.add(hole)}
 for(const side of [-1,1]){
 const rim=new T.Mesh(new T.TorusGeometry(d.wr*.78,.018,6,28),A);rim.rotation.y=PI/2;rim.position.x=side*d.tw*.34;s.add(rim);
+const disc=new T.Mesh(new T.CylinderGeometry(d.wr*.46,d.wr*.46,.018,32),F);disc.rotation.z=PI/2;disc.position.x=side*d.tw*.34;s.add(disc);
+const rotorRim=new T.Mesh(new T.TorusGeometry(d.wr*.41,.008,6,28),A);rotorRim.rotation.y=PI/2;rotorRim.position.x=side*d.tw*.34;s.add(rotorRim);
+for(let i=0;i<10;i++){const a=i*PI/5,hole=new T.Mesh(new T.CylinderGeometry(.008,.008,.024,8),rubber);hole.rotation.z=PI/2;hole.position.set(side*d.tw*.34,Math.sin(a)*d.wr*.34,Math.cos(a)*d.wr*.34);s.add(hole)}
 const axle=side*d.tw*.34;
-for(let i=0;i<10;i++){const a=i*PI/5,sp=tb([axle,Math.sin(a)*d.wr*.18,Math.cos(a)*d.wr*.18],[axle,Math.sin(a)*d.wr*.78,Math.cos(a)*d.wr*.78],.007,F);s.add(sp)}
+for(let i=0;i<14;i++){const a=i*PI/7,sp=tb([axle,Math.sin(a)*d.wr*.18,Math.cos(a)*d.wr*.18],[axle,Math.sin(a)*d.wr*.78,Math.cos(a)*d.wr*.78],.007,F);s.add(sp)}
 }
 return{mount:w,spin:s}};
 const wb=d.wb,y0=d.wr*.9,hy=d.wr*2+.18,hz=wb-.22,hby=hy+d.hb*.5+.06,frontSpacing=.105;
@@ -90,15 +103,19 @@ if(side===1)frontAssembly.add(bx(.06,.12,.1,PN,-frontSpacing,.05,wb-.08));
 }
 frontAssembly.add(tb([-frontSpacing,0,wb],[frontSpacing,0,wb],.025,F));
 for(const side of [-1,1]){const axleBolt=new T.Mesh(new T.CylinderGeometry(.02,.02,.055,12),F);axleBolt.rotation.z=PI/2;axleBolt.position.set(side*frontSpacing,0,wb);frontAssembly.add(axleBolt)}
+frontAssembly.add(bx(.075,.13,.11,A,-frontSpacing-.04,.08,wb+.04));
+rearAssembly.add(bx(.075,.13,.11,A,-.16,.08,-.02));
 for(const t of [.72,.97]){const q=forkPoint(0,t);P.add(tb([-frontSpacing,q.y,q.z],[frontSpacing,q.y,q.z],.026,A));for(const side of [-1,1]){const bolt=new T.Mesh(new T.CylinderGeometry(.012,.012,.04,10),F);bolt.rotation.z=PI/2;bolt.position.set(side*frontSpacing,q.y+.02,q.z);P.add(bolt)}}
 const batteryY=y0+.12,batteryZ=wb*.42;
 const battery=new T.Mesh(new RoundedBoxGeometry(d.bw,d.bh,wb*.4,3,Math.min(.045,d.bh*.16)),M);battery.position.set(0,batteryY,batteryZ);P.add(battery);
+const skid=new T.Mesh(new RoundedBoxGeometry(d.bw*1.12,.045,wb*.3,3,.018),PN);skid.position.set(0,batteryY-d.bh*.58,batteryZ);P.add(skid);
 for(const side of [-1,1]){
 const panel=new T.Mesh(new RoundedBoxGeometry(.03,d.bh*.58,wb*.23,2,.014),SM);panel.position.set(side*(d.bw*.5+.01),batteryY,batteryZ);P.add(panel);
 for(let i=0;i<3;i++)P.add(bx(.012,.014,wb*.15,PN,side*(d.bw*.5+.027),batteryY-d.bh*.14+i*.055,batteryZ));
 }
 const motorR=d.wr*.38,mo=new T.Mesh(new T.CylinderGeometry(motorR,motorR,d.bw+.08,16),A);mo.rotation.z=PI/2;mo.position.set(0,y0-.08,wb*.3);P.add(mo);
-for(const side of [-1,1]){const cover=new T.Mesh(new T.CylinderGeometry(motorR*.66,motorR*.66,.025,16),F);cover.rotation.z=PI/2;cover.position.set(side*(d.bw*.5+.045),y0-.08,wb*.3);P.add(cover)}
+for(let i=0;i<5;i++){const fin=new T.Mesh(new T.CylinderGeometry(motorR*.9,motorR*.9,.014,16),F);fin.rotation.z=PI/2;fin.position.set((i-2)*.045,y0-.08,wb*.3);P.add(fin)}
+for(const side of [-1,1]){const cover=new T.Mesh(new T.CylinderGeometry(motorR*.66,motorR*.66,.025,16),F);cover.rotation.z=PI/2;cover.position.set(side*(d.bw*.5+.045),y0-.08,wb*.3);P.add(cover);const ring=new T.Mesh(new T.TorusGeometry(motorR*.46,.008,6,20),A);ring.rotation.y=PI/2;ring.position.x=side*(d.bw*.5+.06);ring.position.y=y0-.08;ring.position.z=wb*.3;P.add(ring)}
 for(const side of [-1,1]){
 P.add(tb([side*.12,pivotY,pivotZ],[side*.12,hy*.78,wb*.31],.024,F));
 P.add(tb([side*.12,hy*.78,wb*.31],[side*.1,y0*.32,wb*.55],.022,M));
@@ -122,6 +139,9 @@ const rearPivot=new T.Vector3(0,pivotY,pivotZ),rearShockUpper=new T.Vector3(0,hy
 for(const side of [-1,1]){P.add(tb([side*.055,rearShockUpper.y+.04,rearShockUpper.z+.02],[side*.055,rearShockUpper.y-.04,rearShockUpper.z-.02],.018,A));P.add(tb([side*.055,rearShockUpper.y,rearShockUpper.z],[side*.12,hy*.78,wb*.31],.022,F));rearAssembly.add(tb([side*.06,rearShockLower.y,rearShockLower.z],[side*.12,-pivotY*.52,-pivotZ*.52],.018,F))}
 const upperShockBolt=new T.Mesh(new T.CylinderGeometry(.014,.014,.14,12),F);upperShockBolt.rotation.z=PI/2;upperShockBolt.position.copy(rearShockUpper);P.add(upperShockBolt);
 const lowerShockBolt=new T.Mesh(new T.CylinderGeometry(.014,.014,.14,12),F);lowerShockBolt.rotation.z=PI/2;lowerShockBolt.position.copy(rearShockLower);rearAssembly.add(lowerShockBolt);
+const motorSprocket=new T.Mesh(new T.TorusGeometry(.075,.009,6,24),F);motorSprocket.rotation.y=PI/2;motorSprocket.position.set(-d.bw*.5-.035,y0-.08,wb*.3);P.add(motorSprocket);
+const rearSprocket=new T.Mesh(new T.TorusGeometry(.12,.009,6,28),F);rearSprocket.rotation.y=PI/2;rearSprocket.position.set(-.145,0,0);rearAssembly.add(rearSprocket);
+for(const side of [-1,1]){P.add(tb([side*.17,y0-.02,wb*.3-.02],[side*.17,.055,.095],.007,F));P.add(tb([side*.17,y0-.14,wb*.3+.02],[side*.17,-.055,-.095],.007,F))}
 const updateSuspension=(frontComp,rearComp)=>{
 const frontMotion=forkAxis.clone().multiplyScalar(frontComp/forkAxis.y);frontAssembly.position.copy(frontMotion);
 for(const coil of frontCoils){const low=forkPoint(coil.side,.22).add(frontMotion),high=forkPoint(coil.side,.94);alignAxial(coil.mesh,low,high)}
@@ -161,41 +181,76 @@ return{g,arms,legs};
 }
 /* ---------- world ---------- */
 const S_=90,chunks=new Map(),rng=s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
-const gGeo=new T.PlaneGeometry(S_,S_).rotateX(-PI/2),rGeo=new T.PlaneGeometry(24,S_).rotateX(-PI/2),bGeo=new T.BoxGeometry(1,1,1).translate(0,.5,0);
+const roadBump=z=>.003+.025*Math.pow(Math.max(0,Math.cos(z*.48)),8)+.001*Math.sin(z*1.63);
+const roadSlope=z=>{const c=Math.cos(z*.48);return(c>0?-.096*Math.pow(c,7)*Math.sin(z*.48):0)+.00163*Math.cos(z*1.63)};
+const roadFade=x=>Math.pow(Math.max(0,1-(x/12)**2),2);
+const makeRoadGeo=oz=>{const geo=new T.PlaneGeometry(24,S_,12,180).rotateX(-PI/2),position=geo.attributes.position;for(let i=0;i<position.count;i++){const x=position.getX(i),z=oz+position.getZ(i);position.setY(i,roadBump(z)*roadFade(x))}geo.computeVertexNormals();return geo};
+const gGeo=new T.PlaneGeometry(S_,S_).rotateX(-PI/2),bGeo=new T.BoxGeometry(1,1,1).translate(0,.5,0);
 const GM=[0x5a5e66,0x5f9e4b,0xcaa56b,0x8f949c].map(c=>mat(c,{roughness:1,metalness:0}));
-const rt=(()=>{const c=document.createElement('canvas');c.width=128;c.height=512;const x=c.getContext('2d');x.fillStyle='#34373d';x.fillRect(0,0,128,512);for(let i=0;i<5000;i++){const shade=35+Math.random()*24;x.fillStyle=`rgba(${shade},${shade},${shade+2},.16)`;x.fillRect(Math.random()*128,Math.random()*512,1+Math.random()*2,1)}x.fillStyle='#e7e8e8';x.fillRect(5,0,2,512);x.fillRect(121,0,2,512);x.fillStyle='#f2bd35';x.fillRect(62,0,2,512);x.fillRect(67,0,2,512);x.fillStyle='#e7e8e8';for(let i=0;i<10;i++){const y=i*51.2+15;x.fillRect(34,y,2,18);x.fillRect(92,y,2,18)}const t=new T.CanvasTexture(c);t.anisotropy=4;return t})();
-const roadM=mat(0xffffff,{map:rt,roughness:.9,metalness:0}),swM=mat(0x9a9a9a,{roughness:1,metalness:0}),poleM=mat(0x444444),lampM=new T.MeshBasicMaterial({color:0xfff2b0});
-const BM=[0x8a94a6,0x6b7a90,0xa7b0c0,0x4b5563,0x9aa5b8].map(c=>mat(c,{roughness:.8})),HM=[0xf2e2c7,0xe8b4a0,0xb9d3e8,0xd9e8b9].map(c=>mat(c,{roughness:.9,metalness:0}));
+const rt=(()=>{const c=document.createElement('canvas');c.width=128;c.height=512;const x=c.getContext('2d');x.fillStyle='#34373d';x.fillRect(0,0,128,512);for(let i=0;i<9000;i++){const shade=30+Math.random()*30;x.fillStyle=`rgba(${shade},${shade},${shade+2},.16)`;x.fillRect(Math.random()*128,Math.random()*512,1+Math.random()*2,1)}for(let i=0;i<700;i++){const shade=40+Math.random()*20;x.fillStyle=`rgba(${shade},${shade},${shade+1},.10)`;x.fillRect(Math.random()*128,Math.random()*512,.6+.6*Math.random(),.6+.6*Math.random())}x.fillStyle='#e7e8e8';x.fillRect(5,0,2,512);x.fillRect(121,0,2,512);x.fillStyle='#f2bd35';x.fillRect(62,0,2,512);x.fillRect(67,0,2,512);x.fillStyle='#e7e8e8';for(let i=0;i<10;i++){const y=i*51.2+15;x.fillRect(34,y,2,18);x.fillRect(92,y,2,18)}const t=new T.CanvasTexture(c);t.anisotropy=4;return t})();
+const roadM=mat(0xffffff,{map:rt,roughness:.9,metalness:0}),swM=mat(0x9a9a9a,{roughness:1,metalness:0}),seamM=mat(0x65696d,{roughness:1,metalness:0}),roadStudM=mat(0xe4e9e9,{emissive:0x111111,emissiveIntensity:.2,roughness:.3,metalness:.2}),poleM=mat(0x444444,{roughness:.6,metalness:.55}),lampM=mat(0xffd27a,{emissive:0xff9a35,emissiveIntensity:0,roughness:.2,metalness:.1}),streetGlowM=new T.MeshBasicMaterial({color:0xffb95e,transparent:true,opacity:0,depthWrite:false}),lensM=new T.MeshStandardMaterial({color:0xfff0cf,emissive:0xffb35e,emissiveIntensity:.8,roughness:.15,metalness:.1});
+const BM=[0x8a94a6,0x6b7a90,0xa7b0c0,0x4b5563,0x9aa5b8].map(c=>mat(c,{roughness:.8})),HM=[0xf2e2c7,0xe8b4a0,0xb9d3e8,0xd9e8b9].map(c=>mat(c,{roughness:.9,metalness:0})),windowM=mat(0x83cfe0,{emissive:0x16465a,emissiveIntensity:.2,roughness:.18,metalness:.2}),doorM=mat(0x6b3f2a,{roughness:.75}),trimM=mat(0xf1dfbd,{roughness:.7,metalness:0});
 const roofM=mat(0x7a3b2e,{roughness:.9}),trM=mat(0x5b3a1e,{roughness:1,metalness:0}),lfM=mat(0x2f7d32,{roughness:1,metalness:0}),rkM=mat(0x8b7355,{roughness:1}),cacM=mat(0x3f8f3f,{roughness:1});
-const trGeo=new T.CylinderGeometry(.25,.3,2,6),cnGeo=new T.ConeGeometry(1.6,4,7),pGeo=new T.CylinderGeometry(.1,.1,7,6),lGeo=new T.SphereGeometry(.4,8,6),rkGeo=new T.DodecahedronGeometry(1),cacGeo=new T.CylinderGeometry(.35,.35,3,8),hrGeo=new T.ConeGeometry(5.6,2.5,4).rotateY(PI/4);
-const orbGeo=new T.CylinderGeometry(.55,.55,.14,16).rotateX(PI/2),orbM=mat(0xffd21f,{emissive:0xaa7700,metalness:.8,roughness:.3}),padGeo=new T.PlaneGeometry(4,8).rotateX(-PI/2),padM=new T.MeshBasicMaterial({color:0x66ddff});
+const trGeo=new T.CylinderGeometry(.25,.3,2,6),cnGeo=new T.ConeGeometry(1.6,4,7),pGeo=new T.CylinderGeometry(.1,.1,7,10),lampGlowGeo=new T.SphereGeometry(.65,10,8),rkGeo=new T.DodecahedronGeometry(1),cacGeo=new T.CylinderGeometry(.35,.35,3,8),hrGeo=new T.ConeGeometry(5.6,2.5,4).rotateY(PI/4);
+const padGeo=new T.PlaneGeometry(4,8).rotateX(-PI/2),padM=new T.MeshStandardMaterial({color:0x66ddff,emissive:0x0b7aa5,emissiveIntensity:.7,roughness:.35,metalness:.2});
 const RM=[0xd97706,0x9a7b4f,0x9ca3af,0xb45309].map(c=>mat(c,{roughness:.8}));
 function mkChunk(cx,cz){
-const r=rng((cx*73856093)^(cz*19349663)),g=new T.Group(),c={g,id:[cx,cz],ramps:[],cols:[],orbs:[],pads:[],dis:[]},ox=cx*S_,oz=cz*S_;g.position.set(ox,0,oz);
+const r=rng((cx*73856093)^(cz*19349663)),g=new T.Group(),c={g,id:[cx,cz],ramps:[],cols:[],pads:[],lights:[],dis:[]},ox=cx*S_,oz=cz*S_;g.position.set(ox,0,oz);
 const hw=cx===0,b=hw?r()*3|0:r()*4|0;
 const gm=new T.Mesh(gGeo,GM[b]);gm.receiveShadow=true;g.add(gm);
 const bk=new Map(),add=(m,x,y,z,cs,dyn)=>{m.position.set(x,y,z);if(dyn||m.geometry.type==='ExtrudeGeometry'){m.castShadow=!!cs;m.receiveShadow=true;g.add(m);return m}m.updateMatrix();const q=m.geometry.clone().applyMatrix4(m.matrix);const a=bk.get(m.material)||bk.set(m.material,[]).get(m.material);a.push(q);return m};
 const rp=ex=>{for(let i=0;i<25;i++){const x=(r()-.5)*84,z=(r()-.5)*84;if(!hw||Math.abs(x)>ex)return[x,z]}return[40,40]};
 const ramp=(x,z,ry,L,w,H,mi)=>{const sh=new T.Shape();sh.moveTo(0,0);sh.lineTo(L,0);sh.lineTo(L,H);sh.closePath();const geo=new T.ExtrudeGeometry(sh,{depth:w,bevelEnabled:false}).translate(-L/2,0,-w/2);c.dis.push(geo);const m=add(new T.Mesh(geo,RM[mi]),x,0,z,1);m.rotation.y=ry;c.ramps.push({x:ox+x,z:oz+z,L,w,H,co:Math.cos(ry),si:Math.sin(ry)})};
-const col=(x,z,w,d,h=Infinity)=>c.cols.push({x:ox+x,z:oz+z,hw:w/2+.4,hd:d/2+.4,h});
+const col=(x,z,w,d,h=Infinity,house=false)=>c.cols.push({x:ox+x,z:oz+z,hw:w/2+.4,hd:d/2+.4,h,house});
 const tree=(x,z)=>{add(new T.Mesh(trGeo,trM),x,1,z);add(new T.Mesh(cnGeo,lfM),x,3.6,z,1);col(x,z,.4,.4,5.6)};
-if(hw){add(new T.Mesh(rGeo,roadM),0,.03,0);
+if(hw){const roadGeo=makeRoadGeo(oz);add(new T.Mesh(roadGeo,roadM),0,0,0);roadGeo.dispose();
 [-13.5,13.5].forEach(x=>{const m=new T.Mesh(bGeo,swM);m.scale.set(3,.2,S_);add(m,x,0,0);col(x,0,3,S_,.2)});
-[-30,0,30].forEach(z=>[-14.5,14.5].forEach(sx=>{add(new T.Mesh(pGeo,poleM),sx,3.5,z);add(new T.Mesh(lGeo,lampM),sx*.9,7.1,z);col(sx,z,.5,.5,7.5)}));
-if(r()<.55)ramp((r()-.5)*14,(r()-.5)*70,r()<.5?-PI/2:PI/2,9,5,2.2,0);
-for(let i=0;i<7;i++){const o=new T.Mesh(orbGeo,orbM);const x=(r()*2-1)*9,z=-40+i*12;add(o,x,1.3,z,0,1);c.orbs.push({m:o,x:ox+x,z:oz+z,on:true})}
-if(r()<.4){const x=(r()<.5?-1:1)*5,pz=(r()-.5)*60;add(new T.Mesh(padGeo,padM),x,.06,pz);c.pads.push({x:ox+x,z:oz+pz})}}
-else{for(let i=0;i<5;i++){const[x,z]=rp(0),o=new T.Mesh(orbGeo,orbM);add(o,x,1.3,z,0,1);c.orbs.push({m:o,x:ox+x,z:oz+z,on:true})}}
+[-30,0,30].forEach(z=>[-14.5,14.5].forEach(sx=>{
+const base=new T.Mesh(new T.CylinderGeometry(.18,.24,.3,10),poleM);add(base,sx,.15,z,1);
+const flare=new T.Mesh(new T.CylinderGeometry(.3,.38,.5,10),poleM);add(flare,sx,.42,z,1);
+add(new T.Mesh(new T.CylinderGeometry(.12,.16,.9,8),poleM),sx,4.4,z,1);
+add(new T.Mesh(pGeo,poleM),sx,5.4,z,1);
+g.add(tb([sx,6.55,z],[sx*.9,6.88,z],.045,poleM));
+g.add(tb([sx*.9,6.5,z],[sx*.9,6.95,z],.035,poleM));
+add(new T.Mesh(new T.BoxGeometry(.64,.13,.32),poleM),sx*.9,6.93,z,1);
+add(new T.Mesh(new T.SphereGeometry(.16,10,8),lampM),sx*.9,6.84,z,1);
+add(new T.Mesh(new T.SphereGeometry(.09,8,6),lensM),sx*.9,6.87,z,1);
+const halo=new T.Mesh(lampGlowGeo,streetGlowM);add(halo,sx*.9,6.84,z,0,1);
+const light=new T.PointLight(0xffc777,0,30,2);light.position.set(sx*.9,6.9,z);g.add(light);c.lights.push(light)
+col(sx,z,.5,.5,7.5)}));
+for(let z=-39;z<=39;z+=6){for(const sx of [-13.5,13.5])add(bx(2.7,.01,.04,seamM,sx,.205,z),sx,.205,z);
+for(const sx of [-10.8,10.8])add(bx(.12,.025,.2,roadStudM,sx,roadBump(z)*roadFade(sx)+.012,z),sx,roadBump(z)*roadFade(sx)+.012,z)}
+if(r()<.4){const side=r()<.5?-1:1,x=side*(13.2+(r()-.5)*2.4),z=(r()-.5)*60;add(new T.Mesh(padGeo,padM),x,roadBump(z)*roadFade(x)+.015,z);c.pads.push({x:ox+x,z:oz+z})}}
 if(b===0)for(let i=0;i<9;i++){const[x,z]=rp(27),w=8+r()*8,d=8+r()*8,h=10+r()*38,m=new T.Mesh(bGeo,BM[r()*5|0]);m.scale.set(w,h,d);add(m,x,0,z,1);col(x,z,w,d,h)}
-if(b===1)for(let i=0;i<6;i++){const[x,z]=rp(24),m=new T.Mesh(bGeo,HM[r()*4|0]);m.scale.set(7,4,7);add(m,x,0,z,1);add(new T.Mesh(hrGeo,roofM),x,5.25,z,1);col(x,z,7,7,6.5)}
+if(b===1)for(let i=0;i<6;i++){
+const[x,z]=rp(24),tier=r(),stories=tier<.36?1:tier<.76?2:3,mansion=tier>.88,width=mansion?13:6.5+r()*1.8,depth=mansion?10:7+r()*1.4,height=stories*3,wall=HM[r()*HM.length];
+const body=new T.Mesh(bGeo,wall);body.scale.set(width,height,depth);add(body,x,0,z,1);col(x,z,width,depth,height,true);
+const roof=new T.Mesh(hrGeo,mansion?roofM:RM[r()*RM.length]);roof.scale.set(width/11.2,1,depth/11.2);add(roof,x,height+.7,z,1);
+for(let floor=0;floor<stories;floor++){
+for(const fraction of [-.3,0,.3]){
+const wx=width*fraction,ww=mansion?1.55:1.05,wy=floor*3+1.35,wf=new T.Mesh(boxGeo,trimM);wf.scale.set(ww+.14,1.25,.045);add(wf,x+wx,wy,z-depth*.5-.035);
+const pane=new T.Mesh(boxGeo,windowM);pane.scale.set(ww,1.1,.035);add(pane,x+wx,wy,z-depth*.5-.065)
+}
+if(mansion&&floor>0){add(bx(width*.78,.08,.8,trimM,x,floor*3-.08,z-depth*.5-.48),x,floor*3-.08,z-depth*.5-.48);
+for(const px of [-.36,0,.36])add(bx(.06,.48,.06,trimM,x+width*px,floor*3+.17,z-depth*.5-.86),x+width*px,floor*3+.17,z-depth*.5-.86)}
+}
+const door=new T.Mesh(boxGeo,doorM);door.scale.set(1.15,2.4,.08);add(door,x,1.2,z-depth*.5-.08);
+if(mansion){
+for(const side of [-1,1]){
+const wingX=x+side*(width*.5+1.65),wing=new T.Mesh(bGeo,wall);wing.scale.set(4.2,6,7);add(wing,wingX,0,z,1);col(wingX,z,4.2,7,6,true);
+const wingRoof=new T.Mesh(hrGeo,roofM);wingRoof.scale.set(.4,1,.65);add(wingRoof,wingX,6.7,z,1);
+for(const floor of [1.4,4.4]){const pane=new T.Mesh(boxGeo,windowM);pane.scale.set(1.1,1.15,.04);add(pane,wingX,floor,z-3.54)}
+}
+for(const px of [-.36,.36])add(new T.Mesh(new T.CylinderGeometry(.13,.16,2.7,8),trimM),x+width*px,1.35,z-depth*.5-1.1,1);
+add(new T.Mesh(bGeo,trimM),x,.14,z-depth*.5-1.2)
+}}
 if(b===2){for(let i=0;i<8;i++){const[x,z]=rp(17),m=new T.Mesh(rkGeo,rkM),s=.8+r()*2;m.scale.set(s,s*.7,s);add(m,x,s*.3,z,1);col(x,z,s*1.2,s*1.2,s)}
 for(let i=0;i<6;i++){const[x,z]=rp(17);add(new T.Mesh(cacGeo,cacM),x,1.5,z,1);col(x,z,.8,.8,3)}
 for(let i=0;i<2;i++){const[x,z]=rp(17);ramp(x,z,r()*6.28,9,5,2.2,1)}}
-if(b===3)for(let i=0;i<4;i++){const[x,z]=rp(0);ramp(x,z,r()*6.28,8+r()*5,5+r()*3,2+r()*1.8,2+(i&1))}
 if(b!==2)for(let i=0;i<7;i++){const[x,z]=rp(17);tree(x,z)}
 bk.forEach((a,m)=>{const mg=mergeGeometries(a);a.forEach(q=>q.dispose());c.dis.push(mg);const o=new T.Mesh(mg,m);o.castShadow=m!==roadM&&m!==GM[b]&&m!==swM;o.receiveShadow=true;g.add(o)});
 return c}
-function gH(x,z){let h=0;const a=Math.round(x/S_),b=Math.round(z/S_);gH.sl=0;gH.e=[0,0];
+function gH(x,z){const fade=roadFade(x);let h=roadBump(z)*fade;const a=Math.round(x/S_),b=Math.round(z/S_);gH.sl=roadSlope(z)*fade;gH.e=[0,1];
 for(let i=-1;i<2;i++)for(let j=-1;j<2;j++){const c=chunks.get((a+i)+','+(b+j));if(!c)continue;for(const q of c.ramps){const dx=x-q.x,dz=z-q.z,u=dx*q.co-dz*q.si,l=dx*q.si+dz*q.co;if(Math.abs(u)<q.L/2&&Math.abs(l)<q.w/2){const hh=(u+q.L/2)/q.L*q.H;if(hh>h){h=hh;gH.sl=q.H/q.L;gH.e=[q.co,-q.si]}}}}return h}
 function nbr(x,z,f){const a=Math.round(x/S_),b=Math.round(z/S_);for(let i=-1;i<2;i++)for(let j=-1;j<2;j++){const c=chunks.get((a+i)+','+(b+j));if(c)f(c)}}
 function loadChunks(x,z){const a=Math.round(x/S_),b=Math.round(z/S_);
@@ -220,18 +275,18 @@ ng.scr=ns('bandpass',1700,3);ng.spk=ns('highpass',5000,1);ng.bst=ns('bandpass',6
 addEventListener('pointerdown',ainit);addEventListener('keydown',ainit);
 $('bm').onclick=()=>{muted=!muted;$('bm').textContent=muted?'🔇':'🔊';if(mg)mg.gain.value=muted?0:.5};
 /* ---------- input ---------- */
-const keys={};let joined=false,riderName='',riding=true;addEventListener('keydown',e=>{if(settingsOpen){if(e.code==='Escape'){e.preventDefault();closeSettings()}return}keys[e.code]=1;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(joined&&e.code==='Space'&&!e.repeat&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;if(joined&&e.code==='KeyF'&&!e.repeat)toggleRide();if(joined&&e.code==='KeyG'&&riding)tg(!gOpen);if(joined&&e.code==='Escape'&&gOpen)tg(false)});
+const keys={};let joined=false,riderName='',riding=true;addEventListener('keydown',e=>{if(settingsOpen){if(e.code==='Escape'){e.preventDefault();closeSettings()}return}keys[e.code]=1;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(joined&&e.code==='Space'&&!e.repeat&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;if(joined&&e.code==='KeyF'&&!e.repeat)tryGroundTouch();if(joined&&e.code==='KeyG'&&riding)tg(!gOpen);if(joined&&e.code==='Escape'&&gOpen)tg(false)});
 addEventListener('keyup',e=>keys[e.code]=0);addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
-document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{if(k==='KeyF')toggleRide();else{if(k==='Space'&&!keys[k]&&joined&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;keys[k]=1}e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0))});
+document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{if(k==='KeyF')tryGroundTouch();else{if(k==='Space'&&!keys[k]&&joined&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;keys[k]=1}e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0))});
 /* ---------- state ---------- */
 const MYC=new T.Color().setHSL(Math.random(),.8,.5).getHex();
 let me=buildBike(BIKES[S.eq],MYC);scene.add(me.g);let myTag=null;
 const walker=buildWalker();scene.add(walker.g);walker.g.visible=false;let walkerTag=null;
-let x=0,y=0,z=0,h=0,v=0,p=0,pw=0,vy=0,air=false,wreck=0,boostE=0,boosting=false,zt=0,wt=0,cb=1,pad=0,padCooldown=0,airT=0,roll=0,lastGH=0,lastRd=0,lastFrontGH=0,lastRearGH=0,lastFrontRise=0,lastRearRise=0,tt=0,pt=0,units=0,svT=0,gOpen=false,settingsOpen=false,gi=S.eq,ga=0,netT=0,camInit=true;
+let x=0,y=0,z=0,h=0,v=0,p=0,pw=0,vy=0,air=false,wreck=0,boostE=0,boosting=false,zt=0,wt=0,cb=1,pad=0,padCooldown=0,airT=0,roll=0,lastGH=0,lastRd=0,tt=0,pt=0,units=S.units?1:0,svT=0,gOpen=false,settingsOpen=false,gi=S.eq,ga=0,netT=0,camInit=true;
 let ox=1.2,oy=0,oz=0,oh=0,opitch=0,lookYaw=0,lookPitch=0,walkSpeed=0,walkCycle=0,bounceRequested=false;
 const frontSusp={comp:0,vel:0},rearSusp={comp:0,vel:0};
-function stepSuspension(state,spring,damping,travel,dt){const count=Math.max(1,Math.ceil(dt*120)),step=dt/count,min=-travel*.18;for(let i=0;i<count;i++){state.vel+=(-state.comp*spring-state.vel*damping)*step;state.comp+=state.vel*step;if(state.comp>travel){state.comp=travel;state.vel=Math.min(0,state.vel)}else if(state.comp<min){state.comp=min;state.vel=Math.max(0,state.vel)}}}
-let airFlip=0,airRoll=0,wheelieHold=0;
+function stepSuspension(state,spring,damping,travel,dt,load=0){const count=Math.max(1,Math.ceil(dt*240)),step=dt/count,min=-travel*.12;load=Math.max(0,Math.min(travel*.3,load));for(let i=0;i<count;i++){state.vel+=((load-state.comp)*spring-state.vel*damping)*step;state.comp+=state.vel*step;if(state.comp>travel){state.comp=travel;state.vel=Math.min(0,state.vel)}else if(state.comp<min){state.comp=min;state.vel=Math.max(0,state.vel)}}}
+let airFlip=0,airRoll=0,wheelieHold=0;const DAY_LEN=240;let tod=6.4;let trick=null,trickT=0;let wzone=0;
 const setLook=(dx,dy)=>{if(riding){lookYaw=Math.max(-1.35,Math.min(1.35,lookYaw-dx*.002));lookPitch=Math.max(-.55,Math.min(.55,lookPitch-dy*.0015))}else{oh-=dx*.002;opitch=Math.max(-.8,Math.min(.65,opitch-dy*.002))}};
 cv.addEventListener('click',()=>{if(joined&&!gOpen)cv.requestPointerLock?.()});
 document.addEventListener('mousemove',e=>{if(document.pointerLockElement===cv)setLook(e.movementX,e.movementY)});
@@ -248,6 +303,13 @@ riding=false;boosting=false;p=0;pw=0;ox=x+Math.cos(h)*1.25;oz=z-Math.sin(h)*1.25
 }else if(Math.hypot(ox-x,oz-z)<3.2){
 riding=true;h=oh;walker.g.visible=false;lookYaw=0;lookPitch=0;v=0;camInit=true
 }else pop('WALK BACK TO YOUR BIKE','#facc15')
+}
+function tryGroundTouch(){
+if(!joined||gOpen||!riding||wreck>0||air)return toggleRide();
+const wheelie=!!(keys['ShiftLeft']||keys['ShiftRight'])&&p>0;
+if(wheelie&&wzone===1){if(trick==null){trick='handscrape';trickT=0;pop('HAND SCRAPE · F SCRAPE','#facc15')}}
+else if(wheelie&&wzone===2){wheelieHold=Math.max(0,wheelieHold-1.2);cb=1;earn(30);pop('SKILL · REACHED THE GROUND +$30','#4ade80')}
+else toggleRide();
 }
 const earn=a=>{S.cash+=a};
 function pop(t,col){const d=document.createElement('div');d.className='pp';d.textContent=t;d.style.color=col||'#4ade80';d.style.marginLeft=((Math.random()-.5)*200-50)+'px';$('pop').appendChild(d);setTimeout(()=>d.remove(),1450)}
@@ -355,10 +417,6 @@ if(tank.g.visible){const tx=px-Math.sin(ph)*20+Math.cos(ph)*8,tz=pz-Math.cos(ph)
 if(!gOpen){
 const pxNow=riding?x:ox,pzNow=riding?z:oz,pyNow=riding?y:oy;
 for(const q of cops){if(!q.c.g.visible||Math.abs(pyNow-gH(q.x,q.z))>2)continue;
-const dx=pxNow-q.x,dz=pzNow-q.z,side=dx*Math.cos(q.h)-dz*Math.sin(q.h),forward=dx*Math.sin(q.h)+dz*Math.cos(q.h),pushSide=1.28-Math.abs(side),pushForward=2.75-Math.abs(forward);
-if(pushSide<=0||pushForward<=0)continue;
-if(pushSide<pushForward){const d=Math.sign(side||1)*pushSide;if(riding){x+=Math.cos(q.h)*d;z-=Math.sin(q.h)*d}else{ox+=Math.cos(q.h)*d;oz-=Math.sin(q.h)*d}}
-else{const d=Math.sign(forward||1)*pushForward;if(riding){x+=Math.sin(q.h)*d;z+=Math.cos(q.h)*d}else{ox+=Math.sin(q.h)*d;oz+=Math.cos(q.h)*d}}
 if(riding){const impact=Math.abs(v);v*=.35;if(impact>12&&wreck<=0){wreck=1.7;p=0;pw=0;wt=0;zt=0;cb=1;pop('POLICE COLLISION!','#f43f5e')}y=gH(x,z)}
 else{walkSpeed=0;oy=gH(ox,oz);walker.g.position.set(ox,oy,oz)}
 q.d=Math.hypot((riding?x:ox)-q.x,(riding?z:oz)-q.z)
@@ -367,8 +425,9 @@ if(tank.g.visible&&Math.abs(pyNow-tank.g.position.y)<2){const dx=pxNow-tank.g.po
 }
 if(inTown){
 const spotted=cops.some(q=>q.d<mode.detect&&(pv>18||riding&&p>.55));
-heat=clamp(heat+(spotted?dt*(riding&&p>.55?1.15:.72)*mode.heat:-dt*.45),0,1.35);
-if(heat>=1.35&&wanted<6){wanted++;heat=0;if(wanted===1){chaseT=0;pop('🚨 PURSUIT · ★☆☆☆☆☆','#f87171')}else pop(`WANTED LEVEL · ${'★'.repeat(wanted)}${'☆'.repeat(6-wanted)}`,'#f87171');
+const escalation=1.35+wanted*.75;
+heat=clamp(heat+(spotted?dt*(riding&&p>.55?1.15:.72)*mode.heat:-dt*.45),0,escalation);
+if(heat>=escalation&&wanted<6){wanted++;heat=0;if(wanted===1){chaseT=0;pop('🚨 PURSUIT · ★☆☆☆☆☆','#f87171')}else pop(`WANTED LEVEL · ${'★'.repeat(wanted)}${'☆'.repeat(6-wanted)}`,'#f87171');
 if(wanted===3)pop('AIR SUPPORT INBOUND','#f87171');
 if(wanted===5)pop('ARMORED UNIT DEPLOYED','#f87171');
 if(wanted===6)pop('6 STARS · EMP LOCKDOWN — ESCAPE THE PERIMETER','#38bdf8')}
@@ -391,14 +450,20 @@ function closeSettings(){settingsOpen=false;SET.style.display='none';for(const k
 function openSettings(){if(gOpen)tg(false);settingsOpen=true;SET.style.display='block';difficultySelect.value=S.policeDifficulty;for(const key in keys)keys[key]=0}
 difficultySelect.value=S.policeDifficulty;
 difficultySelect.addEventListener('change',()=>{if(policeModes[difficultySelect.value]){S.policeDifficulty=difficultySelect.value;save()}});
+$('a11y-reduced-motion').onchange=function(){S.accessibility.reducedMotion=!!this.checked;save();document.body.classList.toggle('a11y-reduced-motion',!!this.checked)};
+$('a11y-large-text').onchange=function(){S.accessibility.largeText=!!this.checked;save();document.body.classList.toggle('a11y-large-text',!!this.checked)};
+$('a11y-high-contrast').onchange=function(){S.accessibility.highContrast=!!this.checked;save();document.body.classList.toggle('a11y-high-contrast',!!this.checked)};
 $('st').onclick=openSettings;$('settings-close').onclick=closeSettings;
 function setBike(i){scene.remove(me.g);me=buildBike(BIKES[i],MYC);if(myTag)me.g.add(myTag);scene.add(me.g)}
 function vo(){if(gOpen&&innerWidth>700)cam.setViewOffset(innerWidth,innerHeight,-innerWidth*.2,0,innerWidth,innerHeight);else cam.clearViewOffset();cam.updateProjectionMatrix()}
 function tg(o){if(settingsOpen)return;if(o&&(!riding||wanted)){pop(!riding?'MOUNT YOUR BIKE FIRST':'LOSE THE COPS FIRST','#f87171');return}if(o)setMapExpanded(false);gOpen=o;G.style.display=o?'block':'none';if(o){gi=S.eq;rg();v=0;p=0;pw=0;wheelieHold=0;air=false;vy=0;y=gH(x,z)}else if(gi!==S.eq)setBike(S.eq);vo()}
 function rg(){let t=`<h2>GARAGE <span>$${Math.floor(S.cash).toLocaleString()}</span><button data-a="close">✕</button></h2><div class="grid">`;
-BIKE_ORDER.forEach(i=>{const b=BIKES[i],owned=S.own.includes(i);t+=`<div class="card${i===gi?' sel':''}" data-a="pv" data-i="${i}"><b>${b.n}</b><small>${owned?(i===S.eq?'EQUIPPED':'OWNED'):'$'+b.pr.toLocaleString()} · ${b.maxMph} MPH</small>${eff(i).map(q=>`<div class="bar"><i style="width:${Math.min(100,q*10)}%"></i></div>`).join('')}</div>`});
-const b=BIKES[gi],own=S.own.includes(gi),e=eff(gi),L=lv(gi),rarity=hackRarity(gi),hackCost=hackPrice(gi),canReroll=hackRank(gi)<HACK_RARITIES.length-1;t+=`</div><h3>${b.n} <small class="bike-spec">${b.maxMph} MPH</small></h3>`;
+BIKE_ORDER.forEach(i=>{const b=BIKES[i],owned=S.own.includes(i);t+=`<div class="card${i===gi?' sel':''}" data-a="pv" data-i="${i}"><b>${b.n}</b><small>${owned?(i===S.eq?'EQUIPPED':'OWNED'):'$'+b.pr.toLocaleString()} · ${Math.round(b.maxMph*(units?1.609:1))} ${units?'KM/H':'MPH'}</small>${eff(i).map(q=>`<div class="bar"><i style="width:${Math.min(100,q*10)}%"></i></div>`).join('')}</div>`});
+const b=BIKES[gi],own=S.own.includes(gi),e=eff(gi),L=lv(gi),rarity=hackRarity(gi),hackCost=hackPrice(gi),canReroll=hackRank(gi)<HACK_RARITIES.length-1;t+=`</div><h3>${b.n} <small class="bike-spec">${Math.round(b.maxMph*(units?1.609:1))} ${units?'KM/H':'MPH'}</small></h3>`;
 t+=own?(gi===S.eq?'':'<button class="big" data-a="eq">EQUIP</button>'):`<button class="big" data-a="buy" ${S.cash<b.pr?'disabled':''}>BUY $${b.pr.toLocaleString()}</button>`;
+t+=`<h3>YOUR HOMES</h3><p class="gar-sub">Buy a place to live in — from a single-story house to a mansion — then get off your bike and explore the inside.</p><div class="grid">`;
+HOUSES.forEach(h=>{const owned=S.houses.includes(h.tier);t+=`<div class="card${owned?' sel':''}"><b>${h.n}</b><small>${owned?'OWNED':'$'+h.price.toLocaleString()}</small><span>${h.tag}</span>${owned?'':`<button data-a="buyhouse" data-v="${h.tier}" ${S.cash<h.price?'disabled':''}>BUY $${h.price.toLocaleString()}</button>`}</div>`});
+t+=`</div>`;
 SN.forEach((n,k)=>{const l=L[k],maxed=e[k]>=10||b.s[k]*(1+l*.015)>10;t+=`<div class="row"><span>${n}</span><div class="bar"><i style="width:${Math.min(100,e[k]*10)}%"></i></div><em>${maxed?'MAX':`Lv ${l}`}</em>${own&&!maxed&&l<10?`<button data-a="up" data-k="${k}" ${S.cash<cost(gi,l)?'disabled':''}>+1.5% · $${cost(gi,l).toLocaleString()}</button>`:`<button disabled>${maxed||l>=10?'MAX':'—'}</button>`}</div>`});
 const chosen=Number(S.suspension[gi]||0),mounted=Number(S.boostMount[gi]||0);
 t+=`<section class="mod-shop"><h3>MOD SHOP</h3><h4>SUSPENSION</h4><div class="mod-grid">`;
@@ -412,12 +477,13 @@ if(a==='close'){tg(false);return}
 if(a==='pv'){gi=+t.dataset.i;setBike(gi)}
 else if(a==='eq'){S.eq=gi;boostE=Number(S.boostMount[gi]||0)>0?100:0}
 else if(a==='buy'){const pr=BIKES[gi].pr;if(S.cash>=pr){S.cash-=pr;S.own.push(gi);S.eq=gi;boostE=Number(S.boostMount[gi]||0)>0?100:0}}
+else if(a==='buyhouse'){const h=HOUSES.find(q=>q.tier===+t.dataset.v);if(!h||S.houses.includes(h.tier))return;if(S.cash<h.price)return;S.cash-=h.price;S.houses.push(h.tier);save();rg();pop('HOME SECURED · '+h.n,'#4ade80')}
 else if(a==='up'){const k=Number(t.dataset.k);if(Number.isInteger(k)&&k>=0&&k<4){const l=lv(gi)[k],c=cost(gi,l);if(S.own.includes(gi)&&l<10&&BIKES[gi].s[k]*(1+l*.015)<=10&&S.cash>=c){S.cash-=c;lv(gi)[k]++}}}
 else if(a==='susp'){const i=+t.dataset.v;if(S.own.includes(gi)&&Number.isInteger(i)&&i>=0&&i<SUSPENSIONS.length){const price=modPrice(gi,SUSPENSIONS[i].price);if(S.cash>=price){S.cash-=price;S.suspension[gi]=i;frontSusp.comp=0;frontSusp.vel=0;rearSusp.comp=0;rearSusp.vel=0}}}
 else if(a==='mount'){const tier=+t.dataset.v,price=mountPrice(gi,tier)-(S.boostMount[gi]?mountPrice(gi,Number(S.boostMount[gi])):0);if(S.own.includes(gi)&&(tier===1||tier===2)&&tier>Number(S.boostMount[gi]||0)&&S.cash>=price){S.cash-=price;S.boostMount[gi]=tier;boostE=100}}
 else if(a==='hack'){const price=hackPrice(gi),currentRank=hackRank(gi);if(S.own.includes(gi)&&currentRank<HACK_RARITIES.length-1&&S.cash>=price){S.cash-=price;const roll=Math.random()*100;let total=0,rolled=HACK_RARITIES[HACK_RARITIES.length-1];for(const candidate of HACK_RARITIES){total+=candidate.chance;if(roll<total){rolled=candidate;break}}const rank=HACK_RARITIES.indexOf(rolled);if(rank>currentRank){S.hacks[gi]=rolled.id;pop(rolled.id==='secret'?'SECRET HACK · ALL STATS FULLY MAXED!':`${rolled.name.toUpperCase()} HACK · +${Math.round(rolled.boost*100)}%`,'#4ade80')}else pop(`${rolled.name.toUpperCase()} ROLL · CURRENT UPGRADE KEPT`,'#facc15')}}
 save();rg()};
-$('bg').onclick=()=>tg(!gOpen);$('sp').onclick=()=>units^=1;
+$('bg').onclick=()=>tg(!gOpen);$('sp').onclick=()=>{units=!units;S.units=units?1:0;save()};
 setTimeout(()=>$('help').remove(),15000);
 /* ---------- HUD draw ---------- */
 const mm=$('mm'),mx=mm.getContext('2d'),wm=$('wm'),wx=wm.getContext('2d');
@@ -426,7 +492,7 @@ mm.addEventListener('click',()=>setMapExpanded(!mm.classList.contains('expanded'
 mm.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();setMapExpanded(!mm.classList.contains('expanded'))}else if(e.key==='Escape'){e.stopPropagation();setMapExpanded(false)}});
 function drawMM(){const px=riding?x:ox,pz=riding?z:oz,heading=riding?h:oh,k=1.5,sh=Math.sin(heading),ch=Math.cos(heading),P=(wx_,wz)=>{const dx=wx_-px,dz=wz-pz;return[150+(-dx*ch+dz*sh)*k,150-(dx*sh+dz*ch)*k]};
 mx.fillStyle='#3d5a3a';mx.fillRect(0,0,300,300);mx.fillStyle='#50545c';mx.beginPath();[[-12,-200],[12,-200],[12,200],[-12,200]].forEach(([a,b],i)=>{const q=P(a,pz+b);i?mx.lineTo(q[0],q[1]):mx.moveTo(q[0],q[1])});mx.fill();
-nbr(px,pz,c=>{mx.fillStyle='#8d96a5';c.cols.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)});mx.fillStyle='#fbbf24';c.ramps.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)});mx.fillStyle='#4ade80';c.orbs.forEach(q=>{if(q.on){const s=P(q.x,q.z);mx.fillRect(s[0]-1.5,s[1]-1.5,3,3)}})});
+nbr(px,pz,c=>{mx.fillStyle='#8d96a5';c.cols.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)});mx.fillStyle='#fbbf24';c.ramps.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)})});
 const expanded=mm.classList.contains('expanded');mx.font=expanded?'bold 13px system-ui':'bold 18px system-ui';mx.textAlign='center';
 const dot=(X,Z,col,n)=>{const s=P(X,Z);if(s[0]<-10||s[0]>310||s[1]<-10||s[1]>310)return;mx.fillStyle=col;mx.beginPath();mx.arc(s[0],s[1],7,0,7);mx.fill();mx.strokeStyle='#000';mx.lineWidth=2;mx.stroke();if(n){const text=expanded?`${n} · ${Math.round(X)}, ${Math.round(Z)}`:n,half=mx.measureText(text).width/2,tx=Math.max(half+4,Math.min(296-half,s[0]));mx.fillStyle='#fff';mx.strokeText(text,tx,s[1]-11);mx.fillText(text,tx,s[1]-11)}};
 for(const r of rem.values())dot(r.onFoot?r.px:r.x,r.onFoot?r.pz:r.z,r.col,r.n||'');
@@ -441,8 +507,8 @@ loadChunks(0,0);let last=performance.now();const tv=new T.Vector3();
 function loop(now){requestAnimationFrame(loop);const dt=settingsOpen?0:Math.min(.05,(now-last)/1000);last=now;tt+=dt;padCooldown=Math.max(0,padCooldown-dt);
 const k=c=>joined&&keys[c],bikeKey=c=>riding&&k(c),thr=bikeKey('KeyW')||bikeKey('ArrowUp')?1:0,br=bikeKey('KeyS')||bikeKey('ArrowDown')?1:0,st=((bikeKey('KeyD')||bikeKey('ArrowRight'))?1:0)-((bikeKey('KeyA')||bikeKey('ArrowLeft'))?1:0),pull=bikeKey('ShiftLeft')||bikeKey('ShiftRight')?1:0;
 const mountTier=Number(S.boostMount[S.eq]||0),boostTier=mountTier,hasBoost=boostTier>0,bo=bikeKey('KeyE')&&hasBoost;
-const E=eff(S.eq),kit=SUSPENSIONS[Number(S.suspension[S.eq]||0)]||SUSPENSIONS[0],zw=.05+.007*E[2];let sparks=0,skid=0;
-if(bounceRequested){frontSusp.comp=kit.frontTravel*.88;frontSusp.vel=0;rearSusp.comp=kit.rearTravel*.88;rearSusp.vel=0;bounceRequested=false}
+const E=eff(S.eq),kit=SUSPENSIONS[Number(S.suspension[S.eq]||0)]||SUSPENSIONS[0],zw=.05+.007*E[2];let sparks=0,skid=0,frontLoad=0,rearLoad=0;
+if(bounceRequested){frontSusp.vel=Math.max(frontSusp.vel,1.6);rearSusp.vel=Math.max(rearSusp.vel,1.5);bounceRequested=false}
 if(gOpen){ga+=dt*.5;y=gH(x,z);boosting=false;walkSpeed=0}
 else if(!riding){
 boosting=false;pad=Math.max(0,pad-dt);
@@ -450,7 +516,7 @@ const forward=(k('KeyW')||k('ArrowUp')?1:0)-(k('KeyS')||k('ArrowDown')?1:0),side
 walkSpeed=mag?speed:0;const norm=mag||1;
 ox+=(Math.sin(oh)*forward+Math.cos(oh)*side)/norm*walkSpeed*dt;
 oz+=(Math.cos(oh)*forward-Math.sin(oh)*side)/norm*walkSpeed*dt;
-nbr(ox,oz,c=>{for(const q of c.cols)if(oy<=q.h&&Math.abs(ox-q.x)<q.hw+.3&&Math.abs(oz-q.z)<q.hd+.3){const px=q.hw+.3-Math.abs(ox-q.x),pz=q.hd+.3-Math.abs(oz-q.z);if(px<pz)ox+=Math.sign(ox-q.x||1)*px;else oz+=Math.sign(oz-q.z||1)*pz}});
+nbr(ox,oz,c=>{for(const q of c.cols)if(oy<=q.h&&Math.abs(ox-q.x)<q.hw+.3&&Math.abs(oz-q.z)<q.hd+.3){if(q.house&&S.houses.length>0)continue;const px=q.hw+.3-Math.abs(ox-q.x),pz=q.hd+.3-Math.abs(oz-q.z);if(px<pz)ox+=Math.sign(ox-q.x||1)*px;else oz+=Math.sign(oz-q.z||1)*pz}});
 oy=gH(ox,oz);walkCycle+=dt*walkSpeed*2.6;
 walker.g.position.set(ox,oy,oz);walker.g.rotation.y=oh;
 const gait=walkSpeed?Math.sin(walkCycle)*.55:0;walker.arms[0].rotation.x=gait;walker.arms[1].rotation.x=-gait;walker.legs[0].rotation.x=-gait;walker.legs[1].rotation.x=gait;
@@ -469,18 +535,21 @@ v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br)v=0;
 if(br){if(v>.2){v-=16*dt;skid=v>6&&!air?1:0}else v=Math.max(-5,v-5*dt)}
 const lift=Math.min(1,Math.abs(v)/5),wh=p>.1?1:0;
 const a=(thr*(.42+E[1]*.05)+pull*3.2+(boosting?.8:0))*lift-3.6*p-1.9*pw-br*8*(p>0?1:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
-pw+=a*dt;p+=pw*dt;if(p<0){p=0;pw=Math.max(0,pw)}
+pw+=a*dt;const prevP=p;p+=pw*dt;if(p<0){p=0;pw=Math.max(0,pw)}
+if(prevP>0&&p<=0){const imp=Math.min(12,Math.abs(v)*0.6);frontSusp.comp=Math.max(frontSusp.comp,Math.min(kit.frontTravel,imp*.035));rearSusp.comp=Math.max(rearSusp.comp,Math.min(kit.rearTravel,imp*.03));frontSusp.vel=Math.max(frontSusp.vel,Math.min(6,imp*.35));rearSusp.vel=Math.max(rearSusp.vel,Math.min(6,imp*.4))}
 earn(dt*Math.max(0,v)*.12);
 if(p>.15){wt+=dt;if(Math.abs(p-.8)<zw)zt+=dt;else zt=Math.max(0,zt-dt*1.5);cb=Math.min(3,1+zt*.9);earn(dt*(6+6*p)*Math.floor(cb));if(p>1.22){sparks=1;earn(dt*30*Math.floor(cb))}}else{wt=0;zt=0;cb=1}
 if(pull&&p>.15)wheelieHold+=dt;else wheelieHold=Math.max(0,wheelieHold-dt*2.5);
 if(wheelieHold>2.1&&wheelieHold-dt<=2.1)pop('EASE OFF THE WHEELIE!','#facc15');
+wzone=pull&&p>0?(wheelieHold>2.8?2:wheelieHold>2.1?1:0):0;
 if(p>1.45||wheelieHold>2.8){const heldTooLong=wheelieHold>2.8;wreck=1.7;wt=0;zt=0;cb=1;wheelieHold=0;pop(heldTooLong?'WHEELIE OVERHELD!':'WIPEOUT!','#f43f5e')}
+if(trick){trickT+=dt;if(trickT>0.9){const pts=Math.round(60+Math.abs(v)*45);earn(pts);pop('HAND SCRAPE · +$'+pts,'#facc15');trick=null;cb=1}}
 h-=st*(1.9/(1+Math.abs(v)*.04))*(p>.2?.55+.05*E[2]:1)*Math.min(1,Math.abs(v)/3)*(v<0?-1:1)*dt;
 roll+=(st*.4*Math.min(1,Math.abs(v)/10)-roll)*Math.min(1,8*dt);
 x+=Math.sin(h)*v*dt;z+=Math.cos(h)*v*dt;
 nbr(x,z,c=>{for(const q of c.cols)if(y<=q.h&&Math.abs(x-q.x)<q.hw&&Math.abs(z-q.z)<q.hd){const px=q.hw-Math.abs(x-q.x),pz=q.hd-Math.abs(z-q.z);if(px<pz)x+=Math.sign(x-q.x||1)*px;else z+=Math.sign(z-q.z||1)*pz;v*=.4}});
-const gh=gH(x,z),rd=gH.sl*(Math.sin(h)*gH.e[0]+Math.cos(h)*gH.e[1]),frontGH=gH(x+Math.sin(h)*me.wb*.46,z+Math.cos(h)*me.wb*.46),rearGH=gH(x-Math.sin(h)*me.wb*.46,z-Math.cos(h)*me.wb*.46),frontRise=frontGH-lastFrontGH,rearRise=rearGH-lastRearGH;
-if(!air&&Math.abs(v)>2){const frontBump=frontRise-lastFrontRise,rearBump=rearRise-lastRearRise,threshold=Math.max(.018,Math.abs(v)*dt*.1);if(frontRise>.025&&frontBump>threshold)frontSusp.vel=Math.max(frontSusp.vel,Math.min(7,frontBump/Math.max(dt,.001)*.45));if(rearRise>.025&&rearBump>threshold)rearSusp.vel=Math.max(rearSusp.vel,Math.min(7,rearBump/Math.max(dt,.001)*.45))}
+const gh=gH(x,z),rd=gH.sl*(Math.sin(h)*gH.e[0]+Math.cos(h)*gH.e[1]),frontGH=gH(x+Math.sin(h)*me.wb*.46,z+Math.cos(h)*me.wb*.46),rearGH=gH(x-Math.sin(h)*me.wb*.46,z-Math.cos(h)*me.wb*.46);
+if(!air&&Math.abs(v)>2){frontLoad=Math.max(0,Math.min(kit.frontTravel*.28,(frontGH-gh)*.75));rearLoad=Math.max(0,Math.min(kit.rearTravel*.28,(rearGH-gh)*.75))}
 if(air){
 const flipInput=(k('KeyW')||k('ArrowUp')?1:0)-(k('KeyS')||k('ArrowDown')?1:0),rollInput=(k('KeyD')||k('ArrowRight')?1:0)-(k('KeyA')||k('ArrowLeft')?1:0);
 airFlip+=flipInput*6.2*dt;airRoll+=rollInput*7.2*dt;
@@ -495,15 +564,14 @@ airT=0;vy=0;airFlip=0;airRoll=0
 }else if(y-gh>1)earn(dt*20)
 }
 else{if(lastGH>gh+.25&&v>3){airFlip=0;airRoll=0;air=true;vy=Math.max(0,lastRd*v);y=lastGH}else y=gh}
-lastGH=gh;lastRd=rd;lastFrontGH=frontGH;lastRearGH=rearGH;lastFrontRise=frontRise;lastRearRise=rearRise;
-nbr(x,z,c=>{for(const o of c.orbs)if(o.on){o.m.rotation.y+=dt*2;o.m.position.y=1.3+Math.sin(tt*3+o.x)*.15;const dx=x-o.x,dz=z-o.z;if(dx*dx+dz*dz<4&&Math.abs(y+.8-o.m.position.y)<3){o.on=false;o.m.visible=false;earn(50)}}
-for(const q of c.pads)if(!settingsOpen&&padCooldown<=0&&Math.abs(x-q.x)<2.4&&Math.abs(z-q.z)<4.8&&!air){pad=hasBoost?1.5:.75;padCooldown=4;if(hasBoost)boostE=Math.min(100,boostE+30);earn(25);pop(hasBoost?'BOOST PAD!':'PAD BONUS +$25','#a78bfa') }});
+lastGH=gh;lastRd=rd;
+nbr(x,z,c=>{for(const q of c.pads)if(!settingsOpen&&padCooldown<=0&&Math.abs(x-q.x)<2.4&&Math.abs(z-q.z)<4.8&&!air){pad=hasBoost?1.5:.75;padCooldown=4;if(hasBoost)boostE=Math.min(100,boostE+30);pop(hasBoost?'BOOST PAD!':'BOOST PAD','#a78bfa') }});
 if(wreck>0){/* wipeout just began */}
 }
-if(!gOpen){stepSuspension(frontSusp,kit.frontSpring,kit.frontDamping,kit.frontTravel,dt);stepSuspension(rearSusp,kit.rearSpring,kit.rearDamping,kit.rearTravel,dt)}
+if(!gOpen){stepSuspension(frontSusp,kit.frontSpring,kit.frontDamping,kit.frontTravel,dt,frontLoad);stepSuspension(rearSusp,kit.rearSpring,kit.rearDamping,kit.rearTravel,dt,rearLoad)}
 /* chunks & sun & sky */
 const worldX=riding?x:ox,worldZ=riding?z:oz,pcx=Math.round(worldX/S_),pcz=Math.round(worldZ/S_);if(loadChunks.k!==pcx+','+pcz){loadChunks.k=pcx+','+pcz;loadChunks(worldX,worldZ)}
-sun.position.set(worldX+60,90,worldZ+40);sun.target.position.set(worldX,0,worldZ);
+tod=(tod+dt/DAY_LEN)%24;const daylight=Math.max(0,Math.min(1,(1-Math.cos(tod/12*Math.PI))/2));skyMaterial.uniforms.daylight.value=daylight;sun.position.set(worldX+60+Math.cos(tod*2*Math.PI)*45,95,worldZ+40+Math.sin(tod*2*Math.PI)*45);sun.target.position.set(worldX,0,worldZ);sun.intensity=2.2*daylight+0.25;hemi.intensity=0.55+0.45*daylight;const nightF=Math.max(0,1-daylight);lampM.emissiveIntensity=nightF>0.25?1.8:0.15;streetGlowM.opacity=Math.min(0.95,nightF*0.95);for(const c of chunks.values())for(const L of c.lights)L.intensity=nightF>0.25?2.4:0;scene.fog.color.set(nightF>0.25?0x0d1524:0xbfdef2);scene.fog.intensity=nightF>0.25?0.55:1;
 if(!gOpen&&!settingsOpen)updCops(dt);
 /* rig pose */
 pose(me,x,y,z,h,roll,p+airFlip,v,dt,frontSusp.comp,rearSusp.comp,airRoll);
@@ -534,8 +602,10 @@ if(cli&&online&&joined&&now-netT>100){netT=now;try{cli.publish(ROOM+'/s',JSON.st
 if(AC){const t=AC.currentTime,sp=Math.abs(v),bs=boosting?1:0;mo1.frequency.setTargetAtTime(55+sp*6+bs*40,t,.05);mo2.frequency.setTargetAtTime(300+sp*26+bs*200,t,.05);
 mgn.gain.setTargetAtTime(gOpen?.02:.04+.07*thr+Math.min(.04,sp*.001),t,.05);ng.scr.gain.setTargetAtTime(skid?.25:0,t,.05);ng.spk.gain.setTargetAtTime(sparks?.18:0,t,.03);ng.bst.gain.setTargetAtTime(bs?.22:0,t,.1);const nd=Math.min(...cops.map(q=>q.d));sir.frequency.setTargetAtTime(900+300*Math.sin(tt*7),t,.02);sg.gain.setTargetAtTime(wanted?.07*Math.max(.2,1-nd/200):0,t,.1)}
 /* HUD */
-if(S.cash!==undefined){$('cash').textContent='$'+Math.floor(S.cash).toLocaleString()}
-$('combo').textContent=p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(wreck>0?'WIPEOUT!':'');
+if(S.cash!==undefined){$('cash-value').textContent='$'+Math.floor(S.cash).toLocaleString()}
+const hourF=Math.floor(tod),clockPhase=hourF<6||hourF>=20?'NIGHT':hourF<8?'DAWN':hourF<18?'DAY':hourF<20?'DUSK':'NIGHT';
+$('clock').textContent=`${String(hourF).padStart(2,'0')}:${String(Math.floor((tod-hourF)*60)).padStart(2,'0')} · ${clockPhase}`;
+$('combo').textContent=trick?`TRICK · ${trick==='handscrape'?'HAND SCRAPE':'TRICK'}`:(p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(wreck>0?'WIPEOUT!':''));
 $('sp').innerHTML=riding?Math.round(Math.abs(v)*(units?3.6:2.237))+` <small>${units?'KM/H':'MPH'}</small>`:`<small>ON FOOT · ${walkSpeed?'WALKING':'IDLE'}</small>`;
 $('mt').textContent=riding?'DISMOUNT':'MOUNT';
 $('bb').style.width=hasBoost?boostE+'%':'0%';$('boost-note').textContent=hasBoost?'BOOST [E] · tap speed for units':'NO BOOST MOUNT · MOD SHOP';
