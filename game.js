@@ -4,7 +4,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 const $=id=>document.getElementById(id),PI=Math.PI;
 /* ---------- save ---------- */
 let S;try{S=JSON.parse(localStorage.getItem('ebl1'))}catch(e){}
-S=S||{cash:0,own:[0],eq:0,up:{},houses:[]};S.suspension=S.suspension||{};S.boostMount=S.boostMount||{};S.hacks=S.hacks||{};S.houses=S.houses||[];
+S=S||{cash:0,own:[0],eq:0,up:{},suspension:{},boostMount:{},hacks:{}};S.suspension=S.suspension||{};S.boostMount=S.boostMount||{};S.hacks=S.hacks||[];
 S.units=S.units==null?1:!!S.units;S.accessibility={reducedMotion:!!S.accessibility?.reducedMotion,largeText:!!S.accessibility?.largeText,highContrast:!!S.accessibility?.highContrast};
 const resetLegacyBoost=!!(S.overclock||S.hackedStats);
 delete S.overclock;
@@ -33,11 +33,6 @@ B('Sur-Ron Storm Bee',40000,[9,10,6,9],0x0f172a,0xf59e0b,0xf59e0b,0x111111,.32,.
 B('Stark VARG 80 HP',55000,[10,10,8,10],0xdc2626,0x111111,0x666666,0x111111,.31,.12,1.5,.26,.34,.6,.76,.16,1,75),
 B('Volt City Scooter',450,[3,3,7,2],0x65a30d,0x111827,0xb0bec5,0x263238,.14,.07,.86,.2,.13,.55,0,.9,0,18,'scooter'),
 B('Volt Pro Scooter',1200,[5,5,8,4],0x0ea5e9,0x111827,0xcbd5e1,0x111827,.16,.08,.98,.22,.15,.62,0,1.05,0,25,'scooter')];
-const HOUSES=[
-{name:'Starter Home',tier:0,price:6000,tag:'Single-story · starter house'},
-{name:'Home',tier:1,price:18000,tag:'Two-story · family house'},
-{name:'Mansion',tier:2,price:45000,tag:'Three-story · wings & loft'}];
-const HOME_TIER=i=>HOUSES.find(h=>h.tier===i);
 /* Bike indices are stored in saves; this only changes the garage's display order. */
 const BIKE_ORDER=[0,1,8,3,7,4,2,5,9,6,10,11,12,13];
 const SUSPENSIONS=[
@@ -201,10 +196,10 @@ const gm=new T.Mesh(gGeo,GM[b]);gm.receiveShadow=true;g.add(gm);
 const bk=new Map(),add=(m,x,y,z,cs,dyn)=>{m.position.set(x,y,z);if(dyn||m.geometry.type==='ExtrudeGeometry'){m.castShadow=!!cs;m.receiveShadow=true;g.add(m);return m}m.updateMatrix();const q=m.geometry.clone().applyMatrix4(m.matrix);const a=bk.get(m.material)||bk.set(m.material,[]).get(m.material);a.push(q);return m};
 const rp=ex=>{for(let i=0;i<25;i++){const x=(r()-.5)*84,z=(r()-.5)*84;if(!hw||Math.abs(x)>ex)return[x,z]}return[40,40]};
 const ramp=(x,z,ry,L,w,H,mi)=>{const sh=new T.Shape();sh.moveTo(0,0);sh.lineTo(L,0);sh.lineTo(L,H);sh.closePath();const geo=new T.ExtrudeGeometry(sh,{depth:w,bevelEnabled:false}).translate(-L/2,0,-w/2);c.dis.push(geo);const m=add(new T.Mesh(geo,RM[mi]),x,0,z,1);m.rotation.y=ry;c.ramps.push({x:ox+x,z:oz+z,L,w,H,co:Math.cos(ry),si:Math.sin(ry)})};
-const col=(x,z,w,d,h=Infinity,house=false)=>c.cols.push({x:ox+x,z:oz+z,hw:w/2+.4,hd:d/2+.4,h,house});
-const tree=(x,z)=>{add(new T.Mesh(trGeo,trM),x,1,z);add(new T.Mesh(cnGeo,lfM),x,3.6,z,1);col(x,z,.4,.4,5.6)};
+const col=(x,z,w,d,h=Infinity)=>c.cols.push({x:ox+x,z:oz+z,hw:w/2+.4,hd:d/2+.4,h});
+const tree=(x,z)=>{add(new T.Mesh(trGeo,trM),x,1,z);add(new T.Mesh(cnGeo,lfM),x,3.6,z,1)};
 if(hw){const roadGeo=makeRoadGeo(oz);add(new T.Mesh(roadGeo,roadM),0,0,0);roadGeo.dispose();
-[-13.5,13.5].forEach(x=>{const m=new T.Mesh(bGeo,swM);m.scale.set(3,.2,S_);add(m,x,0,0);col(x,0,3,S_,.2)});
+[-13.5,13.5].forEach(x=>{const m=new T.Mesh(bGeo,swM);m.scale.set(3,.2,S_);add(m,x,0,0);});
 [-30,0,30].forEach(z=>[-14.5,14.5].forEach(sx=>{
 const base=new T.Mesh(new T.CylinderGeometry(.18,.24,.3,10),poleM);add(base,sx,.15,z,1);
 const flare=new T.Mesh(new T.CylinderGeometry(.3,.38,.5,10),poleM);add(flare,sx,.42,z,1);
@@ -221,31 +216,9 @@ col(sx,z,.5,.5,7.5)}));
 for(let z=-39;z<=39;z+=6){for(const sx of [-13.5,13.5])add(bx(2.7,.01,.04,seamM,sx,.205,z),sx,.205,z);
 for(const sx of [-10.8,10.8])add(bx(.12,.025,.2,roadStudM,sx,roadBump(z)*roadFade(sx)+.012,z),sx,roadBump(z)*roadFade(sx)+.012,z)}
 if(r()<.4){const side=r()<.5?-1:1,x=side*(13.2+(r()-.5)*2.4),z=(r()-.5)*60;add(new T.Mesh(padGeo,padM),x,roadBump(z)*roadFade(x)+.015,z);c.pads.push({x:ox+x,z:oz+z})}}
-if(b===0)for(let i=0;i<9;i++){const[x,z]=rp(27),w=8+r()*8,d=8+r()*8,h=10+r()*38,m=new T.Mesh(bGeo,BM[r()*5|0]);m.scale.set(w,h,d);add(m,x,0,z,1);col(x,z,w,d,h)}
-if(b===1)for(let i=0;i<6;i++){
-const[x,z]=rp(24),tier=r(),stories=tier<.36?1:tier<.76?2:3,mansion=tier>.88,width=mansion?13:6.5+r()*1.8,depth=mansion?10:7+r()*1.4,height=stories*3,wall=HM[r()*HM.length];
-const body=new T.Mesh(bGeo,wall);body.scale.set(width,height,depth);add(body,x,0,z,1);col(x,z,width,depth,height,true);
-const roof=new T.Mesh(hrGeo,mansion?roofM:RM[r()*RM.length]);roof.scale.set(width/11.2,1,depth/11.2);add(roof,x,height+.7,z,1);
-for(let floor=0;floor<stories;floor++){
-for(const fraction of [-.3,0,.3]){
-const wx=width*fraction,ww=mansion?1.55:1.05,wy=floor*3+1.35,wf=new T.Mesh(boxGeo,trimM);wf.scale.set(ww+.14,1.25,.045);add(wf,x+wx,wy,z-depth*.5-.035);
-const pane=new T.Mesh(boxGeo,windowM);pane.scale.set(ww,1.1,.035);add(pane,x+wx,wy,z-depth*.5-.065)
-}
-if(mansion&&floor>0){add(bx(width*.78,.08,.8,trimM,x,floor*3-.08,z-depth*.5-.48),x,floor*3-.08,z-depth*.5-.48);
-for(const px of [-.36,0,.36])add(bx(.06,.48,.06,trimM,x+width*px,floor*3+.17,z-depth*.5-.86),x+width*px,floor*3+.17,z-depth*.5-.86)}
-}
-const door=new T.Mesh(boxGeo,doorM);door.scale.set(1.15,2.4,.08);add(door,x,1.2,z-depth*.5-.08);
-if(mansion){
-for(const side of [-1,1]){
-const wingX=x+side*(width*.5+1.65),wing=new T.Mesh(bGeo,wall);wing.scale.set(4.2,6,7);add(wing,wingX,0,z,1);col(wingX,z,4.2,7,6,true);
-const wingRoof=new T.Mesh(hrGeo,roofM);wingRoof.scale.set(.4,1,.65);add(wingRoof,wingX,6.7,z,1);
-for(const floor of [1.4,4.4]){const pane=new T.Mesh(boxGeo,windowM);pane.scale.set(1.1,1.15,.04);add(pane,wingX,floor,z-3.54)}
-}
-for(const px of [-.36,.36])add(new T.Mesh(new T.CylinderGeometry(.13,.16,2.7,8),trimM),x+width*px,1.35,z-depth*.5-1.1,1);
-add(new T.Mesh(bGeo,trimM),x,.14,z-depth*.5-1.2)
-}}
-if(b===2){for(let i=0;i<8;i++){const[x,z]=rp(17),m=new T.Mesh(rkGeo,rkM),s=.8+r()*2;m.scale.set(s,s*.7,s);add(m,x,s*.3,z,1);col(x,z,s*1.2,s*1.2,s)}
-for(let i=0;i<6;i++){const[x,z]=rp(17);add(new T.Mesh(cacGeo,cacM),x,1.5,z,1);col(x,z,.8,.8,3)}
+if(b===0)for(let i=0;i<9;i++){const[x,z]=rp(27),w=8+r()*8,d=8+r()*8,h=10+r()*38,m=new T.Mesh(bGeo,BM[r()*5|0]);m.scale.set(w,h,d);add(m,x,0,z,1)}
+if(b===2){for(let i=0;i<8;i++){const[x,z]=rp(17),m=new T.Mesh(rkGeo,rkM),s=.8+r()*2;m.scale.set(s,s*.7,s);add(m,x,s*.3,z,1)}
+for(let i=0;i<6;i++){const[x,z]=rp(17);add(new T.Mesh(cacGeo,cacM),x,1.5,z,1)}
 for(let i=0;i<2;i++){const[x,z]=rp(17);ramp(x,z,r()*6.28,9,5,2.2,1)}}
 if(b!==2)for(let i=0;i<7;i++){const[x,z]=rp(17);tree(x,z)}
 bk.forEach((a,m)=>{const mg=mergeGeometries(a);a.forEach(q=>q.dispose());c.dis.push(mg);const o=new T.Mesh(mg,m);o.castShadow=m!==roadM&&m!==GM[b]&&m!==swM;o.receiveShadow=true;g.add(o)});
@@ -295,21 +268,11 @@ cv.addEventListener('pointerdown',e=>{if(joined&&e.pointerType==='touch'){lookPo
 cv.addEventListener('pointermove',e=>{if(e.pointerId===lookPointer){setLook(e.clientX-lookX,e.clientY-lookY);lookX=e.clientX;lookY=e.clientY}});
 cv.addEventListener('pointerup',e=>{if(e.pointerId===lookPointer)lookPointer=null});
 cv.addEventListener('pointercancel',e=>{if(e.pointerId===lookPointer)lookPointer=null});
-function toggleRide(){
-if(!joined||gOpen)return;
-if(riding){
-if(Math.abs(v)>1.5){pop('SLOW DOWN TO DISMOUNT','#facc15');return}
-riding=false;boosting=false;p=0;pw=0;ox=x+Math.cos(h)*1.25;oz=z-Math.sin(h)*1.25;oy=gH(ox,oz);oh=h;opitch=0;walker.g.visible=true;camInit=true
-}else if(Math.hypot(ox-x,oz-z)<3.2){
-riding=true;h=oh;walker.g.visible=false;lookYaw=0;lookPitch=0;v=0;camInit=true
-}else pop('WALK BACK TO YOUR BIKE','#facc15')
-}
 function tryGroundTouch(){
-if(!joined||gOpen||!riding||wreck>0||air)return toggleRide();
+if(!joined||gOpen||!riding||wreck>0||air)return;
 const wheelie=!!(keys['ShiftLeft']||keys['ShiftRight'])&&p>0;
 if(wheelie&&wzone===1){if(trick==null){trick='handscrape';trickT=0;pop('HAND SCRAPE · F SCRAPE','#facc15')}}
 else if(wheelie&&wzone===2){wheelieHold=Math.max(0,wheelieHold-1.2);cb=1;earn(30);pop('SKILL · REACHED THE GROUND +$30','#4ade80')}
-else toggleRide();
 }
 const earn=a=>{S.cash+=a};
 function pop(t,col){const d=document.createElement('div');d.className='pp';d.textContent=t;d.style.color=col||'#4ade80';d.style.marginLeft=((Math.random()-.5)*200-50)+'px';$('pop').appendChild(d);setTimeout(()=>d.remove(),1450)}
@@ -417,7 +380,8 @@ if(tank.g.visible){const tx=px-Math.sin(ph)*20+Math.cos(ph)*8,tz=pz-Math.cos(ph)
 if(!gOpen){
 const pxNow=riding?x:ox,pzNow=riding?z:oz,pyNow=riding?y:oy;
 for(const q of cops){if(!q.c.g.visible||Math.abs(pyNow-gH(q.x,q.z))>2)continue;
-if(riding){const impact=Math.abs(v);v*=.35;if(impact>12&&wreck<=0){wreck=1.7;p=0;pw=0;wt=0;zt=0;cb=1;pop('POLICE COLLISION!','#f43f5e')}y=gH(x,z)}
+const pdNow=Math.hypot(pxNow-q.x,pzNow-q.z);
+if(riding){if(pdNow<30){const impact=Math.abs(v);v*=.35;if(impact>12&&wreck<=0){wreck=1.7;p=0;pw=0;wt=0;zt=0;cb=1;pop('POLICE COLLISION!','#f43f5e')}}y=gH(x,z)}
 else{walkSpeed=0;oy=gH(ox,oz);walker.g.position.set(ox,oy,oz)}
 q.d=Math.hypot((riding?x:ox)-q.x,(riding?z:oz)-q.z)
 }
@@ -436,7 +400,7 @@ if(wanted){
 chaseT+=dt;const md=Math.min(...cops.map(q=>q.d));
 if(cops.some(q=>q.d<mode.catch)&&(riding?y:oy)<2.1&&chaseT>2.5){
 const fine=Math.min(S.cash,Math.floor(100+Math.min(chaseT*18,700)));S.cash-=fine;
-pop('BUSTED! -$'+fine.toLocaleString(),'#ef4444');wanted=0;heat=0;v=0;p=0;pw=0;wheelieHold=0;if(!riding){riding=true;h=oh;walker.g.visible=false;camInit=true}copReset()
+pop('BUSTED! -$'+fine.toLocaleString(),'#ef4444');wanted=0;heat=0;v=0;p=0;pw=0;wheelieHold=0;copReset()
 }else if(md>mode.distance&&(pv>10||air)){
 escT+=dt;if(escT>mode.escape){const reward=Math.floor(200+Math.min(chaseT*15,800));earn(reward);
 pop('PURSUIT LOST +$'+reward.toLocaleString(),'#4ade80');wanted=0;heat=0;copReset()}
@@ -456,14 +420,11 @@ $('a11y-high-contrast').onchange=function(){S.accessibility.highContrast=!!this.
 $('st').onclick=openSettings;$('settings-close').onclick=closeSettings;
 function setBike(i){scene.remove(me.g);me=buildBike(BIKES[i],MYC);if(myTag)me.g.add(myTag);scene.add(me.g)}
 function vo(){if(gOpen&&innerWidth>700)cam.setViewOffset(innerWidth,innerHeight,-innerWidth*.2,0,innerWidth,innerHeight);else cam.clearViewOffset();cam.updateProjectionMatrix()}
-function tg(o){if(settingsOpen)return;if(o&&(!riding||wanted)){pop(!riding?'MOUNT YOUR BIKE FIRST':'LOSE THE COPS FIRST','#f87171');return}if(o)setMapExpanded(false);gOpen=o;G.style.display=o?'block':'none';if(o){gi=S.eq;rg();v=0;p=0;pw=0;wheelieHold=0;air=false;vy=0;y=gH(x,z)}else if(gi!==S.eq)setBike(S.eq);vo()}
+function tg(o){if(settingsOpen)return;if(o&&wanted){pop('LOSE THE COPS FIRST','#f87171');return}if(o)setMapExpanded(false);gOpen=o;G.style.display=o?'block':'none';if(o){gi=S.eq;rg();v=0;p=0;pw=0;wheelieHold=0;air=false;vy=0;y=gH(x,z)}else if(gi!==S.eq)setBike(S.eq);vo()}
 function rg(){let t=`<h2>GARAGE <span>$${Math.floor(S.cash).toLocaleString()}</span><button data-a="close">✕</button></h2><div class="grid">`;
 BIKE_ORDER.forEach(i=>{const b=BIKES[i],owned=S.own.includes(i);t+=`<div class="card${i===gi?' sel':''}" data-a="pv" data-i="${i}"><b>${b.n}</b><small>${owned?(i===S.eq?'EQUIPPED':'OWNED'):'$'+b.pr.toLocaleString()} · ${Math.round(b.maxMph*(units?1.609:1))} ${units?'KM/H':'MPH'}</small>${eff(i).map(q=>`<div class="bar"><i style="width:${Math.min(100,q*10)}%"></i></div>`).join('')}</div>`});
 const b=BIKES[gi],own=S.own.includes(gi),e=eff(gi),L=lv(gi),rarity=hackRarity(gi),hackCost=hackPrice(gi),canReroll=hackRank(gi)<HACK_RARITIES.length-1;t+=`</div><h3>${b.n} <small class="bike-spec">${Math.round(b.maxMph*(units?1.609:1))} ${units?'KM/H':'MPH'}</small></h3>`;
 t+=own?(gi===S.eq?'':'<button class="big" data-a="eq">EQUIP</button>'):`<button class="big" data-a="buy" ${S.cash<b.pr?'disabled':''}>BUY $${b.pr.toLocaleString()}</button>`;
-t+=`<h3>YOUR HOMES</h3><p class="gar-sub">Buy a place to live in — from a single-story house to a mansion — then get off your bike and explore the inside.</p><div class="grid">`;
-HOUSES.forEach(h=>{const owned=S.houses.includes(h.tier);t+=`<div class="card${owned?' sel':''}"><b>${h.n}</b><small>${owned?'OWNED':'$'+h.price.toLocaleString()}</small><span>${h.tag}</span>${owned?'':`<button data-a="buyhouse" data-v="${h.tier}" ${S.cash<h.price?'disabled':''}>BUY $${h.price.toLocaleString()}</button>`}</div>`});
-t+=`</div>`;
 SN.forEach((n,k)=>{const l=L[k],maxed=e[k]>=10||b.s[k]*(1+l*.015)>10;t+=`<div class="row"><span>${n}</span><div class="bar"><i style="width:${Math.min(100,e[k]*10)}%"></i></div><em>${maxed?'MAX':`Lv ${l}`}</em>${own&&!maxed&&l<10?`<button data-a="up" data-k="${k}" ${S.cash<cost(gi,l)?'disabled':''}>+1.5% · $${cost(gi,l).toLocaleString()}</button>`:`<button disabled>${maxed||l>=10?'MAX':'—'}</button>`}</div>`});
 const chosen=Number(S.suspension[gi]||0),mounted=Number(S.boostMount[gi]||0);
 t+=`<section class="mod-shop"><h3>MOD SHOP</h3><h4>SUSPENSION</h4><div class="mod-grid">`;
@@ -477,7 +438,6 @@ if(a==='close'){tg(false);return}
 if(a==='pv'){gi=+t.dataset.i;setBike(gi)}
 else if(a==='eq'){S.eq=gi;boostE=Number(S.boostMount[gi]||0)>0?100:0}
 else if(a==='buy'){const pr=BIKES[gi].pr;if(S.cash>=pr){S.cash-=pr;S.own.push(gi);S.eq=gi;boostE=Number(S.boostMount[gi]||0)>0?100:0}}
-else if(a==='buyhouse'){const h=HOUSES.find(q=>q.tier===+t.dataset.v);if(!h||S.houses.includes(h.tier))return;if(S.cash<h.price)return;S.cash-=h.price;S.houses.push(h.tier);save();rg();pop('HOME SECURED · '+h.n,'#4ade80')}
 else if(a==='up'){const k=Number(t.dataset.k);if(Number.isInteger(k)&&k>=0&&k<4){const l=lv(gi)[k],c=cost(gi,l);if(S.own.includes(gi)&&l<10&&BIKES[gi].s[k]*(1+l*.015)<=10&&S.cash>=c){S.cash-=c;lv(gi)[k]++}}}
 else if(a==='susp'){const i=+t.dataset.v;if(S.own.includes(gi)&&Number.isInteger(i)&&i>=0&&i<SUSPENSIONS.length){const price=modPrice(gi,SUSPENSIONS[i].price);if(S.cash>=price){S.cash-=price;S.suspension[gi]=i;frontSusp.comp=0;frontSusp.vel=0;rearSusp.comp=0;rearSusp.vel=0}}}
 else if(a==='mount'){const tier=+t.dataset.v,price=mountPrice(gi,tier)-(S.boostMount[gi]?mountPrice(gi,Number(S.boostMount[gi])):0);if(S.own.includes(gi)&&(tier===1||tier===2)&&tier>Number(S.boostMount[gi]||0)&&S.cash>=price){S.cash-=price;S.boostMount[gi]=tier;boostE=100}}
@@ -516,7 +476,7 @@ const forward=(k('KeyW')||k('ArrowUp')?1:0)-(k('KeyS')||k('ArrowDown')?1:0),side
 walkSpeed=mag?speed:0;const norm=mag||1;
 ox+=(Math.sin(oh)*forward+Math.cos(oh)*side)/norm*walkSpeed*dt;
 oz+=(Math.cos(oh)*forward-Math.sin(oh)*side)/norm*walkSpeed*dt;
-nbr(ox,oz,c=>{for(const q of c.cols)if(oy<=q.h&&Math.abs(ox-q.x)<q.hw+.3&&Math.abs(oz-q.z)<q.hd+.3){if(q.house&&S.houses.length>0)continue;const px=q.hw+.3-Math.abs(ox-q.x),pz=q.hd+.3-Math.abs(oz-q.z);if(px<pz)ox+=Math.sign(ox-q.x||1)*px;else oz+=Math.sign(oz-q.z||1)*pz}});
+nbr(ox,oz,c=>{for(const q of c.cols)if(oy<=q.h&&Math.abs(ox-q.x)<q.hw+.3&&Math.abs(oz-q.z)<q.hd+.3){const px=q.hw+.3-Math.abs(ox-q.x),pz=q.hd+.3-Math.abs(oz-q.z);if(px<pz)ox+=Math.sign(ox-q.x||1)*px;else oz+=Math.sign(oz-q.z||1)*pz}});
 oy=gH(ox,oz);walkCycle+=dt*walkSpeed*2.6;
 walker.g.position.set(ox,oy,oz);walker.g.rotation.y=oh;
 const gait=walkSpeed?Math.sin(walkCycle)*.55:0;walker.arms[0].rotation.x=gait;walker.arms[1].rotation.x=-gait;walker.legs[0].rotation.x=-gait;walker.legs[1].rotation.x=gait;
@@ -532,7 +492,7 @@ if(boosting)v+=(8+E[3]*1.3)*dt*(1-v/(vmax*1.1));
 if(pad>0&&hasBoost)v+=14*dt;
 if(v>vmax)v-=(v-vmax)*1.2*dt;
 v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br)v=0;
-if(br){if(v>.2){v-=16*dt;skid=v>6&&!air?1:0}else v=Math.max(-5,v-5*dt)}
+if(br){if(v>.2){v-=16*dt;skid=v>6&&!air?1:0}else v=Math.max(0,v-5*dt)}
 if(!Number.isFinite(v))v=0;
 const lift=Math.min(1,Math.abs(v)/5),wh=p>.1?1:0;
 const a=(thr*(.42+E[1]*.05)+pull*3.2+(boosting?.8:0))*lift-3.6*p-1.9*pw-br*8*(p>0?1:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
@@ -608,11 +568,9 @@ const hourF=Math.floor(tod),clockPhase=hourF<6||hourF>=20?'NIGHT':hourF<8?'DAWN'
 $('clock').textContent=`${String(hourF).padStart(2,'0')}:${String(Math.floor((tod-hourF)*60)).padStart(2,'0')} · ${clockPhase}`;
 $('combo').textContent=trick?`TRICK · ${trick==='handscrape'?'HAND SCRAPE':'TRICK'}`:(p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(wreck>0?'WIPEOUT!':''));
 $('sp').innerHTML=riding?Math.round(Math.abs(v)*(units?3.6:2.237))+` <small>${units?'KM/H':'MPH'}</small>`:`<small>ON FOOT · ${walkSpeed?'WALKING':'IDLE'}</small>`;
-$('mt').textContent=riding?'DISMOUNT':'MOUNT';
 $('bb').style.width=hasBoost?boostE+'%':'0%';$('boost-note').textContent=hasBoost?'BOOST [E] · tap speed for units':'NO BOOST MOUNT · MOD SHOP';
 $('net').textContent=online?`Connected: ${1+rem.size} rider${rem.size===1?'':'s'} online`:networkText;
 $('wanted').textContent=wanted?`🚨 ${'★'.repeat(wanted)}${'☆'.repeat(6-wanted)} · ${chaseT.toFixed(0)}s${escT>0?' · losing them':''}`:heat>.08?`🚔 POLICE ALERT ${Math.round(heat/1.35*100)}%`:'';
-const dbgEl=$('dbg');if(dbgEl)dbgEl.textContent=`r=${riding?'1':'0'} g=${gOpen?'1':'0'} s=${settingsOpen?'1':'0'} w=${wreck>0?'1':'0'} a=${air?'1':'0'} thr=${thr} br=${br} v=${v} E0=${E[0].toFixed(2)} E1=${E[1].toFixed(2)} p=${p.toFixed(2)} pw=${pw.toFixed(2)} dt=${dt.toFixed(3)} x=${x.toFixed(2)} z=${z.toFixed(2)} y=${y.toFixed(2)}`;
 $('sl').style.opacity=boosting?.9:Math.max(0,Math.min(.5,(Math.abs(v)-32)/40));
 pt+=dt;svT+=dt;if(svT>3){svT=0;save();if(gOpen)rg()}
 drawMM();drawWM(zw);
