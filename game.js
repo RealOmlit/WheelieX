@@ -381,7 +381,7 @@ if(!gOpen){
 const pxNow=riding?x:ox,pzNow=riding?z:oz,pyNow=riding?y:oy;
 for(const q of cops){if(!q.c.g.visible||Math.abs(pyNow-gH(q.x,q.z))>2)continue;
 const pdNow=Math.hypot(pxNow-q.x,pzNow-q.z);
-if(riding){if(pdNow<30){const impact=Math.abs(v);v*=.35;if(impact>12&&wreck<=0){wreck=1.7;p=0;pw=0;wt=0;zt=0;cb=1;pop('POLICE COLLISION!','#f43f5e')}}y=gH(x,z)}
+if(riding){if(pdNow<2.5){const impact=Math.abs(v);v*=.35;if(impact>12&&wreck<=0){wreck=1.7;p=0;pw=0;wt=0;zt=0;cb=1;pop('POLICE COLLISION!','#f43f5e')}}y=gH(x,z)}
 else{walkSpeed=0;oy=gH(ox,oz);walker.g.position.set(ox,oy,oz)}
 q.d=Math.hypot((riding?x:ox)-q.x,(riding?z:oz)-q.z)
 }
