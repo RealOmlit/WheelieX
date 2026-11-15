@@ -497,7 +497,7 @@ if(!Number.isFinite(v))v=0;
 const lift=Math.min(1,Math.abs(v)/5),wh=p>.1?1:0;
 const a=(pull*3.2+(boosting?.8:0))*lift-3.6*p-1.9*pw-br*8*(p>0?1:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
 pw+=a*dt;const prevP=p;p+=pw*dt;if(p<0){p=0;pw=Math.max(0,pw)}
-if(prevP>0&&p<=0){const imp=Math.min(12,Math.abs(v)*0.6);frontSusp.comp=Math.max(frontSusp.comp,Math.min(kit.frontTravel,imp*.035));rearSusp.comp=Math.max(rearSusp.comp,Math.min(kit.rearTravel,imp*.03));frontSusp.vel=Math.max(frontSusp.vel,Math.min(6,imp*.35));rearSusp.vel=Math.max(rearSusp.vel,Math.min(6,imp*.4))}
+if(prevP>0&&p<=0){const wheelieH=Math.max(0,prevP),imp=Math.min(12,Math.abs(v)*0.6);const fc=Math.min(kit.frontTravel,imp*.035+wheelieH*Math.max(0,kit.frontTravel)*.5),rc=Math.min(kit.rearTravel,imp*.03+wheelieH*Math.max(0,kit.rearTravel)*.5);frontSusp.comp=Math.max(frontSusp.comp,fc);rearSusp.comp=Math.max(rearSusp.comp,rc);frontSusp.vel=Math.max(frontSusp.vel,Math.min(6,imp*.35+wheelieH*1.5));rearSusp.vel=Math.max(rearSusp.vel,Math.min(6,imp*.4+wheelieH*1.5))}
 earn(dt*Math.max(0,v)*.12);
 if(p>.15){wt+=dt;if(Math.abs(p-.8)<zw)zt+=dt;else zt=Math.max(0,zt-dt*1.5);cb=Math.min(3,1+zt*.9);earn(dt*(6+6*p)*Math.floor(cb));if(p>1.22){sparks=1;earn(dt*30*Math.floor(cb))}}else{wt=0;zt=0;cb=1}
 if(pull&&p>.15)wheelieHold+=dt;else wheelieHold=Math.max(0,wheelieHold-dt*2.5);
