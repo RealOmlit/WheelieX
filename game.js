@@ -495,7 +495,7 @@ v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br)v=0;
 if(br){if(v>.2){v-=16*dt;if(v<0)v=0;skid=v>6&&!air?1:0}else v=Math.max(0,v-5*dt)}
 if(!Number.isFinite(v))v=0;
 const lift=Math.min(1,Math.abs(v)/5),wh=p>.1?1:0;
-const a=(thr*(.42+E[1]*.05)+pull*3.2+(boosting?.8:0))*lift-3.6*p-1.9*pw-br*8*(p>0?1:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
+const a=(pull*3.2+(boosting?.8:0))*lift-3.6*p-1.9*pw-br*8*(p>0?1:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
 pw+=a*dt;const prevP=p;p+=pw*dt;if(p<0){p=0;pw=Math.max(0,pw)}
 if(prevP>0&&p<=0){const imp=Math.min(12,Math.abs(v)*0.6);frontSusp.comp=Math.max(frontSusp.comp,Math.min(kit.frontTravel,imp*.035));rearSusp.comp=Math.max(rearSusp.comp,Math.min(kit.rearTravel,imp*.03));frontSusp.vel=Math.max(frontSusp.vel,Math.min(6,imp*.35));rearSusp.vel=Math.max(rearSusp.vel,Math.min(6,imp*.4))}
 earn(dt*Math.max(0,v)*.12);
