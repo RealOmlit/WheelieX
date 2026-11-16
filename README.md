@@ -1,4 +1,4 @@
-# Micro-Mobility Life
+# E-Ride Life
 
 A browser-based 3D electric bike stunt game. The Three.js scene, physics, HUD, synthesized motor audio, police chases, garage, progression, and MQTT multiplayer run directly in the browser. The static game has no build step or npm dependencies.
 
@@ -57,7 +57,7 @@ The bank balance readout in the HUD was restyled for a cleaner look.
 
 ## Multiplayer
 
-Enter a rider name before starting. Live riders communicate over an MQTT broker (`wss://broker.emqx.io:8084/mqtt`) on topic `<room>/s` (`micromobilitylife-ghpages-v1`). Players using the same game link meet in the same room. If the broker is unavailable, the game remains playable solo.
+Enter a rider name before starting. Live riders communicate over an MQTT broker (`wss://broker.emqx.io:8084/mqtt`) on topic `<room>/s` (`eridelife-ghpages-v1`). Players using the same game link meet in the same room. If the broker is unavailable, the game remains playable solo.
 
 ## Deploy to GitHub Pages
 
@@ -68,7 +68,7 @@ To publish this project to a new GitHub repository, run these commands from the 
 ```sh
 git init
 git add .
-git commit -m "Build Micro-Mobility Life browser game"
+git commit -m "Build E-Ride Life browser game"
 git branch -M main
 git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
 git push -u origin main

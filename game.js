@@ -307,7 +307,7 @@ else if(wheelie&&wzone===2){wheelieHold=Math.max(0,wheelieHold-1.2);cb=1;earn(30
 const earn=a=>{S.cash+=a};
 function pop(t,col){const d=document.createElement('div');d.className='pp';d.textContent=t;d.style.color=col||'#4ade80';d.style.marginLeft=((Math.random()-.5)*200-50)+'px';$('pop').appendChild(d);setTimeout(()=>d.remove(),1450)}
 /* ---------- multiplayer ---------- */
-const ROOM='micromobilitylife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),rem=new Map();let cli=null,online=false,networkText='Enter a name to connect';
+const ROOM='eridelife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),rem=new Map();let cli=null,online=false,networkText='Enter a name to connect';
 function connectOnline(){
 try{cli=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'ebl_'+ID,reconnectPeriod:4000,connectTimeout:8000,resubscribe:true});
 cli.on('connect',()=>{online=true;networkText='Connected · finding riders';cli.subscribe(ROOM+'/s',e=>{if(e){online=false;networkText='Offline · playing solo';console.error('MQTT subscribe failed:',e.message)}})});
