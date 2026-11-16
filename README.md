@@ -24,11 +24,22 @@ Open [http://localhost:8000](http://localhost:8000). Three.js, MQTT.js, and web 
 - Tap the speed readout to toggle kilometres per hour and miles per hour; the speedometer defaults to kilometres per hour.
 - Touch controls mirror throttle, brake, steer, suspension bounce, wheelie, ground touch, and boost.
 
+## Graphics quality
+
+The game ships four graphics presets — **Low**, **Medium**, **High**, and **Ultra** — selectable in the **Settings** dialog.
+
+- **Low (Maximum Performance):** 0.5x resolution scaling, antialiasing disabled, shadows disabled, 25% particle density, aggressive off-screen culling.
+- **Medium (Balanced Entry):** 1x resolution scaling, antialiasing on, low-resolution dynamic shadow maps (512x512), 50% particle density.
+- **High (Recommended Standard):** native devicePixelRatio capped at 1.5x, MSAA antialiasing, 1024px soft shadow maps, full particle density, extended draw distance.
+- **Ultra (Maximum Fidelity):** full native devicePixelRatio, high-resolution shadow maps (4096x4096), 150%+ particle density, maximum draw distance.
+
+Presets apply live and are remembered in the browser save file.
+
 ## Features
 
 - Procedurally generated 3D city with chunks, dirt off-road ramps, subtle road ripples, and boost pads parked along the sides of the road.
 - Full day/night cycle with shifting sun, sky, fog, and light; streetlamps on the sides of the road glow luminescently at night, with extra detail on poles, lenses, and road markings.
-- Six-star police chases with progressively slower escalation, bust and escape flow, plus helicopter, tank, and an escapable EMP lockdown at higher stars.
+- Escalating police chases with bust and escape flow, plus helicopter, tank, and an escapable EMP lockdown at the highest level.
 - Police vehicles are non-collidable: crashes still wreck the rider without getting them stuck.
 - Police difficulty settings from Easy to Death, plus accessibility options (reduced motion, larger interface text, high contrast).
 - Username-based live multiplayer over MQTT; play solo if the broker is unavailable.
@@ -40,7 +51,7 @@ Open [http://localhost:8000](http://localhost:8000). Three.js, MQTT.js, and web 
 
 ## Garage and progression
 
-Earn cash from riding, boosts, air time, and boost pads. The garage lists bikes in a clearer entry-to-performance progression, with prices reduced. Each performance upgrade adds 1.5% to its stat. The Mod Shop offers Factory, Trail, and Race setups for the telescopic front forks and rear coil-over, with smoother damping; Space pumps both, while bumps and landings actuate them independently. Install Street/Race boost mounts for 300%/400% of the bike price. ECU hack rolls cost at least $25,000 and keep the best rarity per bike: Common 50% (+5%), Uncommon 25% (+10%), Rare 15% (+20%), Epic 7% (+35%), Legendary 2.5% (+50%), Mythic 0.49% (+75%), and Secret 0.01% (all stats maxed). Hack rarity never installs a boost mount.
+Earn cash from riding, boosts, air time, and boost pads. The garage lists bikes in order from least money to most. Each performance upgrade adds 1.5% to its stat. The garage's helmet shop sells different helmets riders can buy and equip. The Mod Shop offers Factory, Trail, and Race setups for the telescopic front forks and rear coil-over, with smoother damping; Space pumps both, while bumps and landings actuate them independently. Install Street/Race boost mounts for 300%/400% of the bike price. ECU hack rolls cost at least $25,000 and keep the best rarity per bike: Common 50% (+5%), Uncommon 25% (+10%), Rare 15% (+20%), Epic 7% (+35%), Legendary 2.5% (+50%), Mythic 0.49% (+75%), and Secret 0.01% (all stats maxed). Hack rarity never installs a boost mount.
 
 The bank balance readout in the HUD was restyled for a cleaner look.
 
