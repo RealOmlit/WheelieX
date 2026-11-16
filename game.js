@@ -71,11 +71,11 @@ const GFX={
 };
 let GFXP=S.graphics||'high';
 let composer=null;
-const R=new T.WebGLRenderer({canvas:cv,antialias:GFXS[GFXP].antialias});R.setPixelRatio(GFXS[GFXP].dpr);R.shadowMap.enabled=GFXS[GFXP].shadow;R.shadowMap.type=T.PCFSoftShadowMap;
+const R=new T.WebGLRenderer({canvas:cv,antialias:GFX[GFXP].antialias});R.setPixelRatio(GFX[GFXP].dpr);R.shadowMap.enabled=GFX[GFXP].shadow;R.shadowMap.type=T.PCFSoftShadowMap;
 const scene=new T.Scene();scene.fog=new T.Fog(0xbfdef2,90,230);
 const cam=new T.PerspectiveCamera(62,1,.1,2500);
 const hemi=new T.HemisphereLight(0xffffff,0x667755,1.0);scene.add(hemi);
-const sun=new T.DirectionalLight(0xfff2d8,2.2);sun.castShadow=GFXS[GFXP].shadow;sun.shadow.mapSize.set(GFXS[GFXP].shadowSize,GFXS[GFXP].shadowSize);const sc=sun.shadow.camera;sc.left=sc.bottom=-45;sc.right=sc.top=45;sc.far=250;scene.add(sun,sun.target);
+const sun=new T.DirectionalLight(0xfff2d8,2.2);sun.castShadow=GFX[GFXP].shadow;sun.shadow.mapSize.set(GFX[GFXP].shadowSize,GFX[GFXP].shadowSize);const sc=sun.shadow.camera;sc.left=sc.bottom=-45;sc.right=sc.top=45;sc.far=250;scene.add(sun,sun.target);
 const skyMaterial=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms:{daylight:{value:1}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform float daylight;varying vec3 p;void main(){float h=clamp(normalize(p).y,0.,1.);vec3 day=mix(vec3(.75,.87,.95),vec3(.18,.45,.85),pow(h,.55));vec3 night=mix(vec3(.015,.025,.06),vec3(.035,.07,.15),pow(h,.55));gl_FragColor=vec4(mix(night,day,daylight),1.);}'}),sky=new T.Mesh(new T.SphereGeometry(1000,16,12),skyMaterial);scene.add(sky);
 const mat=(c,o={})=>new T.MeshStandardMaterial({color:c,roughness:.5,metalness:.3,...o});
 const boxGeo=new T.BoxGeometry(1,1,1);
@@ -247,7 +247,7 @@ return c}
 function gH(x,z){const fade=roadFade(x);let h=roadBump(z)*fade;const a=Math.round(x/S_),b=Math.round(z/S_);gH.sl=roadSlope(z)*fade;gH.e=[0,1];
 for(let i=-1;i<2;i++)for(let j=-1;j<2;j++){const c=chunks.get((a+i)+','+(b+j));if(!c)continue;for(const q of c.ramps){const dx=x-q.x,dz=z-q.z,u=dx*q.co-dz*q.si,l=dx*q.si+dz*q.co;if(Math.abs(u)<q.L/2&&Math.abs(l)<q.w/2){const hh=(u+q.L/2)/q.L*q.H;if(hh>h){h=hh;gH.sl=q.H/q.L;gH.e=[q.co,-q.si]}}}}return h}
 function nbr(x,z,f){const a=Math.round(x/S_),b=Math.round(z/S_);for(let i=-1;i<2;i++)for(let j=-1;j<2;j++){const c=chunks.get((a+i)+','+(b+j));if(c)f(c)}}
-function loadChunks(x,z){const a=Math.round(x/S_),b=Math.round(z/S_);const lim=GFXS[GFXP].chunks;
+function loadChunks(x,z){const a=Math.round(x/S_),b=Math.round(z/S_);const lim=GFX[GFXP].chunks;
 for(let i=-lim;i<=lim;i++)for(let j=-lim;j<=lim;j++){const k=(a+i)+','+(b+j);if(!chunks.has(k)){const c=mkChunk(a+i,b+j);chunks.set(k,c);scene.add(c.g)}}
 for(const[k,c]of chunks)if(Math.abs(c.id[0]-a)>lim||Math.abs(c.id[1]-b)>lim){scene.remove(c.g);c.dis.forEach(q=>q.dispose());chunks.delete(k)}}
 /* ---------- particles ---------- */
@@ -257,7 +257,7 @@ pg.setAttribute('position',new T.BufferAttribute(pp,3));pg.setAttribute('color',
 const pts=new T.Points(pg,new T.PointsMaterial({size:.25,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending}));pts.frustumCulled=false;scene.add(pts);
 let pi=0;const emit=(p3,vx,vy,vz,l,r,g,b,gr)=>{const i=pi++%NP,q=pq[i];pp.set([p3.x,p3.y,p3.z],i*3);pc.set([r,g,b],i*3);q.l=l;q.v=[vx,vy,vz];q.g=gr};
 const stepP=dt=>{for(let i=0;i<NP;i++){const q=pq[i];if(q.l>0){q.l-=dt;q.v[1]-=q.g*dt;pp[i*3]+=q.v[0]*dt;pp[i*3+1]+=q.v[1]*dt;pp[i*3+2]+=q.v[2]*dt;if(q.l<=0)pp[i*3+1]=-999}}pg.attributes.position.needsUpdate=true;pg.attributes.color.needsUpdate=true};
-const applyGraphics=(p)=>{const g=GFXS[p]||GFXS.high;GFXP=p;R.setPixelRatio(g.dpr);R.antialias=g.antialias;R.shadowMap.enabled=g.shadow;R.shadowMap.type=T.PCFSoftShadowMap;sun.castShadow=g.shadow;sun.shadow.mapSize.set(g.shadowSize,g.shadowSize);R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();NP=Math.round(260*g.particles);if(g.post){if(!composer){const c=new T.EffectComposer(R);c.addPass(new T.RenderPass(scene,cam));if(g.ssaodist){const ssao=new T.SSAOPass(scene,cam,g.ssaodist);c.addPass(ssao)}if(g.bloom){const bloom=new T.UnrealBloomPass(new T.Vector2(innerWidth,innerHeight),1.4,6,g.bloomThreshold||0.9);c.addPass(bloom)}composer=c}}else if(composer){composer.dispose();composer=null}};
+const applyGraphics=(p)=>{const g=GFX[p]||GFX.high;GFXP=p;R.setPixelRatio(g.dpr);R.antialias=g.antialias;R.shadowMap.enabled=g.shadow;R.shadowMap.type=T.PCFSoftShadowMap;sun.castShadow=g.shadow;sun.shadow.mapSize.set(g.shadowSize,g.shadowSize);R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();NP=Math.round(260*g.particles);if(g.post){if(!composer){const c=new EffectComposer(R);c.addPass(new RenderPass(scene,cam));if(g.ssaodist){const ssao=new SSAOPass(scene,cam,g.ssaodist);c.addPass(ssao)}if(g.bloom){const bloom=new UnrealBloomPass(new T.Vector2(innerWidth,innerHeight),1.4,6,g.bloomThreshold||0.9);c.addPass(bloom)}composer=c}}else if(composer){composer.dispose();composer=null}};
 applyGraphics(GFXP);
 /* ---------- audio ---------- */
 let AC,mg,mo1,mo2,mgn,sir,sg,ng={},muted=false;
