@@ -532,9 +532,9 @@ if(prevP>0&&p<=0){const wheelieH=Math.max(0,prevP),imp=Math.min(12,Math.abs(v)*0
 earn(dt*Math.max(0,v)*.12);
 if(p>.15){wt+=dt;if(Math.abs(p-.8)<zw)zt+=dt;else zt=Math.max(0,zt-dt*1.5);cb=Math.min(3,1+zt*.9);earn(dt*(6+6*p)*Math.floor(cb));if(p>1.22){sparks=1;earn(dt*30*Math.floor(cb))}}else{wt=0;zt=0;cb=1}
 if(pull&&p>.15)wheelieHold+=dt;else wheelieHold=Math.max(0,wheelieHold-dt*2.5);
-if(wheelieHold>2.1&&wheelieHold-dt<=2.1)pop('EASE OFF THE WHEELIE!','#facc15');
-wzone=pull&&p>0?(wheelieHold>2.8?2:wheelieHold>2.1?1:0):0;
-if(p>1.45||wheelieHold>2.8){const heldTooLong=wheelieHold>2.8;wreck=1.7;wt=0;zt=0;cb=1;wheelieHold=0;pop(heldTooLong?'WHEELIE OVERHELD!':'WIPEOUT!','#f43f5e')}
+if(wheelieHold>3.0&&wheelieHold-dt<=3.0)pop('EASE OFF THE WHEELIE!','#facc15');
+wzone=pull&&p>0?(wheelieHold>3.8?2:wheelieHold>3.0?1:0):0;
+if(p>1.45||wheelieHold>3.8){const heldTooLong=wheelieHold>3.8;wreck=1.7;wt=0;zt=0;cb=1;wheelieHold=0;pop(heldTooLong?'WHEELIE OVERHELD!':'WIPEOUT!','#f43f5e')}
 if(trick){trickT+=dt;if(trickT>0.9){const pts=Math.round(60+Math.abs(v)*45);earn(pts);pop('HAND SCRAPE · +$'+pts,'#facc15');trick=null;cb=1}}
 h-=st*(1.9/(1+Math.abs(v)*.04))*(p>.2?.55+.05*E[2]:1)*Math.min(1,Math.abs(v)/3)*(v<0?-1:1)*dt;
 roll+=(st*.4*Math.min(1,Math.abs(v)/10)-roll)*Math.min(1,8*dt);
