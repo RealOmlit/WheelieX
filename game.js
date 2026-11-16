@@ -37,7 +37,12 @@ B('Sur-Ron Ultra Bee',32000,[9,9,7,8],0x1f2937,0x22d3ee,0x22d3ee,0x111111,.31,.1
 B('Sur-Ron Storm Bee',40000,[9,10,6,9],0x0f172a,0xf59e0b,0xf59e0b,0x111111,.32,.12,1.5,.28,.34,.62,.76,.16,1,68),
 B('Stark VARG 80 HP',55000,[10,10,8,10],0xdc2626,0x111111,0x666666,0x111111,.31,.12,1.5,.26,.34,.6,.76,.16,1,75),
 B('Volt City Scooter',450,[3,3,7,2],0x65a30d,0x111827,0xb0bec5,0x263238,.14,.07,.86,.2,.13,.55,0,.9,0,18,'scooter'),
-B('Volt Pro Scooter',1200,[5,5,8,4],0x0ea5e9,0x111827,0xcbd5e1,0x111827,.16,.08,.98,.22,.15,.62,0,1.05,0,25,'scooter')];
+B('Volt Pro Scooter',1200,[5,5,8,4],0x0ea5e9,0x111827,0xcbd5e1,0x111827,.16,.08,.98,.22,.15,.62,0,1.05,0,25,'scooter'),
+B('Segway Ninebot Max G30P',650,[2,2,6,2],0xe8eef2,0x22303c,0x9fb3c8,0x2c3a46,.11,.06,.8,.18,.12,.5,0,.85,0,19,'scooter'),
+B('Apollo Go',700,[2,2,6,2],0x16233a,0x33414e,0x7d8fa3,0x2a3540,.12,.05,.75,.16,.11,.45,0,.8,0,18,'scooter'),
+B('NAMI Burn-E',1500,[2,2,7,2],0x232323,0x4b5563,0x8d99a8,0x2b323c,.15,.07,.9,.2,.14,.5,0,.9,0,28,'scooter'),
+B('Dualtron Storm',2400,[3,3,7,2],0x1a1d21,0x4a5568,0x8b98aa,0x232a33,.16,.08,1.0,.24,.16,.55,0,.95,0,38,'scooter'),
+B('Kaabo Wolf King',3100,[3,3,8,2],0x101418,0x3f4753,0x6b7686,0x1d242c,.18,.09,1.05,.26,.18,.6,0,1.0,0,43,'scooter')];
 const HELMETS=[
  {n:'Street Helm',pr:300,color:0xf2f4e8,accent:0x2563eb,desc:'All-round urban shell'},
  {n:'Trail Helm',pr:900,color:0x20272a,accent:0x38bdf8,desc:'Rock-and-dirt protection'},
@@ -169,6 +174,7 @@ const seatTrim=new T.Mesh(new RoundedBoxGeometry(.25,.026,d.sl*.86,3,.012),A);se
 P.add(tb([-.32,hby,hz-.08],[.32,hby,hz-.08],.025,F));P.add(tb([0,hy,hz],[0,hby,hz-.08],.03,F));
 for(const side of [-1,1]){const grip=new T.Mesh(new T.CylinderGeometry(.04,.04,.16,10),rubber);grip.rotation.z=PI/2;grip.position.set(side*.34,hby,hz-.08);P.add(grip);
 const peg=new T.Mesh(new T.CylinderGeometry(.035,.035,.18,10),rubber);peg.rotation.z=PI/2;peg.position.set(side*.18,y0+.04,wb*.22);P.add(peg)}
+const hMat=new T.MeshBasicMaterial({map:hTex});const hScreen=new T.Mesh(new T.BoxGeometry(.2,.06,.12,hMat),hMat);hScreen.position.set(0,hby,hz-.02);P.add(hScreen);
 P.add(bx(.32,.28,.07,SM,0,hy+.12,hz+.14),bx(.12,.12,.08,M,0,hy+.12,hz+.19),bx(.13,.035,.02,A,0,hy+.08,hz+.235));
 const hl=new T.Mesh(new T.SphereGeometry(.07,10,8),new T.MeshBasicMaterial({color:0xffffee}));hl.position.set(0,hby-.06,hz+.08);P.add(hl);
 const tl=new T.Mesh(new T.BoxGeometry(.1,.05,.04),new T.MeshBasicMaterial({color:0xff2222}));tl.position.set(0,d.wr*1.2+.02,-.4);P.add(tl);
@@ -255,6 +261,7 @@ let NP=260,pp=new Float32Array(520*3),pc=new Float32Array(520*3),pq=Array.from({
 for(let i=0;i<520;i++){pp[i*3+1]=-999;pq[i]={l:0,v:[0,0,0],g:0}}
 pg.setAttribute('position',new T.BufferAttribute(pp,3));pg.setAttribute('color',new T.BufferAttribute(pc,3));
 const pts=new T.Points(pg,new T.PointsMaterial({size:.25,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending}));pts.frustumCulled=false;scene.add(pts);
+const hCanvas=document.createElement('canvas');hCanvas.width=256;hCanvas.height=64;const hCtx=hCanvas.getContext('2d');const hTex=new T.CanvasTexture(hCanvas);hTex.colorSpace=T.SRGBColorSpace;const hMat=new T.MeshBasicMaterial({map:hTex});
 let pi=0;const emit=(p3,vx,vy,vz,l,r,g,b,gr)=>{const i=pi++%NP,q=pq[i];pp.set([p3.x,p3.y,p3.z],i*3);pc.set([r,g,b],i*3);q.l=l;q.v=[vx,vy,vz];q.g=gr};
 const stepP=dt=>{for(let i=0;i<NP;i++){const q=pq[i];if(q.l>0){q.l-=dt;q.v[1]-=q.g*dt;pp[i*3]+=q.v[0]*dt;pp[i*3+1]+=q.v[1]*dt;pp[i*3+2]+=q.v[2]*dt;if(q.l<=0)pp[i*3+1]=-999}}pg.attributes.position.needsUpdate=true;pg.attributes.color.needsUpdate=true};
 const applyGraphics=(p)=>{const g=GFX[p]||GFX.high;GFXP=p;R.setPixelRatio(g.dpr);R.antialias=g.antialias;R.shadowMap.enabled=g.shadow;R.shadowMap.type=T.PCFSoftShadowMap;sun.castShadow=g.shadow;sun.shadow.mapSize.set(g.shadowSize,g.shadowSize);R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();NP=Math.round(260*g.particles);if(g.post){if(!composer){const c=new EffectComposer(R);c.addPass(new RenderPass(scene,cam));if(g.ssaodist){const ssao=new SSAOPass(scene,cam,g.ssaodist);c.addPass(ssao)}if(g.bloom){const bloom=new UnrealBloomPass(new T.Vector2(innerWidth,innerHeight),1.4,6,g.bloomThreshold||0.9);c.addPass(bloom)}composer=c}}else if(composer){composer.dispose();composer=null}};
@@ -300,7 +307,7 @@ else if(wheelie&&wzone===2){wheelieHold=Math.max(0,wheelieHold-1.2);cb=1;earn(30
 const earn=a=>{S.cash+=a};
 function pop(t,col){const d=document.createElement('div');d.className='pp';d.textContent=t;d.style.color=col||'#4ade80';d.style.marginLeft=((Math.random()-.5)*200-50)+'px';$('pop').appendChild(d);setTimeout(()=>d.remove(),1450)}
 /* ---------- multiplayer ---------- */
-const ROOM='ebikelife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),rem=new Map();let cli=null,online=false,networkText='Enter a name to connect';
+const ROOM='micromobilitylife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),rem=new Map();let cli=null,online=false,networkText='Enter a name to connect';
 function connectOnline(){
 try{cli=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'ebl_'+ID,reconnectPeriod:4000,connectTimeout:8000,resubscribe:true});
 cli.on('connect',()=>{online=true;networkText='Connected · finding riders';cli.subscribe(ROOM+'/s',e=>{if(e){online=false;networkText='Offline · playing solo';console.error('MQTT subscribe failed:',e.message)}})});
@@ -605,6 +612,7 @@ $('wanted').textContent=wanted?`🚨 WANTED · LEVEL ${wanted} · ${chaseT.toFix
 $('sl').style.opacity=boosting?.9:Math.max(0,Math.min(.5,(Math.abs(v)-32)/40));
 pt+=dt;svT+=dt;if(svT>3){svT=0;save();if(gOpen)rg()}
 drawMM();drawWM(zw);
+const htx=hCanvas.getContext('2d');htx.fillStyle='#05070c';htx.fillRect(0,0,256,64);htx.fillStyle='#8ff';htx.font='bold 12px monospace';htx.textAlign='center';htx.fillText('MM '+Math.round(Math.abs(v)*(S.units?3.6:2.237)),128,16);htx.fillStyle='#fff';htx.font='bold 11px monospace';htx.fillText('BAT '+Math.round(15+((tt*13)%70))+'%',128,30);htx.fillStyle='#ffd27a';htx.font='bold 11px monospace';htx.fillText(['ECO','DRIVE','SPORT'][(Math.floor(tt*0.5))%3],128,44);hTex.needsUpdate=true;
 if(composer){composer.render()}else{R.render(scene,cam)}}
 addEventListener('beforeunload',save);document.addEventListener('visibilitychange',save);
 requestAnimationFrame(loop);
