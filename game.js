@@ -19,7 +19,7 @@ delete S.overclock;
 delete S.hackedStats;
 S.policeDifficulty=['easy','medium','hard','insane','death'].includes(S.policeDifficulty)?S.policeDifficulty:'medium';
 S.graphics=['low','medium','high','ultra','4k'].includes(S.graphics)?S.graphics:'high';
-const acc=S.accessibility||{};if(!Number.isInteger(S.eq)||S.eq<0||S.eq>=BIKES.length)S.eq=0;if(!Array.isArray(S.own)||!S.own.includes(S.eq)){S.own=Array.isArray(S.own)?S.own.filter(i=>Number.isInteger(i)&&i>=0&&i<BIKES.length):[0];if(!S.own.includes(S.eq))S.own.push(S.eq)}if(!Number.isInteger(S.helmet)||S.helmet<0||S.helmet>=HELMETS.length)S.helmet=0;if(!Array.isArray(S.helmetOwn)||!S.helmetOwn.includes(S.helmet)){S.helmetOwn=Array.isArray(S.helmetOwn)?S.helmetOwn.filter(i=>Number.isInteger(i)&&i>=0&&i<HELMETS.length):[0];if(!S.helmetOwn.includes(S.helmet))S.helmetOwn.push(S.helmet)}if(typeof S.up!=='object'||!S.up)S.up={};document.body.classList.toggle('a11y-reduced-motion',!!acc.reducedMotion);
+const acc=S.accessibility||{};if(typeof S.up!=='object'||!S.up)S.up={};document.body.classList.toggle('a11y-reduced-motion',!!acc.reducedMotion);
 document.body.classList.toggle('a11y-large-text',!!acc.largeText);
 document.body.classList.toggle('a11y-high-contrast',!!acc.highContrast);
 const save=()=>{try{localStorage.setItem('ebl1',JSON.stringify(S));localStorage.setItem('ebl1-lb',JSON.stringify(LB))}catch(e){}};
@@ -56,6 +56,8 @@ const HELMETS=[
  {n:'Police Helm',pr:3500,color:0xe8edf0,accent:0x152334,desc:'Enforcement ballistic shell'}];
 /* Bike indices are stored in saves; this only changes the garage's display order. */
 const BIKE_ORDER=BIKES.map((b,i)=>i).sort((a,b)=>BIKES[a].pr-BIKES[b].pr);
+/* Saved bike/helmet indices are validated here: BIKES and HELMETS must exist first. */
+if(!Number.isInteger(S.eq)||S.eq<0||S.eq>=BIKES.length)S.eq=0;if(!Array.isArray(S.own)||!S.own.includes(S.eq)){S.own=Array.isArray(S.own)?S.own.filter(i=>Number.isInteger(i)&&i>=0&&i<BIKES.length):[0];if(!S.own.includes(S.eq))S.own.push(S.eq)}if(!Number.isInteger(S.helmet)||S.helmet<0||S.helmet>=HELMETS.length)S.helmet=0;if(!Array.isArray(S.helmetOwn)||!S.helmetOwn.includes(S.helmet)){S.helmetOwn=Array.isArray(S.helmetOwn)?S.helmetOwn.filter(i=>Number.isInteger(i)&&i>=0&&i<HELMETS.length):[0];if(!S.helmetOwn.includes(S.helmet))S.helmetOwn.push(S.helmet)}
 const SUSPENSIONS=[
 {n:'Factory',travel:.16,frontTravel:.16,rearTravel:.15,frontSpring:60,frontDamping:12,rearSpring:68,rearDamping:13,price:0},
 {n:'Trail long-travel',travel:.34,frontTravel:.36,rearTravel:.32,frontSpring:42,frontDamping:10,rearSpring:50,rearDamping:11,price:.18},
@@ -390,9 +392,9 @@ add(new T.Mesh(new T.SphereGeometry(.16,10,8),lampM),sx*.9,6.84,z,1);
 add(new T.Mesh(new T.SphereGeometry(.09,8,6),lensM),sx*.9,6.87,z,1);
 const halo=new T.Mesh(lampGlowGeo,streetGlowM);add(halo,sx*.9,6.84,z,0,1);
 const light=new T.PointLight(0xffc777,0,30,2);light.position.set(sx*.9,6.9,z);g.add(light);c.lights.push(light)
-col(sx,z,.5,.5,7.5)}));
+col(sx,z,.5,.5,7.5);
 if(z===0){const tlGeo=new T.CylinderGeometry(.07,.07,2.4,8);tlGeo.translate(0,1.2,0);const tlBase=new T.Mesh(new T.CylinderGeometry(.12,.12,.5,8),poleM);tlBase.position.set(sx*.9,.25,z);g.add(tlBase);const tlPole=new T.Mesh(tlGeo,poleM);tlPole.position.set(sx*.9,1.2,z);g.add(tlPole);const tlBox=new T.Mesh(new T.BoxGeometry(.26,.56,.14),mat(0x111111));tlBox.position.set(sx*.9+0.15,4.2,z);g.add(tlBox);const tlLight=new T.Mesh(new T.SphereGeometry(.12,8,8),tlGrnM);tlLight.position.set(sx*.9+0.15,4.2,z);tlLight.userData={tl:true,idx:c.tls.push({m:tlLight,red:tlRedM,grn:tlGrnM,yel:tlYelM})-1};tlIntersections.push({x:ox+sx*.9+0.15,z:oz+z});g.add(tlLight)
-if(z===0&&Math.abs(sx)>10){const ped=buildWalker();ped.g.position.set(sx*.9,0,z);ped.g.visible=true;scene.add(ped.g);c.peds.push({g:ped.g,x:sx*.9,z:oz+z,phase:r()*6.28,w:0})}}
+if(z===0&&Math.abs(sx)>10){const ped=buildWalker();ped.g.position.set(sx*.9,0,z);ped.g.visible=true;scene.add(ped.g);c.peds.push({g:ped.g,x:sx*.9,z:oz+z,phase:r()*6.28,w:0})}}}));
 for(let z=-39;z<=39;z+=6){for(const sx of [-13.5,13.5])add(bx(2.7,.01,.04,seamM,sx,.205,z),sx,.205,z);
 for(const sx of [-10.8,10.8])add(bx(.12,.025,.2,roadStudM,sx,roadBump(z)*roadFade(sx)+.012,z),sx,roadBump(z)*roadFade(sx)+.012,z)}
 if(r()<.4){const side=r()<.5?-1:1,x=side*(13.2+(r()-.5)*2.4),z=(r()-.5)*60;add(new T.Mesh(padGeo,padM),x,roadBump(z)*roadFade(x)+.015,z);c.pads.push({x:ox+x,z:oz+z})}}
@@ -422,13 +424,13 @@ const applyGraphics=(p)=>{const g=GFX[p]||GFX.high;GFXP=p;R.setPixelRatio(p==='4
 try{applyGraphics(GFXP);}catch(e){console.error('applyGraphics failed:',e)}
 /* ---------- audio ---------- */
 let AC,mg,mo1,mo2,mgn,sir,sg,ng={},muted=false;
-function ainit(){if(AC){AC.resume();return}try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return}}
+function ainit(){if(AC){AC.resume();return}try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return}
 try{mg=AC.createGain();mg.gain.value=muted?0:.5;mg.connect(AC.destination);
 mo1=AC.createOscillator();mo1.type='sawtooth';mo2=AC.createOscillator();mo2.type='sine';const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=1600;mgn=AC.createGain();mgn.gain.value=0;
 mo1.connect(f);mo2.connect(f);f.connect(mgn);mgn.connect(mg);mo1.start();mo2.start();
 const nb=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
 const ns=(t,fr,q)=>{const s=AC.createBufferSource();s.buffer=nb;s.loop=true;const fl=AC.createBiquadFilter();fl.type=t;fl.frequency.value=fr;fl.Q.value=q;const g=AC.createGain();g.gain.value=0;s.connect(fl);fl.connect(g);g.connect(mg);s.start();return g};
-ng.scr=ns('bandpass',1700,3);ng.spk=ns('highpass',5000,1);ng.bst=ns('bandpass',600,.6);sir=AC.createOscillator();sir.type='triangle';sg=AC.createGain();sg.gain.value=0;sir.connect(sg);sg.connect(mg);sir.start()}catch(e){console.error('audio init failed:',e)}
+ng.scr=ns('bandpass',1700,3);ng.spk=ns('highpass',5000,1);ng.bst=ns('bandpass',600,.6);sir=AC.createOscillator();sir.type='triangle';sg=AC.createGain();sg.gain.value=0;sir.connect(sg);sg.connect(mg);sir.start()}catch(e){console.error('audio init failed:',e)}}
 addEventListener('pointerdown',ainit);addEventListener('keydown',ainit);
 $('bm').onclick=()=>{muted=!muted;$('bm').textContent=muted?'🔇':'🔊';if(mg)mg.gain.value=muted?0:.5};
 /* ---------- input ---------- */
@@ -436,7 +438,6 @@ const keys={};let joined=false,riderName='',riding=true,lbOpen=false;addEventLis
 addEventListener('keyup',e=>keys[e.code]=0);addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
 document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{if(k==='KeyF')tryGroundTouch();else{if(k==='Space'&&!keys[k]&&joined&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;keys[k]=1}e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0))});
 /* ---------- state ---------- */
-try{
 const MYC=new T.Color().setHSL(Math.random(),.8,.5).getHex();
 let tlPhase=0,tlState='green';const TL_CYCLE=5.5;const tlIntersections=[];
 let me;try{me=buildBike(BIKES[S.eq],MYC,HELMETS[S.helmet]?.color||0x20272a,true);}catch(e){console.error('buildBike failed:',e);try{me=buildBike(BIKES[0],MYC,0x20272a,true);}catch(e2){console.error('buildBike bike 0 failed:',e2);me={g:new T.Group()};}}scene.add(me.g);let myTag=null;
@@ -492,8 +493,7 @@ Object.assign(r,{tx:d.x,ty:d.y,tz:d.z,th:d.h,tp:d.on?0:d.p,tr:d.on?0:d.r,tv:d.on
 }catch(e){online=false;console.error('MQTT connection failed:',e&&e.message||e);networkText='Offline · trying another relay…';queueFailover()}
 }
 const nameInput=$('rider-name');
-try{nameInput.value=localStorage.getItem('wheeliex-name')||''}catch(e){}}
-catch(e){console.error('game init failed:',e);const d=document.createElement('div');d.style.cssText='position:fixed;top:10px;left:10px;right:10px;background:#ff4444;color:#fff;padding:10px;z-index:10000;font-family:monospace;font-size:12px;max-height:200px;overflow:auto';d.textContent='Game init error: '+e.message;document.body.appendChild(d);}
+try{nameInput.value=localStorage.getItem('wheeliex-name')||''}catch(e){}
 $('join-form').addEventListener('submit',e=>{e.preventDefault();riderName=nameInput.value.trim().slice(0,16);
 if(riderName.length<2){nameInput.setCustomValidity('Enter at least 2 characters.');nameInput.reportValidity();return}
 nameInput.setCustomValidity('');joined=true;for(const key in keys)keys[key]=0;try{myTag=tag(riderName,'#c0f56a','v'+VERSION,'#a3e635');me.g.add(myTag);walkerTag=tag(riderName,'#c0f56a');walkerTag.position.y=2.15;walkerTag.scale.set(2,.5,1);walker.g.add(walkerTag);}catch(e){console.error('join tag failed:',e)}$('join-screen').classList.add('hidden');
@@ -791,7 +791,7 @@ r.px+=(r.tpx-r.px)*kk;r.py+=(r.tpy-r.py)*kk;r.pz+=(r.tpz-r.pz)*kk;r.afp+=(r.tfp-
 /* network send */
 if(cli&&online&&joined&&now-netT>100){netT=now;try{cli.publish(ROOM+'/s',JSON.stringify({i:ID,n:riderName,ver:VERSION,x:+x.toFixed(2),y:+y.toFixed(2),z:+z.toFixed(2),h:+h.toFixed(3),p:+p.toFixed(3),r:+roll.toFixed(3),v:+v.toFixed(1),b:S.eq,c:MYC,on:!riding,px:+ox.toFixed(2),py:+oy.toFixed(2),pz:+oz.toFixed(2),ph:+oh.toFixed(3),fp:air?+airFlip.toFixed(3):0,fr:air?+airRoll.toFixed(3):0,fc:+frontSusp.comp.toFixed(3),rc:+rearSusp.comp.toFixed(3),hm:S.helmet}),{qos:0})}catch(e){console.error('MQTT publish failed:',e)}}
 /* audio */
-if(AC){const t=AC.currentTime,sp=Math.abs(v),bs=boosting?1:0;mo1.frequency.setTargetAtTime(55+sp*6+bs*40,t,.05);mo2.frequency.setTargetAtTime(300+sp*26+bs*200,t,.05);
+if(AC&&mo1){const t=AC.currentTime,sp=Math.abs(v),bs=boosting?1:0;mo1.frequency.setTargetAtTime(55+sp*6+bs*40,t,.05);mo2.frequency.setTargetAtTime(300+sp*26+bs*200,t,.05);
 mgn.gain.setTargetAtTime(gOpen?.02:.04+.07*thr+Math.min(.04,sp*.001),t,.05);ng.scr.gain.setTargetAtTime(skid?.25:0,t,.05);ng.spk.gain.setTargetAtTime(sparks?.18:0,t,.03);ng.bst.gain.setTargetAtTime(bs?.22:0,t,.1);const nd=Math.min(...cops.map(q=>q.d));sir.frequency.setTargetAtTime(900+300*Math.sin(tt*7),t,.02);sg.gain.setTargetAtTime(wanted?.07*Math.max(.2,1-nd/200):0,t,.1)}
 /* HUD */
 if(S.cash!==undefined){$('cash-value').textContent='$'+Math.floor(S.cash).toLocaleString()}

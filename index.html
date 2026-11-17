@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js">
 <link rel="modulepreload" href="./game.js">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -201,7 +202,6 @@
 
 <!-- defer: MQTT no longer blocks the page, and still runs before game.js -->
 <script defer src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
-<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 <script id="game-module" type="module" src="./game.js"></script>
 </body>
 </html>
