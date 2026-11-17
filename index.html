@@ -75,6 +75,7 @@
 
 <canvas id="g" role="img" aria-label="Game view"></canvas><div id="sl"></div>
 <canvas id="mm" width="300" height="300" tabindex="0" role="button" aria-label="Expand player map" aria-expanded="false" title="Click to enlarge player map"></canvas>
+<button id="mm-zoom" type="button" aria-label="Cycle map zoom 1x, 2x or 5x out">1×</button>
 
 <div id="top" class="p">
   <div id="cash"><span class="cash-mark" aria-hidden="true">$</span><span><small>BANK BALANCE</small><strong id="cash-value">$0</strong></span></div>
@@ -127,7 +128,7 @@
   <p>Higher difficulty means faster police, earlier detection and longer escapes.</p>
   <label for="graphics-quality">GRAPHICS QUALITY</label>
   <select id="graphics-quality">
-    <option value="low">Low · Maximum performance</option><option value="medium">Medium · Balanced entry</option><option value="high">High · Recommended standard</option><option value="ultra">Ultra · Maximum fidelity</option><option value="4k">4K · Native 2160p render</option>
+    <option value="low">Low · Maximum performance</option><option value="high">High · Recommended standard</option>
   </select>
   <p id="graphics-quality-note">Tune resolution scaling, antialiasing, shadows, particles and draw distance. Changes apply live.</p>
   <fieldset class="accessibility">

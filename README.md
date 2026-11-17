@@ -26,13 +26,10 @@ Open [http://localhost:8000](http://localhost:8000). Three.js, MQTT.js, and web 
 
 ## Graphics quality
 
-The game ships five graphics presets — **Low**, **Medium**, **High**, **Ultra**, and **4K** — selectable in the **Settings** dialog.
+The game ships two graphics presets — **Low** and **High** — selectable in the **Settings** dialog.
 
 - **Low (Maximum Performance):** 0.5x resolution scaling, antialiasing disabled, shadows disabled, 25% particle density, aggressive off-screen culling.
-- **Medium (Balanced Entry):** 1x resolution scaling, antialiasing on, low-resolution dynamic shadow maps (512x512), 50% particle density.
-- **High (Recommended Standard):** native devicePixelRatio capped at 1.5x, MSAA antialiasing, 1024px soft shadow maps, full particle density, extended draw distance.
-- **Ultra (Maximum Fidelity):** full native devicePixelRatio, high-resolution shadow maps (4096x4096), 150%+ particle density, maximum draw distance.
-- **4K (Native 2160p):** renders 2160 scanlines internally regardless of window size (up to 3x pixel ratio), 4096x4096 shadows, SSAO and bloom, densest city props, and the sharpest texture sampling.
+- **High (Recommended Standard):** native devicePixelRatio capped at 1.5x, MSAA antialiasing, 2048px soft shadow maps, full particle density, bloom post-processing and extended draw distance.
 
 Every preset draws from the same 4K-ready procedural textures — road surface at 2048px, tyre tread and race plates at 4x their former resolution, and the handlebar telemetry screen at 512x128 — all sampled with up to 8x anisotropic filtering.
 
@@ -40,7 +37,8 @@ Presets apply live and are remembered in the browser save file.
 
 ## Features
 
-- Procedurally generated 3D city with chunks, dirt off-road ramps, subtle road ripples, and boost pads parked along the sides of the road.
+- Procedurally generated 3D city with chunks, dirt off-road trails and subtle road ripples.
+- Minimap with 1x, 2x and 5x zoom-out; riders farther than the map renders are pinned to the edge with an arrow and their name.
 - Full day/night cycle with shifting sun, sky, fog, and light; streetlamps on the sides of the road glow luminescently at night, with extra detail on poles, lenses, and road markings.
 - Escalating police chases with bust and escape flow, plus helicopter, tank, and an escapable EMP lockdown at the highest level.
 - Police vehicles are non-collidable: crashes still wreck the rider without getting them stuck.
@@ -60,7 +58,7 @@ The bank balance readout in the HUD was restyled for a cleaner look.
 
 ## Multiplayer
 
-Enter a rider name before starting. Live riders communicate over an MQTT broker on topic `<room>/s` (`eridelife-ghpages-v1`). Players using the same game link meet in the same room. The client tries the primary public relay first and falls back to alternate public relays if it is unreachable, then keeps retrying. If no relay is available, the game remains playable solo.
+Enter a rider name before starting. Live riders communicate over an MQTT broker on topic `<room>/s` (`eridelife-ghpages-v1`). Players using the same game link meet in the same room. The client tries the primary public relay first and falls back to alternate public relays if it is unreachable; once a relay has connected it reconnects to that same relay, so riders are not split across brokers. If no relay is available, the game remains playable solo.
 
 ## Deploy to GitHub Pages
 
