@@ -671,7 +671,7 @@ arc(0,1.6,'rgba(255,255,255,.25)');arc(.8-zw,.8+zw,'#22c55e');arc(1.22,1.6,'#ef4
 function resize(){R.setPixelRatio(GFXP==='4k'?fourKDpr():GFX[GFXP].dpr);if(composer)composer.setPixelRatio(R.getPixelRatio());R.setSize(innerWidth,innerHeight,false);if(composer)composer.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;vo()}addEventListener('resize',resize);resize();
 loadChunks(0,0);let last=performance.now();const tv=new T.Vector3();
 function loop(now){requestAnimationFrame(loop);const dt=settingsOpen?0:Math.min(.05,(now-last)/1000);last=now;tt+=dt;padCooldown=Math.max(0,padCooldown-dt);
-const k=c=>joined&&keys[c],bikeKey=c=>riding&&k(c),thr=bikeKey('KeyW')||bikeKey('ArrowUp')?1:0,br=bikeKey('KeyS')||bikeKey('ArrowDown')?1:0,st=((bikeKey('KeyD')||bikeKey('ArrowRight'))?1:0)-((bikeKey('KeyA')||bikeKey('ArrowLeft'))?1:0),pull=bikeKey('ShiftLeft')||bikeKey('ShiftRight')?1:0;
+const k=c=>joined&&keys[c],bikeKey=c=>riding&&k(c),thr=bikeKey('KeyW')||bikeKey('ArrowUp')?1:0,br=bikeKey('KeyS')||bikeKey('ArrowDown')?1:0,st=((bikeKey('KeyD')||bikeKey('ArrowRight'))?1:0)-((bikeKey('KeyA')||bikeKey('ArrowLeft'))?1:0),pull=bikeKey('ShiftLeft')||bikeKey('ShiftRight')?1:0,stoppyMan=pull&&br&&v>2,burnout=thr&&br&&Math.abs(v)<1.2;
 const mountTier=Number(S.boostMount[S.eq]||0),boostTier=mountTier,hasBoost=boostTier>0,bo=bikeKey('KeyE')&&hasBoost;
 const E=eff(S.eq),kit=SUSPENSIONS[Number(S.suspension[S.eq]||0)]||SUSPENSIONS[0],zw=.05+.007*E[2];let sparks=0,skid=0,frontLoad=0,rearLoad=0;
 if(bounceRequested){frontSusp.vel=Math.max(frontSusp.vel,1.6);rearSusp.vel=Math.max(rearSusp.vel,1.5);bounceRequested=false}
@@ -694,18 +694,20 @@ if(boosting){boostE=Math.max(0,boostE-dt*30/(.6+E[3]*.14));earn(dt*6)}else if(ha
 if(pad>0)pad-=dt;
 const bike=BIKES[S.eq],motorScale=1+Math.min(.45,Math.max(0,E[0]/bike.s[0]-1)*.2),vmax0=(bike.maxMph/2.237)*motorScale*(boosting?(boostTier>1?1.55:1.28):1)*(pad>0&&hasBoost?1.2:1);const vmax=Number.isFinite(vmax0)?vmax0:25;
 if(thr){
-  if(v<0)v+=(3+E[1]*.45)*1.4*dt;
+  if(burnout)v-=4*dt;
+  else if(v<0)v+=(3+E[1]*.45)*1.4*dt;
   else v+=(3+E[1]*.45)*(1-Math.max(0,v)/vmax)*dt*1.35;
 }
 if(boosting)v+=(8+E[3]*1.3)*dt*(1-v/(vmax*1.1));
 if(pad>0&&hasBoost)v+=14*dt;
 if(v>vmax)v-=(v-vmax)*1.2*dt;
-v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br)v=0;
-if(br){if(v>.2){v-=16*dt;if(v<0)v=0;skid=v>6&&!air?1:0}else{v-=2.6*dt;if(v<-.35*vmax)v=-.35*vmax;skid=0}}
+v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br&&!burnout)v=0;
+if(br){if(v>.2){v-=16*dt;if(v<0)v=0;skid=v>6&&!air?1:0}else{v-=2.6*dt;if(v<-.35*vmax)v=-.35*vmax;skid=burnout?1:0}}
 if(!Number.isFinite(v))v=0;
 const lift=Math.min(1,Math.abs(v)/5),wh=p>.1?1:0;
 const wheelieMult=1/(1+Math.log10(Math.max(1,bike.pr/2500))*0.3);
-const stoppy=br&&v>2.5&&p<=0.4?Math.min(1,v/18)*2.2:0;
+const stoppy=stoppyMan?2.2:(br&&v>2.5&&p<=0.4&&!stoppyMan?Math.min(1,v/18)*2.2:0);
+if(burnout){skid=1;sparks=1;if(Math.floor(tt*40)%3===0){emit(new T.Vector3(x-Math.sin(h)*me.wb*.5,me.wr*.9,z-Math.cos(h)*me.wb*.5),-Math.sin(h)*2+(Math.random()-0.5)*2,Math.random()*1.5+1,-Math.cos(h)*2+(Math.random()-0.5)*2,.35,.8,.8,.7,.15);earn(dt*8)}}
 const a=(pull&&v>0.5?(pull*3.2*wheelieMult+(boosting?.8:0))*lift:0)-3.6*p-1.9*pw-br*8*(p>0?1:0)-(stoppy>0?stoppy:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
 pw+=a*dt;const prevP=p;p+=pw*dt;
 if(p>2.2){p=2.2;pw=Math.min(0,pw)}
@@ -781,7 +783,7 @@ mgn.gain.setTargetAtTime(gOpen?.02:.04+.07*thr+Math.min(.04,sp*.001),t,.05);ng.s
 if(S.cash!==undefined){$('cash-value').textContent='$'+Math.floor(S.cash).toLocaleString()}
 const hourF=Math.floor(tod),clockPhase=hourF<6||hourF>=20?'NIGHT':hourF<8?'DAWN':hourF<18?'DAY':hourF<20?'DUSK':'NIGHT';
 $('clock').textContent=`${String(hourF).padStart(2,'0')}:${String(Math.floor((tod-hourF)*60)).padStart(2,'0')} · ${clockPhase}`;
-$('combo').textContent=trick?`TRICK · ${trick==='handscrape'?'HAND SCRAPE':'TRICK'}`:(p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(p<-.25&&wreck<=0?`STOPPY · front down`:(wreck>0?'WIPEOUT!':'')));
+$('combo').textContent=trick?`TRICK · ${trick==='handscrape'?'HAND SCRAPE':'TRICK'}`:(burnout?`BURNOUT · rear spinning`:(p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(p<-.25&&wreck<=0?`STOPPY · front down`:(wreck>0?'WIPEOUT!':''))));
 $('sp').innerHTML=riding?(v<-0.1?'REV ':'')+Math.round(Math.abs(v)*(units?3.6:2.237))+` <small>${units?'KM/H':'MPH'}</small>`:`<small>ON FOOT · ${walkSpeed?'WALKING':'IDLE'}</small>`;
 $('bb').style.width=hasBoost?boostE+'%':'0%';$('boost-note').textContent=hasBoost?'BOOST [E] · tap speed for units':'NO BOOST MOUNT · MOD SHOP';
 const stale=online?[...rem.values()].filter(r=>r.ver!==VERSION).length:0;
