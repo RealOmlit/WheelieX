@@ -438,8 +438,8 @@ document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.addEve
 /* ---------- state ---------- */
 const MYC=new T.Color().setHSL(Math.random(),.8,.5).getHex();
 let tlPhase=0,tlState='green';const TL_CYCLE=5.5;const tlIntersections=[];
-let me;try{me=buildBike(BIKES[S.eq],MYC,HELMETS[S.helmet]?.color||0x20272a,true);}catch(e){console.error('buildBike failed:',e);me=buildBike(BIKES[0],MYC,0x20272a,true);}scene.add(me.g);let myTag=null;
-const walker=buildWalker();scene.add(walker.g);walker.g.visible=false;let walkerTag=null;
+let me;try{me=buildBike(BIKES[S.eq],MYC,HELMETS[S.helmet]?.color||0x20272a,true);scene.add(me.g);}catch(e){console.error('buildBike failed:',e);me=buildBike(BIKES[0],MYC,0x20272a,true);scene.add(me.g);}let myTag=null;
+let walker;try{walker=buildWalker();scene.add(walker.g);walker.g.visible=false;}catch(e){console.error('buildWalker failed:',e);walker={g:new T.Group()};scene.add(walker.g);walker.g.visible=false;}let walkerTag=null;
 let x=0,y=0,z=0,h=0,v=0,p=0,pw=0,vy=0,air=false,wreck=0,boostE=0,boosting=false,zt=0,wt=0,cb=1,pad=0,padCooldown=0,airT=0,roll=0,lastGH=0,lastRd=0,tt=0,pt=0,units=S.units?1:0,svT=0,gOpen=false,settingsOpen=false,gi=S.eq,garTab='bikes',garPrice='all',ga=0,netT=0,camInit=true;
 let ox=1.2,oy=0,oz=0,oh=0,opitch=0,lookYaw=0,lookPitch=0,walkSpeed=0,walkCycle=0,bounceRequested=false;
 const frontSusp={comp:0,vel:0},rearSusp={comp:0,vel:0};
@@ -494,7 +494,7 @@ const nameInput=$('rider-name');
 try{nameInput.value=localStorage.getItem('wheeliex-name')||''}catch(e){}
 $('join-form').addEventListener('submit',e=>{e.preventDefault();riderName=nameInput.value.trim().slice(0,16);
 if(riderName.length<2){nameInput.setCustomValidity('Enter at least 2 characters.');nameInput.reportValidity();return}
-nameInput.setCustomValidity('');joined=true;for(const key in keys)keys[key]=0;myTag=tag(riderName,'#c0f56a','v'+VERSION,'#a3e635');me.g.add(myTag);walkerTag=tag(riderName,'#c0f56a');walkerTag.position.y=2.15;walkerTag.scale.set(2,.5,1);walker.g.add(walkerTag);$('join-screen').classList.add('hidden');
+nameInput.setCustomValidity('');joined=true;for(const key in keys)keys[key]=0;try{myTag=tag(riderName,'#c0f56a','v'+VERSION,'#a3e635');me.g.add(myTag);walkerTag=tag(riderName,'#c0f56a');walkerTag.position.y=2.15;walkerTag.scale.set(2,.5,1);walker.g.add(walkerTag);}catch(e){console.error('join tag failed:',e)}$('join-screen').classList.add('hidden');
 try{localStorage.setItem('wheeliex-name',riderName)}catch(e){}
 networkText='Connecting to riders…';$('net').textContent=networkText;connectOnline()});
 nameInput.addEventListener('input',()=>nameInput.setCustomValidity(''));addEventListener('online',()=>{if(joined&&!online){brokerIdx=0;connectOnline()}});
