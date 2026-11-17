@@ -60,7 +60,7 @@ The bank balance readout in the HUD was restyled for a cleaner look.
 
 ## Multiplayer
 
-Enter a rider name before starting. Live riders communicate over an MQTT broker (`wss://broker.emqx.io:8084/mqtt`) on topic `<room>/s` (`eridelife-ghpages-v1`). Players using the same game link meet in the same room. If the broker is unavailable, the game remains playable solo.
+Enter a rider name before starting. Live riders communicate over an MQTT broker on topic `<room>/s` (`eridelife-ghpages-v1`). Players using the same game link meet in the same room. The client tries the primary public relay first and falls back to alternate public relays if it is unreachable, then keeps retrying. If no relay is available, the game remains playable solo.
 
 ## Deploy to GitHub Pages
 
