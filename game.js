@@ -690,12 +690,15 @@ boosting=!!bo&&boostE>1;
 if(boosting){boostE=Math.max(0,boostE-dt*30/(.6+E[3]*.14));earn(dt*6)}else if(hasBoost)boostE=Math.min(100,boostE+dt*(5+E[3]*1.4));else boostE=0;
 if(pad>0)pad-=dt;
 const bike=BIKES[S.eq],motorScale=1+Math.min(.45,Math.max(0,E[0]/bike.s[0]-1)*.2),vmax0=(bike.maxMph/2.237)*motorScale*(boosting?(boostTier>1?1.55:1.28):1)*(pad>0&&hasBoost?1.2:1);const vmax=Number.isFinite(vmax0)?vmax0:25;
-if(thr)v+=(3+E[1]*.45)*(1-Math.max(0,v)/vmax)*dt*1.35;
+if(thr){
+  if(v<0)v+=(3+E[1]*.45)*1.4*dt;
+  else v+=(3+E[1]*.45)*(1-Math.max(0,v)/vmax)*dt*1.35;
+}
 if(boosting)v+=(8+E[3]*1.3)*dt*(1-v/(vmax*1.1));
 if(pad>0&&hasBoost)v+=14*dt;
 if(v>vmax)v-=(v-vmax)*1.2*dt;
 v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br)v=0;
-if(br){if(v>.2){v-=16*dt;if(v<0)v=0;skid=v>6&&!air?1:0}else v=Math.max(0,v-5*dt)}
+if(br){if(v>.2){v-=16*dt;if(v<0)v=0;skid=v>6&&!air?1:0}else{v-=2.6*dt;if(v<-.35*vmax)v=-.35*vmax;skid=0}}
 if(!Number.isFinite(v))v=0;
 const lift=Math.min(1,Math.abs(v)/5),wh=p>.1?1:0;
 const a=(pull*3.2+(boosting?.8:0))*lift-3.6*p-1.9*pw-br*8*(p>0?1:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
@@ -770,7 +773,7 @@ if(S.cash!==undefined){$('cash-value').textContent='$'+Math.floor(S.cash).toLoca
 const hourF=Math.floor(tod),clockPhase=hourF<6||hourF>=20?'NIGHT':hourF<8?'DAWN':hourF<18?'DAY':hourF<20?'DUSK':'NIGHT';
 $('clock').textContent=`${String(hourF).padStart(2,'0')}:${String(Math.floor((tod-hourF)*60)).padStart(2,'0')} · ${clockPhase}`;
 $('combo').textContent=trick?`TRICK · ${trick==='handscrape'?'HAND SCRAPE':'TRICK'}`:(p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(wreck>0?'WIPEOUT!':''));
-$('sp').innerHTML=riding?Math.round(Math.abs(v)*(units?3.6:2.237))+` <small>${units?'KM/H':'MPH'}</small>`:`<small>ON FOOT · ${walkSpeed?'WALKING':'IDLE'}</small>`;
+$('sp').innerHTML=riding?(v<-0.1?'REV ':'')+Math.round(Math.abs(v)*(units?3.6:2.237))+` <small>${units?'KM/H':'MPH'}</small>`:`<small>ON FOOT · ${walkSpeed?'WALKING':'IDLE'}</small>`;
 $('bb').style.width=hasBoost?boostE+'%':'0%';$('boost-note').textContent=hasBoost?'BOOST [E] · tap speed for units':'NO BOOST MOUNT · MOD SHOP';
 const stale=online?[...rem.values()].filter(r=>r.ver!==VERSION).length:0;
 $('net').textContent=online?`Connected: ${1+rem.size} rider${rem.size===1?'':'s'} online${stale?` · ${stale} on another version`:''}${rem.size?` · ${[...rem.values()].map(r=>r.n||'Rider').join(', ')}`:''}`:networkText;
