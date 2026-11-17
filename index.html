@@ -90,10 +90,13 @@
   <button id="st" type="button">⚙ Settings</button>
   <button id="bm" type="button" aria-label="Toggle sound">🔊</button>
 </div>
+<div id="lb" class="p hidden">
+  <h3>LEADERBOARD · TOP CASH</h3>
+  <div id="lb-list"></div>
+  <button id="lb-close" type="button">CLOSE</button>
+</div>
 
 <div id="pop" aria-live="polite"></div><canvas id="wm" width="240" height="130" aria-hidden="true"></canvas>
-
-<div id="br" class="p">
   <div id="sp"></div>
   <div class="bar"><i id="bb" style="width:0%"></i></div>
   <small id="boost-note">NO BOOST MOUNT · MOD SHOP</small>
@@ -164,6 +167,7 @@
   };
 
   const fail = (message) => {
+    if (done) return; // loading already dismissed — do not resurrect the screen (would reload-loop)
     clearTimeout(timer);
     clearInterval(phaseTimer);
     done = true;

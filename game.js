@@ -10,6 +10,8 @@ window.WheelieXLoading?.finish();
 const ls=$('loading-screen');if(ls){ls.classList.add('done');ls.classList.add('hidden');}
 /* ---------- save ---------- */
 let S;try{S=JSON.parse(localStorage.getItem('ebl1'))}catch(e){}
+let LB;try{LB=JSON.parse(localStorage.getItem('ebl1-lb'))}catch(e){}
+LB=LB||[];
 S=S||{cash:0,own:[0],eq:0,up:{},suspension:{},boostMount:{},hacks:{},helmetOwn:[0],helmet:0};S.suspension=S.suspension||{};S.boostMount=S.boostMount||{};S.hacks=S.hacks||[];S.helmetOwn=S.helmetOwn||[0];S.helmet=S.helmet==null?0:S.helmet;
 S.units=S.units==null?1:!!S.units;S.accessibility={reducedMotion:!!S.accessibility?.reducedMotion,largeText:!!S.accessibility?.largeText,highContrast:!!S.accessibility?.highContrast};
 const resetLegacyBoost=!!(S.overclock||S.hackedStats);
@@ -17,11 +19,10 @@ delete S.overclock;
 delete S.hackedStats;
 S.policeDifficulty=['easy','medium','hard','insane','death'].includes(S.policeDifficulty)?S.policeDifficulty:'medium';
 S.graphics=['low','medium','high','ultra','4k'].includes(S.graphics)?S.graphics:'high';
-const acc=S.accessibility||{};
-document.body.classList.toggle('a11y-reduced-motion',!!acc.reducedMotion);
+const acc=S.accessibility||{};if(!Number.isInteger(S.eq)||S.eq<0||S.eq>=BIKES.length)S.eq=0;if(!Array.isArray(S.own)||!S.own.includes(S.eq)){S.own=Array.isArray(S.own)?S.own.filter(i=>Number.isInteger(i)&&i>=0&&i<BIKES.length):[0];if(!S.own.includes(S.eq))S.own.push(S.eq)}if(!Number.isInteger(S.helmet)||S.helmet<0||S.helmet>=HELMETS.length)S.helmet=0;if(!Array.isArray(S.helmetOwn)||!S.helmetOwn.includes(S.helmet)){S.helmetOwn=Array.isArray(S.helmetOwn)?S.helmetOwn.filter(i=>Number.isInteger(i)&&i>=0&&i<HELMETS.length):[0];if(!S.helmetOwn.includes(S.helmet))S.helmetOwn.push(S.helmet)}document.body.classList.toggle('a11y-reduced-motion',!!acc.reducedMotion);
 document.body.classList.toggle('a11y-large-text',!!acc.largeText);
 document.body.classList.toggle('a11y-high-contrast',!!acc.highContrast);
-const save=()=>{try{localStorage.setItem('ebl1',JSON.stringify(S))}catch(e){}};
+const save=()=>{try{localStorage.setItem('ebl1',JSON.stringify(S));localStorage.setItem('ebl1-lb',JSON.stringify(LB))}catch(e){}};
 const verLabel=v=>v?'v'+v:'v?',verColor=v=>v===VERSION?'#a3e635':'#f87171';
 const verEl=$('ver');if(verEl)verEl.textContent='v'+VERSION;
 if(resetLegacyBoost)save();
@@ -431,13 +432,13 @@ ng.scr=ns('bandpass',1700,3);ng.spk=ns('highpass',5000,1);ng.bst=ns('bandpass',6
 addEventListener('pointerdown',ainit);addEventListener('keydown',ainit);
 $('bm').onclick=()=>{muted=!muted;$('bm').textContent=muted?'🔇':'🔊';if(mg)mg.gain.value=muted?0:.5};
 /* ---------- input ---------- */
-const keys={};let joined=false,riderName='',riding=true;addEventListener('keydown',e=>{if(settingsOpen){if(e.code==='Escape'){e.preventDefault();closeSettings()}return}keys[e.code]=1;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(joined&&e.code==='Space'&&!e.repeat&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;if(joined&&e.code==='KeyF'&&!e.repeat)tryGroundTouch();if(joined&&e.code==='KeyG'&&riding)tg(!gOpen);if(joined&&e.code==='Escape'&&gOpen)tg(false)});
+const keys={};let joined=false,riderName='',riding=true,lbOpen=false;addEventListener('keydown',e=>{if(settingsOpen){if(e.code==='Escape'){e.preventDefault();closeSettings()}return}keys[e.code]=1;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(joined&&e.code==='Space'&&!e.repeat&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;if(joined&&e.code==='KeyF'&&!e.repeat)tryGroundTouch();if(joined&&e.code==='KeyG'&&riding)tg(!gOpen);if(joined&&e.code==='Escape'&&gOpen)tg(false);if(e.code==='KeyL'){lbOpen=!lbOpen;$('lb').classList.toggle('hidden',!lbOpen);if(lbOpen){$('lb-list').innerHTML=LB.map((e,i)=>`<div style='padding:4px 0;border-bottom:1px solid #333'><span style='opacity:.7'>#${i+1}</span> <span style='float:right'>$${e.c.toLocaleString()}</span><div>${e.n}</div></div>`).join('')}});
 addEventListener('keyup',e=>keys[e.code]=0);addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
 document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{if(k==='KeyF')tryGroundTouch();else{if(k==='Space'&&!keys[k]&&joined&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;keys[k]=1}e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0))});
 /* ---------- state ---------- */
 const MYC=new T.Color().setHSL(Math.random(),.8,.5).getHex();
 let tlPhase=0,tlState='green';const TL_CYCLE=5.5;const tlIntersections=[];
-let me=buildBike(BIKES[S.eq],MYC,HELMETS[S.helmet]?.color||0x20272a,true);scene.add(me.g);let myTag=null;
+let me;try{me=buildBike(BIKES[S.eq],MYC,HELMETS[S.helmet]?.color||0x20272a,true);}catch(e){console.error('buildBike failed:',e);me=buildBike(BIKES[0],MYC,0x20272a,true);}scene.add(me.g);let myTag=null;
 const walker=buildWalker();scene.add(walker.g);walker.g.visible=false;let walkerTag=null;
 let x=0,y=0,z=0,h=0,v=0,p=0,pw=0,vy=0,air=false,wreck=0,boostE=0,boosting=false,zt=0,wt=0,cb=1,pad=0,padCooldown=0,airT=0,roll=0,lastGH=0,lastRd=0,tt=0,pt=0,units=S.units?1:0,svT=0,gOpen=false,settingsOpen=false,gi=S.eq,garTab='bikes',garPrice='all',ga=0,netT=0,camInit=true;
 let ox=1.2,oy=0,oz=0,oh=0,opitch=0,lookYaw=0,lookPitch=0,walkSpeed=0,walkCycle=0,bounceRequested=false;
@@ -458,7 +459,7 @@ const wheelie=!!(keys['ShiftLeft']||keys['ShiftRight'])&&p>0;
 if(wheelie&&wzone===1){if(trick==null){trick='handscrape';trickT=0;pop('HAND SCRAPE · F SCRAPE','#facc15')}}
 else if(wheelie&&wzone===2){wheelieHold=Math.max(0,wheelieHold-1.2);cb=1;earn(30);pop('SKILL · REACHED THE GROUND +$30','#4ade80')}
 }
-const earn=a=>{S.cash+=a};
+const earn=a=>{S.cash+=a;if(S.cash>0){LB.push({n:riderName||'Rider',c:Math.floor(S.cash)});LB.sort((a,b)=>b.c-a.c);if(LB.length>10)LB.length=10;save()}};
 function pop(t,col){const d=document.createElement('div');d.className='pp';d.textContent=t;d.style.color=col||'#4ade80';d.style.marginLeft=((Math.random()-.5)*200-50)+'px';$('pop').appendChild(d);setTimeout(()=>d.remove(),1450)}
 /* ---------- multiplayer ---------- */
 const ROOM='eridelife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),rem=new Map();let cli=null,online=false,networkText='Enter a name to connect',subbed=false;
@@ -619,7 +620,7 @@ gfxSelect.addEventListener('change',()=>{S.graphics=gfxSelect.value;save();apply
 $('a11y-reduced-motion').onchange=function(){S.accessibility.reducedMotion=!!this.checked;save();document.body.classList.toggle('a11y-reduced-motion',!!this.checked)};
 $('a11y-large-text').onchange=function(){S.accessibility.largeText=!!this.checked;save();document.body.classList.toggle('a11y-large-text',!!this.checked)};
 $('a11y-high-contrast').onchange=function(){S.accessibility.highContrast=!!this.checked;save();document.body.classList.toggle('a11y-high-contrast',!!this.checked)};
-$('st').onclick=openSettings;$('settings-close').onclick=closeSettings;
+$('st').onclick=openSettings;$('settings-close').onclick=closeSettings;$('lb-close').onclick=()=>{lbOpen=false;$('lb').classList.add('hidden')};
 function setBike(i){scene.remove(me.g);me=buildBike(BIKES[i],MYC,HELMETS[S.helmet]?.color||0x20272a,true);if(myTag)me.g.add(myTag);scene.add(me.g)}
 function vo(){if(gOpen&&innerWidth>700)cam.setViewOffset(innerWidth,innerHeight,-innerWidth*.2,0,innerWidth,innerHeight);else cam.clearViewOffset();cam.updateProjectionMatrix()}
 function tg(o){if(settingsOpen)return;if(o&&wanted){pop('LOSE THE COPS FIRST','#f87171');return}if(o)setMapExpanded(false);gOpen=o;G.style.display=o?'block':'none';if(o){gi=S.eq;rg();v=0;p=0;pw=0;wheelieHold=0;air=false;vy=0;y=gH(x,z)}else if(gi!==S.eq)setBike(S.eq);vo()}
