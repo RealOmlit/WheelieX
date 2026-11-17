@@ -5,7 +5,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { SSAOPass } from "three/addons/postprocessing/SSAOPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-const $=id=>document.getElementById(id),PI=Math.PI;
+const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.12';
 /* ---------- save ---------- */
 let S;try{S=JSON.parse(localStorage.getItem('ebl1'))}catch(e){}
 S=S||{cash:0,own:[0],eq:0,up:{},suspension:{},boostMount:{},hacks:{},helmetOwn:[0],helmet:0};S.suspension=S.suspension||{};S.boostMount=S.boostMount||{};S.hacks=S.hacks||[];S.helmetOwn=S.helmetOwn||[0];S.helmet=S.helmet==null?0:S.helmet;
@@ -20,6 +20,8 @@ document.body.classList.toggle('a11y-reduced-motion',!!acc.reducedMotion);
 document.body.classList.toggle('a11y-large-text',!!acc.largeText);
 document.body.classList.toggle('a11y-high-contrast',!!acc.highContrast);
 const save=()=>{try{localStorage.setItem('ebl1',JSON.stringify(S))}catch(e){}};
+const verLabel=v=>v?'v'+v:'v?',verColor=v=>v===VERSION?'#a3e635':'#f87171';
+const verEl=$('ver');if(verEl)verEl.textContent='v'+VERSION;
 if(resetLegacyBoost)save();
 /* ---------- bikes ---------- */
 const B=(n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph,kind='bike')=>({n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph,kind});
@@ -73,7 +75,7 @@ const GFX={
  low:{label:'Low',dpr:.5,antialias:false,shadow:false,shadowSize:256,particles:.25,chunks:1,post:false,parts:.5},
  medium:{label:'Medium',dpr:1,antialias:true,shadow:true,shadowSize:512,particles:.5,chunks:2,post:false,parts:1},
  high:{label:'High',dpr:Math.min(devicePixelRatio,1.5),antialias:true,shadow:true,shadowSize:1024,particles:1,chunks:3,post:true,bloom:true,parts:1.5},
- ultra:{label:'Ultra',dpr:devicePixelRatio,antialias:true,shadow:true,shadowSize:4096,particles:1.5,chunks:8,post:true,bloom:true,ssaodist:64,parts:2.5},
+ ultra:{label:'Ultra',dpr:devicePixelRatio,antialias:true,shadow:true,shadowSize:4096,particles:15,chunks:80,post:true,bloom:true,ssaodist:64,parts:10},
  '4k':{label:'4K',dpr:fourKDpr(),antialias:true,shadow:true,shadowSize:4096,particles:2,chunks:10,post:true,bloom:true,ssaodist:64,parts:3},
 };
 let GFXP=S.graphics||'high';
@@ -322,7 +324,7 @@ if(sc){
 }
 for(const [target,byMat] of bags){for(const [material,geos] of byMat){const merged=mergeGeometries(geos);geos.forEach(g=>g.dispose());if(!merged)continue;const mesh=new T.Mesh(merged,material);mesh.castShadow=true;mesh.receiveShadow=true;target.add(mesh)}}
 }
-function tag(txt,col){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.font='bold 60px system-ui';x.textAlign='center';x.fillStyle='rgba(0,0,0,.5)';x.fillRect(0,16,512,96);x.fillStyle=col;x.fillText(txt,256,86);const tx=new T.CanvasTexture(c);tx.anisotropy=aniso;const s=new T.Sprite(new T.SpriteMaterial({map:tx,depthTest:false}));s.scale.set(3,.75,1);s.position.y=2.4;s.renderOrder=9;return s}
+function tag(txt,col,sub,subCol){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.textAlign='center';x.fillStyle='rgba(0,0,0,.5)';x.fillRect(0,16,512,96);x.fillStyle=col;x.font=`bold ${sub?44:60}px system-ui`;x.fillText(txt,256,sub?66:86);if(sub){x.fillStyle=subCol||'#cbd5e1';x.font='bold 28px system-ui';x.fillText(sub,256,100)}const tx=new T.CanvasTexture(c);tx.anisotropy=aniso;const s=new T.Sprite(new T.SpriteMaterial({map:tx,depthTest:false}));s.scale.set(3,.75,1);s.position.y=2.4;s.renderOrder=9;return s}
 function pose(r,X,Y,Z,H,Ro,Pt,V,dt,frontCompression=0,rearCompression=0,trickRoll=0){frontCompression=Number.isFinite(frontCompression)?Math.max(-.06,Math.min(.36,frontCompression)):0;rearCompression=Number.isFinite(rearCompression)?Math.max(-.06,Math.min(.32,rearCompression)):0;r.g.position.set(X,Y+r.wr,Z);r.g.rotation.set(0,H,Ro);const bodyCompression=(frontCompression+rearCompression)*.5,suspensionPitch=Math.atan2(frontCompression-rearCompression,r.wb)*.45;r.P.rotation.set(-Pt+suspensionPitch,0,trickRoll);r.P.position.y=-bodyCompression;r.updateSuspension(frontCompression,rearCompression);
 const s=V*dt/r.wr;r.rw.rotation.x+=s;r.fw.rotation.x+=s}
 function buildWalker(color){
@@ -443,23 +445,24 @@ else if(wheelie&&wzone===2){wheelieHold=Math.max(0,wheelieHold-1.2);cb=1;earn(30
 const earn=a=>{S.cash+=a};
 function pop(t,col){const d=document.createElement('div');d.className='pp';d.textContent=t;d.style.color=col||'#4ade80';d.style.marginLeft=((Math.random()-.5)*200-50)+'px';$('pop').appendChild(d);setTimeout(()=>d.remove(),1450)}
 /* ---------- multiplayer ---------- */
-const ROOM='eridelife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),rem=new Map();let cli=null,online=false,networkText='Enter a name to connect';
+const ROOM='eridelife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),rem=new Map();let cli=null,online=false,networkText='Enter a name to connect',subbed=false;
 function connectOnline(){
-try{cli=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'ebl_'+ID,reconnectPeriod:4000,connectTimeout:8000,resubscribe:true});
-cli.on('connect',()=>{online=true;networkText='Connected · finding riders';cli.subscribe(ROOM+'/s',e=>{if(e){online=false;networkText='Offline · playing solo';console.error('MQTT subscribe failed:',e.message)}})});
-cli.on('reconnect',()=>{networkText='Reconnecting…'});cli.on('close',()=>{online=false;networkText='Offline · playing solo'});cli.on('offline',()=>{online=false;networkText='Offline · playing solo'});
+try{cli=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'ebl_'+ID,reconnectPeriod:4000,connectTimeout:10000,clean:true,keepalive:30,resubscribe:true});
+const sub=()=>{if(subbed||!cli)return;subbed=true;cli.subscribe(ROOM+'/s',e=>{if(e){subbed=false;networkText='Reconnecting to relay…';console.error('MQTT subscribe failed:',e.message)}})};
+cli.on('connect',()=>{online=true;networkText='Connected';sub()});
+cli.on('reconnect',()=>{networkText='Reconnecting…';sub()});cli.on('close',()=>{online=false;subbed=false;networkText='Offline · playing solo'});cli.on('offline',()=>{online=false;subbed=false;networkText='Offline · playing solo'});
 cli.on('error',e=>{online=false;networkText='Offline · playing solo';console.error('MQTT connection failed:',e&&e.message||e)});
 cli.on('message',(t,m)=>{try{const d=JSON.parse(m.toString());if(d.i===ID||!BIKES[d.b]||typeof d.i!=='string')return;let r=rem.get(d.i);
-if(!r){r={rig:null,b:-1,x:d.x,y:d.y,z:d.z,h:d.h,p:d.p,r:d.r,v:0,col:'#'+(d.c>>>0).toString(16).padStart(6,'0'),onFoot:false,px:d.px??d.x,py:d.py??d.y,pz:d.pz??d.z,ph:d.ph??d.h,tx:d.x,ty:d.y,tz:d.z,afp:0,afr:0,fc:0,rc:0,tfc:0,trc:0};r.tag=tag(d.n||'Rider','#fff');r.walker=buildWalker(d.c);r.walkerTag=tag(d.n||'Rider','#fff');r.walkerTag.position.y=2.15;r.walkerTag.scale.set(2,.5,1);r.walker.g.add(r.walkerTag);r.walker.g.visible=false;scene.add(r.walker.g);rem.set(d.i,r)}
+if(!r){r={rig:null,b:-1,x:d.x,y:d.y,z:d.z,h:d.h,p:d.p,r:d.r,v:0,col:'#'+(d.c>>>0).toString(16).padStart(6,'0'),ver:d.ver,onFoot:false,px:d.px??d.x,py:d.py??d.y,pz:d.pz??d.z,ph:d.ph??d.h,tx:d.x,ty:d.y,tz:d.z,afp:0,afr:0,fc:0,rc:0,tfc:0,trc:0};r.tag=tag(d.n||'Rider','#fff',verLabel(d.ver),verColor(d.ver));r.walker=buildWalker(d.c);r.walkerTag=tag(d.n||'Rider','#fff');r.walkerTag.position.y=2.15;r.walkerTag.scale.set(2,.5,1);r.walker.g.add(r.walkerTag);r.walker.g.visible=false;scene.add(r.walker.g);rem.set(d.i,r)}
 if(r.b!==d.b){if(r.rig)scene.remove(r.rig.g);r.rig=buildBike(BIKES[d.b],d.c,HELMETS[S.helmet]?.color||0x20272a);r.rig.g.add(r.tag);scene.add(r.rig.g);r.b=d.b}
-Object.assign(r,{tx:d.x,ty:d.y,tz:d.z,th:d.h,tp:d.on?0:d.p,tr:d.on?0:d.r,tv:d.on?0:d.v,tfp:d.fp||0,tfr:d.fr||0,tfc:Number.isFinite(d.fc)?d.fc:0,trc:Number.isFinite(d.rc)?d.rc:0,tpx:d.px??d.x,tpy:d.py??d.y,tpz:d.pz??d.z,tph:d.ph??d.h,onFoot:!!d.on,n:d.n,seen:performance.now()})}catch(e){console.error('Invalid rider update:',e)}})
+Object.assign(r,{tx:d.x,ty:d.y,tz:d.z,th:d.h,tp:d.on?0:d.p,tr:d.on?0:d.r,tv:d.on?0:d.v,tfp:d.fp||0,tfr:d.fr||0,tfc:Number.isFinite(d.fc)?d.fc:0,trc:Number.isFinite(d.rc)?d.rc:0,tpx:d.px??d.x,tpy:d.py??d.y,tpz:d.pz??d.z,tph:d.ph??d.h,onFoot:!!d.on,n:d.n,ver:d.ver,seen:performance.now()})}catch(e){console.error('Invalid rider update:',e)}})
 }catch(e){online=false;networkText='Offline · playing solo';console.error('MQTT connection failed:',e)}
 }
 const nameInput=$('rider-name');
 try{nameInput.value=localStorage.getItem('wheeliex-name')||''}catch(e){}
 $('join-form').addEventListener('submit',e=>{e.preventDefault();riderName=nameInput.value.trim().slice(0,16);
 if(riderName.length<2){nameInput.setCustomValidity('Enter at least 2 characters.');nameInput.reportValidity();return}
-nameInput.setCustomValidity('');joined=true;for(const key in keys)keys[key]=0;myTag=tag(riderName,'#c0f56a');me.g.add(myTag);walkerTag=tag(riderName,'#c0f56a');walkerTag.position.y=2.15;walkerTag.scale.set(2,.5,1);walker.g.add(walkerTag);$('join-screen').classList.add('hidden');
+nameInput.setCustomValidity('');joined=true;for(const key in keys)keys[key]=0;myTag=tag(riderName,'#c0f56a','v'+VERSION,'#a3e635');me.g.add(myTag);walkerTag=tag(riderName,'#c0f56a');walkerTag.position.y=2.15;walkerTag.scale.set(2,.5,1);walker.g.add(walkerTag);$('join-screen').classList.add('hidden');
 try{localStorage.setItem('wheeliex-name',riderName)}catch(e){}
 networkText='Connecting to riders…';$('net').textContent=networkText;connectOnline()});
 nameInput.addEventListener('input',()=>nameInput.setCustomValidity(''));
@@ -603,8 +606,8 @@ t+=`</div><h4>BOOST MOUNTS</h4><div class="mod-grid">`;
 for(let tier=1;tier<=2;tier++){const total=mountPrice(gi,tier),price=total-(mounted?mountPrice(gi,mounted):0),installed=mounted>=tier;t+=`<button class="mod-card${installed?' selected':''}" data-a="mount" data-v="${tier}" ${!own||installed||S.cash<price?'disabled':''}><b>${tier===1?'Street boost':'Race boost'}</b><small>${installed?'INSTALLED':`${mounted?'UPGRADE':'INSTALL'} · ${tier===1?'300%':'400%'} · $${price.toLocaleString()}`}</small><span>${tier===1?'Balanced assist':'Maximum boost output'}</span></button>`}
 t+=`</div><h4>ECU SOFTWARE</h4><div class="mod-card hack-card"><b>RANDOM RARITY HACK</b><small>CURRENT: ${rarity?`${rarity.name} · ${rarity.id==='secret'?'ALL STATS MAXED':`+${Math.round(rarity.boost*100)}%`}`:'NONE'} · $${hackCost.toLocaleString()} PER ROLL</small><div class="hack-odds">${HACK_RARITIES.map(r=>`<span style="--rarity:${r.color}">${r.name} <i>${r.chance}%</i> · ${r.id==='secret'?'MAX':`+${Math.round(r.boost*100)}%`}</span>`).join('')}</div><span>Best rarity is kept; failed or lower rolls cost the fee. Secret maxes all stats. Boost still requires a boost mount.</span><button data-a="hack" ${!own||!canReroll||S.cash<hackCost?'disabled':''}>${!canReroll?'SECRET MAXED':'ROLL HACK · $'+hackCost.toLocaleString()}</button></div></section><h3>HELMETS</h3><div class="mod-grid">`;
 HELMETS.forEach((h,i)=>{const owned=(S.helmetOwn||[]).includes(i),selected=i===S.helmet;
- if(owned)t+=`<button class="mod-card${selected?' selected':''}" data-a="eqhelmet" data-i="${i}"><b>${h.n}</b><small>${selected?'EQUIPPED':'EQUIP'}</small><span>${h.desc}</span></button>`;
- else t+=`<button class="mod-card" data-a="buyhelmet" data-i="${i}" ${S.cash<h.pr?'disabled':''}><b>${h.n}</b><small>BUY · $${h.pr.toLocaleString()}</small><span>${h.desc}</span></button>`});
+ if(owned)t+=`<button class="mod-card${selected?' selected':''}" data-a="eqhelmet" data-i="${i}"><i class="helmet-swatch" style="background:linear-gradient(145deg,#${h.color.toString(16).padStart(6,'0')},${h.accent.toString(16).padStart(6,'0')})"></i><b>${h.n}</b><small>${selected?'EQUIPPED':'EQUIP'}</small><span>${h.desc}</span></button>`;
+ else t+=`<button class="mod-card" data-a="buyhelmet" data-i="${i}" ${S.cash<h.pr?'disabled':''}><i class="helmet-swatch" style="background:linear-gradient(145deg,#${h.color.toString(16).padStart(6,'0')},${h.accent.toString(16).padStart(6,'0')})"></i><b>${h.n}</b><small>BUY · $${h.pr.toLocaleString()}</small><span>${h.desc}</span></button>`});
 t+=`</div>`;
 G.innerHTML=t}
 G.onclick=e=>{const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const a=t.dataset.a;
@@ -734,7 +737,7 @@ for(const[id,r]of rem){if(nowt-r.seen>4000){if(r.rig)scene.remove(r.rig.g);scene
 r.x+=(r.tx-r.x)*kk;r.y+=(r.ty-r.y)*kk;r.z+=(r.tz-r.z)*kk;r.p+=(r.tp-r.p)*kk;r.r+=(r.tr-r.r)*kk;r.v=r.tv;let d=r.th-r.h;d=Math.atan2(Math.sin(d),Math.cos(d));r.h+=d*kk;
 r.px+=(r.tpx-r.px)*kk;r.py+=(r.tpy-r.py)*kk;r.pz+=(r.tpz-r.pz)*kk;r.afp+=(r.tfp-r.afp)*kk;r.afr+=(r.tfr-r.afr)*kk;r.fc+=(r.tfc-r.fc)*kk;r.rc+=(r.trc-r.rc)*kk;let wd=r.tph-r.ph;wd=Math.atan2(Math.sin(wd),Math.cos(wd));r.ph+=wd*kk;r.walker.g.position.set(r.px,r.py,r.pz);r.walker.g.rotation.y=r.ph;r.walker.g.visible=r.onFoot;r.rig.g.visible=!r.onFoot;pose(r.rig,r.x,r.y,r.z,r.h,r.r,r.p+r.afp,r.v,dt,r.fc,r.rc,r.afr)}
 /* network send */
-if(cli&&online&&joined&&now-netT>100){netT=now;try{cli.publish(ROOM+'/s',JSON.stringify({i:ID,n:riderName,x:+x.toFixed(2),y:+y.toFixed(2),z:+z.toFixed(2),h:+h.toFixed(3),p:+p.toFixed(3),r:+roll.toFixed(3),v:+v.toFixed(1),b:S.eq,c:MYC,on:!riding,px:+ox.toFixed(2),py:+oy.toFixed(2),pz:+oz.toFixed(2),ph:+oh.toFixed(3),fp:air?+airFlip.toFixed(3):0,fr:air?+airRoll.toFixed(3):0,fc:+frontSusp.comp.toFixed(3),rc:+rearSusp.comp.toFixed(3)}),{qos:0})}catch(e){console.error('MQTT publish failed:',e)}}
+if(cli&&online&&joined&&now-netT>100){netT=now;try{cli.publish(ROOM+'/s',JSON.stringify({i:ID,n:riderName,ver:VERSION,x:+x.toFixed(2),y:+y.toFixed(2),z:+z.toFixed(2),h:+h.toFixed(3),p:+p.toFixed(3),r:+roll.toFixed(3),v:+v.toFixed(1),b:S.eq,c:MYC,on:!riding,px:+ox.toFixed(2),py:+oy.toFixed(2),pz:+oz.toFixed(2),ph:+oh.toFixed(3),fp:air?+airFlip.toFixed(3):0,fr:air?+airRoll.toFixed(3):0,fc:+frontSusp.comp.toFixed(3),rc:+rearSusp.comp.toFixed(3)}),{qos:0})}catch(e){console.error('MQTT publish failed:',e)}}
 /* audio */
 if(AC){const t=AC.currentTime,sp=Math.abs(v),bs=boosting?1:0;mo1.frequency.setTargetAtTime(55+sp*6+bs*40,t,.05);mo2.frequency.setTargetAtTime(300+sp*26+bs*200,t,.05);
 mgn.gain.setTargetAtTime(gOpen?.02:.04+.07*thr+Math.min(.04,sp*.001),t,.05);ng.scr.gain.setTargetAtTime(skid?.25:0,t,.05);ng.spk.gain.setTargetAtTime(sparks?.18:0,t,.03);ng.bst.gain.setTargetAtTime(bs?.22:0,t,.1);const nd=Math.min(...cops.map(q=>q.d));sir.frequency.setTargetAtTime(900+300*Math.sin(tt*7),t,.02);sg.gain.setTargetAtTime(wanted?.07*Math.max(.2,1-nd/200):0,t,.1)}
@@ -745,7 +748,8 @@ $('clock').textContent=`${String(hourF).padStart(2,'0')}:${String(Math.floor((to
 $('combo').textContent=trick?`TRICK · ${trick==='handscrape'?'HAND SCRAPE':'TRICK'}`:(p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(wreck>0?'WIPEOUT!':''));
 $('sp').innerHTML=riding?Math.round(Math.abs(v)*(units?3.6:2.237))+` <small>${units?'KM/H':'MPH'}</small>`:`<small>ON FOOT · ${walkSpeed?'WALKING':'IDLE'}</small>`;
 $('bb').style.width=hasBoost?boostE+'%':'0%';$('boost-note').textContent=hasBoost?'BOOST [E] · tap speed for units':'NO BOOST MOUNT · MOD SHOP';
-$('net').textContent=online?`Connected: ${1+rem.size} rider${rem.size===1?'':'s'} online`:networkText;
+const stale=online?[...rem.values()].filter(r=>r.ver!==VERSION).length:0;
+$('net').textContent=online?`Connected: ${1+rem.size} rider${rem.size===1?'':'s'} online${stale?` · ${stale} on another version`:''}${rem.size?` · ${[...rem.values()].map(r=>r.n||'Rider').join(', ')}`:''}`:networkText;
 $('wanted').textContent=wanted?`🚨 WANTED · LEVEL ${wanted} · ${chaseT.toFixed(0)}s${escT>0?' · losing them':''}`:heat>.08?`🚔 POLICE ALERT ${Math.round(heat/1.35*100)}%`:'';
 $('sl').style.opacity=boosting?.9:Math.max(0,Math.min(.5,(Math.abs(v)-32)/40));
 pt+=dt;svT+=dt;if(svT>3){svT=0;save();if(gOpen)rg()}

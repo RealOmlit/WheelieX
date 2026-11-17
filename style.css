@@ -12,7 +12,8 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
 #cash strong{display:block;margin-top:1px;color:#c0f56a;font:700 23px "DM Sans",sans-serif;font-variant-numeric:tabular-nums;text-shadow:0 0 16px #c0f56a55}
 #clock{color:#dbe7d4;font:500 10px "DM Mono",monospace;letter-spacing:1.1px}
 #combo{font-size:16px;color:#facc15;min-height:20px}
-#tr{top:10px;right:10px;text-align:right;max-width:230px}
+#tr{top:10px;right:10px;text-align:right;max-width:250px}
+#ver{display:inline-block;margin-bottom:6px;padding:2px 8px;border:1px solid rgba(192,245,106,.4);border-radius:999px;background:rgba(192,245,106,.08);color:#c0f56a;font:500 9px "DM Mono",monospace;letter-spacing:1.2px}
 button{font:inherit;color:#fff;background:#2563eb;border:0;border-radius:8px;padding:6px 10px;margin:4px 0 0 4px;cursor:pointer}
 button:disabled{opacity:.4;cursor:default}
 #br{bottom:14px;right:14px;width:190px;text-align:right}
@@ -53,6 +54,7 @@ h2{display:flex;justify-content:space-between;margin:0 0 10px}h2 span{color:#4ad
 #gar button.mod-card{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px;margin:0;padding:10px;border:1px solid #fff2;border-radius:7px;background:#ffffff0b;text-align:left;white-space:normal}
 #gar button.mod-card:hover:not(:disabled){border-color:#c0f56a88;background:#c0f56a12}
 #gar button.mod-card.selected{border-color:#c0f56a99;background:#c0f56a14}
+.helmet-swatch{display:block;width:16px;height:16px;border-radius:50%;border:2px solid #c0f56a88;box-shadow:0 0 8px #c0f56a33;background:linear-gradient(145deg,#f2f4e8,#2563eb)}
 #gar button.mod-card b{font-size:11px}
 #gar button.mod-card small{font-size:9px;color:#c0f56a}
 #gar button.mod-card span{font-size:9px;line-height:1.35;opacity:.72}
