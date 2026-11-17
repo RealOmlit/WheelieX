@@ -732,6 +732,7 @@ if(air){
 const flipInput=(k('KeyW')||k('ArrowUp')?1:0)-(k('KeyS')||k('ArrowDown')?1:0),rollInput=(k('KeyD')||k('ArrowRight')?1:0)-(k('KeyA')||k('ArrowLeft')?1:0);
 airFlip+=flipInput*6.2*dt;airRoll+=rollInput*7.2*dt;
 vy-=22*dt;y+=vy*dt;airT+=dt;
+if(airT>5){air=false;y=gh;vy=0;airT=0;airFlip=0;airRoll=0;pop('UNSTUCK · respawned','#facc15')}
 if(y<=gh){
 y=gh;air=false;const impact=Math.abs(vy);frontSusp.comp=Math.max(frontSusp.comp,Math.min(kit.frontTravel,impact*.035));rearSusp.comp=Math.max(rearSusp.comp,Math.min(kit.rearTravel,impact*.03));frontSusp.vel=Math.max(frontSusp.vel,Math.min(6,impact*.35));rearSusp.vel=Math.max(rearSusp.vel,Math.min(6,impact*.4));
 if(airT>.6){const b=Math.floor(airT*60);earn(b);pop('AIR TIME +$'+b,'#38bdf8')}
@@ -739,7 +740,7 @@ const phase=q=>Math.atan2(Math.sin(q),Math.cos(q)),flips=Math.floor(Math.abs(air
 if(failed){wreck=1.7;wt=0;zt=0;cb=1;pop('TRICK LANDING FAILED!','#f43f5e')}
 else if(flips||rolls){const reward=flips*180+rolls*160;earn(reward);const tricks=[];if(flips)tricks.push(`${flips}× ${airFlip>0?'BACKFLIP':'FRONTFLIP'}`);if(rolls)tricks.push(`${rolls}× BARREL ROLL`);pop(`${tricks.join(' + ')} +$${reward}`,'#facc15')}
 airT=0;vy=0;airFlip=0;airRoll=0
-}else if(y-gh>1)earn(dt*20)
+}else if(y-gh>1){air=true;vy=0;airFlip=0;airRoll=0;airT=0;earn(dt*20)}
 }
 else{if(lastGH>gh+.25&&v>3){airFlip=0;airRoll=0;air=true;vy=Math.max(0,lastRd*v);y=lastGH}else y=gh}
 lastGH=gh;lastRd=rd;
