@@ -29,25 +29,25 @@ if(resetLegacyBoost)save();
 /* ---------- bikes ---------- */
 const B=(n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph,kind='bike')=>({n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph,kind});
 const BIKES=[
-B('City E-Cruiser',0,[3,3,8,2],0x2563eb,0xdc2626,0xaaaaaa,0x222222,.31,.07,1.18,.32,.32,.6,.62,.22,0,25),
-B('Super73 RX Mojave',1200,[4,4,8,3],0x56603a,0xd9b97a,0x888888,0xc49a63,.255,.11,1.25,.28,.26,.95,.52,.45,0,28),
-B('Talaria XXX',3000,[5,5,7,4],0x111111,0x333333,0x555555,0x111111,.28,.09,1.3,.2,.3,.6,.7,.1,0,47),
-B('Sur-Ron Hyper Bee',4500,[5,6,7,4],0xef4444,0x111111,0xcccccc,0x111111,.23,.08,1.15,.2,.26,.5,.64,.12,0,34),
-B('Sur-Ron Light Bee X',7000,[6,6,7,5],0x1c1c1c,0xfacc15,0xfacc15,0x111111,.27,.09,1.28,.2,.28,.55,.66,.12,0,47),
-B('Talaria Sting R MX4',12000,[7,7,6,6],0x0ea5e9,0x111111,0xd4d4d8,0x111111,.29,.1,1.34,.22,.3,.55,.7,.14,1,55),
-B('E Ride Pro SS 2.0',16000,[8,8,6,7],0x7c3aed,0x111111,0xa78bfa,0x111111,.3,.11,1.32,.24,.3,.6,.66,.12,0,62),
-B('Segway X260',9500,[6,7,8,5],0xf5f5f5,0x111111,0x999999,0x222222,.29,.09,1.37,.24,.32,.62,.74,.15,1,46),
-B('CAKE Kalk INK',22000,[8,7,9,7],0xf8fafc,0x111111,0xdddddd,0x111111,.28,.08,1.33,.22,.3,.55,.68,.1,0,28),
-B('Sur-Ron Ultra Bee',32000,[9,9,7,8],0x1f2937,0x22d3ee,0x22d3ee,0x111111,.31,.11,1.4,.26,.32,.6,.72,.14,1,59),
-B('Sur-Ron Storm Bee',40000,[9,10,6,9],0x0f172a,0xf59e0b,0xf59e0b,0x111111,.32,.12,1.5,.28,.34,.62,.76,.16,1,68),
-B('Stark VARG 80 HP',55000,[10,10,8,10],0xdc2626,0x111111,0x666666,0x111111,.31,.12,1.5,.26,.34,.6,.76,.16,1,75),
-B('Volt City Scooter',450,[3,3,7,2],0x65a30d,0x111827,0xb0bec5,0x263238,.14,.07,.86,.2,.13,.55,0,.9,0,18,'scooter'),
-B('Volt Pro Scooter',1200,[5,5,8,4],0x0ea5e9,0x111827,0xcbd5e1,0x111827,.16,.08,.98,.22,.15,.62,0,1.05,0,25,'scooter'),
-B('Segway Ninebot Max G30P',650,[2,2,6,2],0xe8eef2,0x22303c,0x9fb3c8,0x2c3a46,.11,.06,.8,.18,.12,.5,0,.85,0,19,'scooter'),
-B('Apollo Go',700,[2,2,6,2],0x16233a,0x33414e,0x7d8fa3,0x2a3540,.12,.05,.75,.16,.11,.45,0,.8,0,18,'scooter'),
-B('NAMI Burn-E',1500,[2,2,7,2],0x232323,0x4b5563,0x8d99a8,0x2b323c,.15,.07,.9,.2,.14,.5,0,.9,0,28,'scooter'),
-B('Dualtron Storm',2400,[3,3,7,2],0x1a1d21,0x4a5568,0x8b98aa,0x232a33,.16,.08,1.0,.24,.16,.55,0,.95,0,38,'scooter'),
-B('Kaabo Wolf King',3100,[3,3,8,2],0x101418,0x3f4753,0x6b7686,0x1d242c,.18,.09,1.05,.26,.18,.6,0,1.0,0,43,'scooter')];
+B("City E-Cruiser",0,[3,3,8,2],2450411,14427686,11184810,2236962,0.31,0.07,1.18,0.32,0.32,0.6,0.62,0.22,0,25),
+B("Super73 RX Mojave",1200,[4,4,7,3],5660730,14268794,8947848,12884579,0.255,0.11,1.25,0.28,0.26,0.95,0.52,0.45,0,28),
+B("Talaria XXX",3000,[5,5,7,4],1118481,3355443,5592405,1118481,0.28,0.09,1.3,0.2,0.3,0.6,0.7,0.1,0,50),
+B("Sur-Ron Hyper Bee",4500,[3,4,8,3],15680580,1118481,13421772,1118481,0.23,0.08,1.15,0.2,0.26,0.5,0.64,0.12,0,40),
+B("Sur-Ron Light Bee X",7000,[6,6,7,5],1842204,16436245,16436245,1118481,0.27,0.09,1.28,0.2,0.28,0.55,0.66,0.12,0,47),
+B("Talaria Sting R MX4",12000,[7,7,6,6],959977,1118481,13948120,1118481,0.29,0.1,1.34,0.22,0.3,0.55,0.7,0.14,1,53),
+B("E Ride Pro SS 2.0",16000,[8,8,6,7],8141549,1118481,10980346,1118481,0.3,0.11,1.32,0.24,0.3,0.6,0.66,0.12,0,60),
+B("Segway X260",9500,[5,6,8,5],16119285,1118481,10066329,2236962,0.29,0.09,1.37,0.24,0.32,0.62,0.74,0.15,1,47),
+B("CAKE Kalk INK",22000,[7,6,9,7],16317180,1118481,14540253,1118481,0.28,0.08,1.33,0.22,0.3,0.55,0.68,0.1,0,50),
+B("Sur-Ron Ultra Bee",32000,[9,9,7,8],2042167,2282478,2282478,1118481,0.31,0.11,1.4,0.26,0.32,0.6,0.72,0.14,1,56),
+B("Sur-Ron Storm Bee",40000,[9,10,6,9],988970,16096779,16096779,1118481,0.32,0.12,1.5,0.28,0.34,0.62,0.76,0.16,1,68),
+B("Stark VARG 80 HP",55000,[10,10,8,10],14427686,1118481,6710886,1118481,0.31,0.12,1.5,0.26,0.34,0.6,0.76,0.16,1,80),
+B("KuKirin G2 Pro",450,[3,3,7,2],6660877,1120295,11583173,2503224,0.14,0.07,0.86,0.2,0.13,0.55,0,0.9,0,28,'scooter'),
+B("KuKirin G3 Pro",1200,[5,5,8,4],959977,1120295,13358561,1120295,0.16,0.08,0.98,0.22,0.15,0.62,0,1.05,0,40,'scooter'),
+B("Segway Ninebot Max G30P",650,[2,2,6,2],15265522,2240572,10466248,2898502,0.11,0.06,0.8,0.18,0.12,0.5,0,0.85,0,19,'scooter'),
+B("Apollo Go",700,[3,3,7,3],1450810,3359054,8228771,2766144,0.12,0.05,0.75,0.16,0.11,0.45,0,0.8,0,28,'scooter'),
+B("NAMI Burn-E 2",1500,[6,6,7,5],2302755,4937059,9279912,2830908,0.15,0.07,0.9,0.2,0.14,0.5,0,0.9,0,45,'scooter'),
+B("Dualtron Storm",2400,[7,7,6,6],1711393,4871528,9148586,2304563,0.16,0.08,1,0.24,0.16,0.55,0,0.95,0,55,'scooter'),
+B("Kaabo Wolf King GT",3100,[8,8,6,7],1053720,4147027,7042694,1909804,0.18,0.09,1.05,0.26,0.18,0.6,0,1,0,60,'scooter')];
 const HELMETS=[
  {n:'Street Helm',pr:300,color:0xf2f4e8,accent:0x2563eb,desc:'All-round urban shell'},
  {n:'Trail Helm',pr:900,color:0x20272a,accent:0x38bdf8,desc:'Rock-and-dirt protection'},
@@ -365,6 +365,7 @@ const S_=90,chunks=new Map(),rng=s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s
 const roadHill=z=>0.9*Math.sin(z*0.011)+0.45*Math.sin(z*0.027+2);
 const roadBump=z=>roadHill(z)+.003+.025*Math.pow(Math.max(0,Math.cos(z*.48)),8)+.001*Math.sin(z*1.63);
 const roadSlope=z=>0.0099*Math.cos(z*0.011)+0.01215*Math.cos(z*0.027+2)+(Math.cos(z*.48)>0?-.096*Math.pow(Math.cos(z*.48),7)*Math.sin(z*.48):0)+.00163*Math.cos(z*1.63);
+const trailX=z=>22+2*Math.sin(z*.021)+1.2*Math.sin(z*.071),onTrail=(x,z)=>Math.abs(Math.abs(x)-trailX(z))<3.6;
 const roadFade=x=>Math.pow(Math.max(0,1-(x/12)**2),2);
 const makeRoadGeo=oz=>{const geo=new T.PlaneGeometry(24,S_,12,180).rotateX(-PI/2).translate(0,-0.006,0),position=geo.attributes.position;for(let i=0;i<position.count;i++){const x=position.getX(i),z=oz+position.getZ(i);position.setY(i,roadBump(z)*roadFade(x))}geo.computeVertexNormals();return geo};
 const gGeo=new T.PlaneGeometry(S_,S_).rotateX(-PI/2).translate(0,-0.006,0),bGeo=new T.BoxGeometry(1,1,1).translate(0,.5,0);
@@ -383,7 +384,7 @@ const BM=[0x8a94a6,0x6b7a90,0xa7b0c0,0x4b5563,0x9aa5b8].map(c=>mat(c,{roughness:
 const roofM=mat(0x7a3b2e,{roughness:.9}),trM=mat(0x5b3a1e,{roughness:1,metalness:0}),lfM=mat(0x2f7d32,{roughness:1,metalness:0}),rkM=mat(0x8b7355,{roughness:1}),cacM=mat(0x3f8f3f,{roughness:1});
 const trGeo=new T.CylinderGeometry(.25,.3,2,6),cnGeo=new T.ConeGeometry(1.6,4,7),pGeo=new T.CylinderGeometry(.1,.1,7,10),lampGlowGeo=new T.SphereGeometry(.65,10,8),rkGeo=new T.DodecahedronGeometry(1),cacGeo=new T.CylinderGeometry(.35,.35,3,8),hrGeo=new T.ConeGeometry(5.6,2.5,4).rotateY(PI/4);
 const pedGeo=new T.BoxGeometry(.35,.7,.35),pedSkinM=mat(0xb77b55,{roughness:.85,metalness:0}),pedShirtM=mat(0x4a5568,{roughness:.8,metalness:0}),pedPantsM=mat(0x252a32,{roughness:.9,metalness:0});
-const padGeo=new T.PlaneGeometry(4,8).rotateX(-PI/2),padM=new T.MeshStandardMaterial({color:0x66ddff,emissive:0x0b7aa5,emissiveIntensity:.7,roughness:.35,metalness:.2});
+const padGeo=(()=>{const N=12,pos=[],uv=[],idx=[];for(let i=0;i<=N;i++){const t=i/N,z=-4+8*t,y=.02+.9*t*t;pos.push(-2,y,z,2,y,z);uv.push(0,t*2,1,t*2);if(i<N){const a=i*2;idx.push(a,a+2,a+1,a+1,a+2,a+3)}}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g})(),padM=new T.MeshStandardMaterial({color:0x66ddff,emissive:0x0b7aa5,emissiveIntensity:.7,roughness:.35,metalness:.2,side:T.DoubleSide});
 const RM=[0xd97706,0x9a7b4f,0x9ca3af,0xb45309].map(c=>mat(c,{roughness:.8}));
 function mkChunk(cx,cz){
 const r=rng((cx*73856093)^(cz*19349663)),g=new T.Group(),c={g,id:[cx,cz],ramps:[],cols:[],pads:[],lights:[],peds:[],dis:[]},ox=cx*S_,oz=cz*S_;g.position.set(ox,0,oz);
@@ -412,17 +413,19 @@ col(sx,z,.5,.5,7.5);
 if(z===0&&Math.abs(sx)>10){const ped=buildWalker();ped.g.position.set(sx*.9,0,z);ped.g.visible=true;scene.add(ped.g);c.peds.push({g:ped.g,x:sx*.9,z:oz+z,phase:r()*6.28,w:0})}}));
 for(let z=-39;z<=39;z+=6){for(const sx of [-13.5,13.5])add(bx(2.7,.01,.04,seamM,sx,.205,z),sx,.205,z);
 for(const sx of [-10.8,10.8])add(bx(.12,.025,.2,roadStudM,sx,roadBump(z)*roadFade(sx)+.012,z),sx,roadBump(z)*roadFade(sx)+.012,z)}
-if(r()<.4){const side=r()<.5?-1:1,x=side*(13.2+(r()-.5)*2.4),z=(r()-.5)*60;add(new T.Mesh(padGeo,padM),x,roadBump(z)*roadFade(x)+.015,z);c.pads.push({x:ox+x,z:oz+z})}}
-if(b===0)for(let i=0;i<Math.round(9*GFX[GFXP].parts);i++){const[x,z]=rp(27),w=8+r()*8,d=8+r()*8,h=10+r()*38,m=new T.Mesh(bldGeo(w,h,d),BM[r()*5|0]);add(m,x,0,z,1);col(x,z,w,d)}
-if(b===2){for(let i=0;i<Math.round(8*GFX[GFXP].parts);i++){const[x,z]=rp(17),m=new T.Mesh(rkGeo,rkM),s=.8+r()*2;m.scale.set(s,s*.7,s);add(m,x,s*.3,z,1)}
-for(let i=0;i<Math.round(6*GFX[GFXP].parts);i++){const[x,z]=rp(17);add(new T.Mesh(cacGeo,cacM),x,1.5,z,1)}
-for(let i=0;i<Math.round(2*GFX[GFXP].parts);i++){const[x,z]=rp(17);ramp(x,z,r()*6.28,9,5,2.2,1)}}
-if(b===3){for(let i=0;i<Math.round(6*GFX[GFXP].parts);i++){const[x,z]=rp(22);ramp(x,z,r()*6.28,11,6,3.0,3)}for(let i=0;i<Math.round(4*GFX[GFXP].parts);i++){const[x,z]=rp(22);ramp(x,z,r()*6.28,14,4,1.6,3)}for(let i=0;i<Math.round(3*GFX[GFXP].parts);i++){const[x,z]=rp(22);add(new T.Mesh(rkGeo,rkM),x,.7+z*0,z,1)}}
-if(b===1)for(let i=0;i<Math.round(7*GFX[GFXP].parts);i++){const[x,z]=rp(17);tree(x,z)}
+if(r()<.4){const side=r()<.5?-1:1,x=side*(13.2+(r()-.5)*2.4),z=(r()-.5)*60;add(new T.Mesh(padGeo,padM),x,roadBump(z)*roadFade(x)+.015,z);c.pads.push({x:ox+x,z:oz+z})}
+/* dirt trails running beside the highway, with a mega kicker every other chunk */
+for(const side of [-1,1]){const N=16,pos=[],uv=[],idx=[];for(let i=0;i<=N;i++){const lz=-45+i*(S_/N),cx=trailX(oz+lz)*side;pos.push(cx-3.2,.02,lz,cx+3.2,.02,lz);uv.push(0,i/N*5,1,i/N*5);if(i<N){const a=i*2;idx.push(a,a+2,a+1,a+1,a+2,a+3)}}const tg=new T.BufferGeometry();tg.setAttribute('position',new T.Float32BufferAttribute(pos,3));tg.setAttribute('uv',new T.Float32BufferAttribute(uv,2));tg.setIndex(idx);tg.computeVertexNormals();const tm=new T.Mesh(tg,dirtM);tm.receiveShadow=true;g.add(tm);c.dis.push(tg)}
+if(Math.abs(cz)%2===0){const side=(Math.abs(cz/2)%2)?-1:1;ramp(trailX(oz)*side,0,-PI/2,12,7,3.8,1)}}
+if(b===0)for(let i=0;i<Math.round(9*GFX[GFXP].parts);i++){const[x,z]=rp(27),w=8+r()*8,d=8+r()*8,h=10+r()*38;if(Math.abs(Math.abs(x)-trailX(oz+z))<w/2+4.5)continue;const m=new T.Mesh(bldGeo(w,h,d),BM[r()*5|0]);add(m,x,0,z,1);col(x,z,w,d)}
+if(b===2){for(let i=0;i<Math.round(8*GFX[GFXP].parts);i++){const[x,z]=rp(17);if(onTrail(x,oz+z))continue;const m=new T.Mesh(rkGeo,rkM),s=.8+r()*2;m.scale.set(s,s*.7,s);add(m,x,s*.3,z,1)}
+for(let i=0;i<Math.round(6*GFX[GFXP].parts);i++){const[x,z]=rp(17);if(onTrail(x,oz+z))continue;add(new T.Mesh(cacGeo,cacM),x,1.5,z,1)}}
+if(b===3){for(let i=0;i<Math.round(3*GFX[GFXP].parts);i++){const[x,z]=rp(22);if(onTrail(x,oz+z))continue;add(new T.Mesh(rkGeo,rkM),x,.7,z,1)}}
+if(b===1)for(let i=0;i<Math.round(7*GFX[GFXP].parts);i++){const[x,z]=rp(17);if(onTrail(x,oz+z))continue;tree(x,z)}
 bk.forEach((a,m)=>{const mg=mergeGeometries(a);a.forEach(q=>q.dispose());c.dis.push(mg);const o=new T.Mesh(mg,m);o.castShadow=m!==roadM&&m!==GM[b]&&m!==swM;o.receiveShadow=true;g.add(o)});
 return c}
-function gH(x,z){const fade=roadFade(x);let h=roadBump(z)*fade;const a=Math.round(x/S_),b=Math.round(z/S_);gH.sl=roadSlope(z)*fade;gH.e=[0,1];
-for(let i=-1;i<2;i++)for(let j=-1;j<2;j++){const c=chunks.get((a+i)+','+(b+j));if(!c)continue;for(const q of c.ramps){const dx=x-q.x,dz=z-q.z,u=dx*q.co-dz*q.si,l=dx*q.si+dz*q.co;if(Math.abs(u)<q.L/2&&Math.abs(l)<q.w/2){const hh=(u+q.L/2)/q.L*q.H;if(hh>h){h=hh;gH.sl=q.H/q.L;gH.e=[q.co,-q.si]}}}}return h}
+function gH(x,z){const fade=roadFade(x),sw=Math.abs(x)>12&&Math.abs(x)<15.05?.2:0;let h=roadBump(z)*fade;const a=Math.round(x/S_),b=Math.round(z/S_);gH.sl=roadSlope(z)*fade;gH.e=[0,1];
+for(let i=-1;i<2;i++)for(let j=-1;j<2;j++){const c=chunks.get((a+i)+','+(b+j));if(!c)continue;for(const q of c.ramps){const dx=x-q.x,dz=z-q.z,u=dx*q.co-dz*q.si,l=dx*q.si+dz*q.co;if(Math.abs(u)<q.L/2&&Math.abs(l)<q.w/2){const hh=(u+q.L/2)/q.L*q.H;if(hh>h){h=hh;gH.sl=q.H/q.L;gH.e=[q.co,-q.si]}}}}return Math.max(h,sw)}
 function nbr(x,z,f){const a=Math.round(x/S_),b=Math.round(z/S_);for(let i=-1;i<2;i++)for(let j=-1;j<2;j++){const c=chunks.get((a+i)+','+(b+j));if(c)f(c)}}
 function loadChunks(x,z){const a=Math.round(x/S_),b=Math.round(z/S_);const lim=GFX[GFXP].chunks;
 for(let i=-lim;i<=lim;i++)for(let j=-lim;j<=lim;j++){const k=(a+i)+','+(b+j);if(!chunks.has(k)){const c=mkChunk(a+i,b+j);chunks.set(k,c);scene.add(c.g)}}
@@ -456,7 +459,7 @@ document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.addEve
 const MYC=new T.Color().setHSL(Math.random(),.8,.5).getHex();
 let me;try{me=buildBike(BIKES[S.eq],MYC,HELMETS[S.helmet]?.color||0x20272a,true);}catch(e){console.error('buildBike failed:',e);try{me=buildBike(BIKES[0],MYC,0x20272a,true);}catch(e2){console.error('buildBike bike 0 failed:',e2);me={g:new T.Group()};}}scene.add(me.g);let myTag=null;
 let walker;try{walker=buildWalker();scene.add(walker.g);walker.g.visible=false;}catch(e){console.error('buildWalker failed:',e);walker={g:new T.Group()};scene.add(walker.g);walker.g.visible=false;}let walkerTag=null;
-let x=0,y=0,z=0,h=0,v=0,p=0,pw=0,vy=0,air=false,wreck=0,boostE=0,boosting=false,zt=0,wt=0,cb=1,pad=0,padCooldown=0,airT=0,roll=0,lastGH=0,lastRd=0,tt=0,pt=0,units=S.units?1:0,svT=0,gOpen=false,settingsOpen=false,gi=S.eq,garTab='bikes',garPrice='all',ga=0,netT=0,camInit=true;
+let x=0,y=0,z=0,h=0,v=0,p=0,pw=0,vy=0,air=false,wreck=0,boostE=0,boosting=false,zt=0,wt=0,cb=1,pad=0,padCooldown=0,airT=0,roll=0,lastGH=0,lastRd=0,tt=0,pt=0,units=S.units?1:0,svT=0,gOpen=false,settingsOpen=false,gi=S.eq,garTab='bikes',garPrice='all',ga=0,netT=0,camInit=true,prevOnSw=false,seamI=0;
 let ox=1.2,oy=0,oz=0,oh=0,opitch=0,lookYaw=0,lookPitch=0,walkSpeed=0,walkCycle=0,bounceRequested=false;
 const frontSusp={comp:0,vel:0},rearSusp={comp:0,vel:0};
 function stepSuspension(state,spring,damping,travel,dt,load=0){const count=Math.max(1,Math.ceil(dt*240)),step=dt/count,min=-travel*.12;load=Math.max(0,Math.min(travel*.3,load));for(let i=0;i<count;i++){state.vel+=((load-state.comp)*spring-state.vel*damping)*step;state.comp+=state.vel*step;if(state.comp>travel){state.comp=travel;state.vel=Math.min(0,state.vel)}else if(state.comp<min){state.comp=min;state.vel=Math.max(0,state.vel)}}}
@@ -742,6 +745,7 @@ if(Math.abs(p)<.05&&Math.abs(pw)<.05&&!pull&&!br&&!stoppy){p=0;pw=0}
 if(prevP>0&&p<=0){const wheelieH=Math.max(0,prevP),imp=Math.min(12,Math.abs(v)*0.6);const fc=Math.min(kit.frontTravel,imp*.035+wheelieH*Math.max(0,kit.frontTravel)*.5),rc=Math.min(kit.rearTravel,imp*.03+wheelieH*Math.max(0,kit.rearTravel)*.5);frontSusp.comp=Math.max(frontSusp.comp,fc);rearSusp.comp=Math.max(rearSusp.comp,rc);frontSusp.vel=Math.max(frontSusp.vel,Math.min(6,imp*.35+wheelieH*1.5));rearSusp.vel=Math.max(rearSusp.vel,Math.min(6,imp*.4+wheelieH*1.5))}
 if(prevP<0&&p>=0){pw=Math.max(0,pw);earn(25);pop('STOPPY LANDED · +$25','#4ade80')}
 earn(dt*Math.max(0,v)*.12);
+if(!air&&Math.abs(v)>5&&onTrail(x,z)&&Math.random()<dt*26){const dx2=x-Math.sin(h)*me.wb*.5,dz2=z-Math.cos(h)*me.wb*.5;emit(new T.Vector3(dx2,me.wr*.9,dz2),(Math.random()-.5)*1.4,.5+Math.random()*1.3,(Math.random()-.5)*1.4,.55,.34,.24,.14,.55)}
 if(p>.15){wt+=dt;if(Math.abs(p-.8)<zw)zt+=dt;else zt=Math.max(0,zt-dt*1.5);cb=Math.min(3,1+zt*.9);earn(dt*(6+6*p)*Math.floor(cb));if(p>1.22){sparks=1;earn(dt*30*Math.floor(cb))}}else{wt=0;zt=0;cb=1}
 if(pull&&p>.15)wheelieHold+=dt;else wheelieHold=Math.max(0,wheelieHold-dt*2.5);
 if(wheelieHold>3.0&&wheelieHold-dt<=3.0)pop('EASE OFF THE WHEELIE!','#facc15');
@@ -754,6 +758,10 @@ x+=Math.sin(h)*v*dt;z+=Math.cos(h)*v*dt;
 nbr(x,z,c=>{for(const q of c.cols)if(y<=q.h&&Math.abs(x-q.x)<q.hw&&Math.abs(z-q.z)<q.hd){const px=q.hw-Math.abs(x-q.x),pz=q.hd-Math.abs(z-q.z);if(px<pz)x+=Math.sign(x-q.x||1)*px;else z+=Math.sign(z-q.z||1)*pz;}});
 const gh=gH(x,z),rd=gH.sl*(Math.sin(h)*gH.e[0]+Math.cos(h)*gH.e[1]),frontGH=gH(x+Math.sin(h)*me.wb*.46,z+Math.cos(h)*me.wb*.46),rearGH=gH(x-Math.sin(h)*me.wb*.46,z-Math.cos(h)*me.wb*.46);
 if(!air&&Math.abs(v)>2){frontLoad=Math.max(0,Math.min(kit.frontTravel*.28,(frontGH-gh)*.75));rearLoad=Math.max(0,Math.min(kit.rearTravel*.28,(rearGH-gh)*.75))}
+const onSw=Math.abs(x)>12&&Math.abs(x)<15.05;
+if(onSw!==prevOnSw){prevOnSw=onSw;const imp=Math.min(3.2,Math.abs(v)*.18);frontSusp.vel=Math.max(frontSusp.vel,imp);rearSusp.vel=Math.max(rearSusp.vel,imp*.85)}
+const seamNow=Math.floor((z+4)/6);
+if(!air&&Math.abs(v)>5&&seamNow!==seamI){seamI=seamNow;const bmp=Math.min(2.6,Math.abs(v)*.055);frontSusp.vel=Math.max(frontSusp.vel,bmp*.65);rearSusp.vel=Math.max(rearSusp.vel,bmp)}
 if(air){
 const flipInput=(k('KeyW')||k('ArrowUp')?1:0)-(k('KeyS')||k('ArrowDown')?1:0),rollInput=(k('KeyD')||k('ArrowRight')?1:0)-(k('KeyA')||k('ArrowLeft')?1:0);
 airFlip+=flipInput*6.2*dt;airRoll+=rollInput*7.2*dt;
@@ -770,7 +778,7 @@ airT=0;vy=0;airFlip=0;airRoll=0
 }
 else{if(lastGH>gh+.25&&v>3){airFlip=0;airRoll=0;air=true;vy=Math.max(0,lastRd*v);y=lastGH}else y=gh}
 lastGH=gh;lastRd=rd;
-nbr(x,z,c=>{for(const q of c.pads)if(!settingsOpen&&padCooldown<=0&&Math.abs(x-q.x)<2.4&&Math.abs(z-q.z)<4.8&&!air){pad=hasBoost?1.5:.75;padCooldown=4;if(hasBoost)boostE=Math.min(100,boostE+30);pop(hasBoost?'BOOST PAD!':'BOOST PAD','#a78bfa') }});
+nbr(x,z,c=>{for(const q of c.pads)if(!settingsOpen&&padCooldown<=0&&Math.abs(x-q.x)<2.4&&Math.abs(z-q.z)<4.8&&!air){pad=hasBoost?1.5:.75;padCooldown=4;if(hasBoost)boostE=Math.min(100,boostE+30);if(Math.abs(v)>3){vy=Math.max(vy,2.2+Math.abs(v)*.13);air=true;airT=0;airFlip=0;airRoll=0}y=Math.max(y,gh);pop(hasBoost?'BOOST PAD!':'BOOST PAD','#a78bfa') }});
 for(const c of chunks.values())for(const p of c.peds){p.phase+=dt*1.5;p.x+=Math.sin(p.phase)*.5*dt;p.g.position.set(p.x,0,p.z);const d=Math.hypot(x-p.x,z-p.z);if(d<1.2&&!wreck&&Math.abs(v)>1){wreck=1.7;wanted=3;chaseT=15;earn(-100);pop('PED HIT · -$100 · COPS','#f43f5e')}}
 if(wreck>0){/* wipeout just began */}
 }
