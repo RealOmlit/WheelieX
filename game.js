@@ -190,11 +190,11 @@ for(const gr of [.24,.3,.36]){const ring=new T.Mesh(new T.TorusGeometry(gr,.01,6
 P.add(glow);
 const Rd=new T.Group();P.add(Rd);
 const hBase=standH?1.16:d.sy+.82,hTop=standH?1.38:d.sy+1.0;
-Rd.add(tb([0,hBase-.42,wb*.12],[0,hBase+.26,wb*.38],.09,HEM));
+Rd.add(tb([0,hBase-.3,wb*.1],[0,hBase+.18,wb*.36],.08,HEM));
 const hd=new T.Mesh(new T.SphereGeometry(.15,20,14),HEM);hd.scale.set(.85,1.28,.85);hd.position.set(0,hBase,wb*.45);Rd.add(hd);
-const visor=new T.Mesh(new T.SphereGeometry(.12,16,12),mat(0x12333f,{metalness:.85,roughness:.08}));visor.scale.set(.6,.25,.35);visor.position.set(0,hBase+.05,wb*.45+.1);Rd.add(visor);
-const crown=new T.Mesh(new T.SphereGeometry(.085,12,10),mat(0xf2f4e8,{metalness:.6,roughness:.35}));crown.position.set(0,hBase+.2,wb*.45);Rd.add(crown);
-[-1,1].forEach(s=>{Rd.add(new T.Mesh(new T.SphereGeometry(.08,10,8),mat(0x20272a,{roughness:.5})),s*.14,hBase-.01,wb*.42)});
+const visor=new T.Mesh(new T.SphereGeometry(.11,16,12),mat(0x12333f,{metalness:.85,roughness:.08}));visor.scale.set(.55,.22,.32);visor.position.set(0,hBase+.06,wb*.45+.11);Rd.add(visor);
+const crown=new T.Mesh(new T.SphereGeometry(.08,12,10),mat(0xf2f4e8,{metalness:.6,roughness:.35}));crown.position.set(0,hBase+.18,wb*.45);Rd.add(crown);
+[-1,1].forEach(s=>{Rd.add(new T.Mesh(new T.SphereGeometry(.08,10,8),mat(0x20272a,{roughness:.5})),s*.13,hBase-.005,wb*.42)});
 dressBike({P,d,frontAssembly,rearAssembly,fwSpin:fw.spin,rwSpin:rw.spin,frontSpacing,sy,M,A,F,SM,PN,rubber,SH,HEM});
 updateSuspension(0,0);
 g.traverse(o=>{if(o.isMesh)o.castShadow=true});
