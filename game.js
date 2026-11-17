@@ -436,9 +436,10 @@ const keys={};let joined=false,riderName='',riding=true,lbOpen=false;addEventLis
 addEventListener('keyup',e=>keys[e.code]=0);addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
 document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{if(k==='KeyF')tryGroundTouch();else{if(k==='Space'&&!keys[k]&&joined&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;keys[k]=1}e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0))});
 /* ---------- state ---------- */
+try{
 const MYC=new T.Color().setHSL(Math.random(),.8,.5).getHex();
 let tlPhase=0,tlState='green';const TL_CYCLE=5.5;const tlIntersections=[];
-let me;try{me=buildBike(BIKES[S.eq],MYC,HELMETS[S.helmet]?.color||0x20272a,true);scene.add(me.g);}catch(e){console.error('buildBike failed:',e);me=buildBike(BIKES[0],MYC,0x20272a,true);scene.add(me.g);}let myTag=null;
+let me;try{me=buildBike(BIKES[S.eq],MYC,HELMETS[S.helmet]?.color||0x20272a,true);}catch(e){console.error('buildBike failed:',e);try{me=buildBike(BIKES[0],MYC,0x20272a,true);}catch(e2){console.error('buildBike bike 0 failed:',e2);me={g:new T.Group()};}}scene.add(me.g);let myTag=null;
 let walker;try{walker=buildWalker();scene.add(walker.g);walker.g.visible=false;}catch(e){console.error('buildWalker failed:',e);walker={g:new T.Group()};scene.add(walker.g);walker.g.visible=false;}let walkerTag=null;
 let x=0,y=0,z=0,h=0,v=0,p=0,pw=0,vy=0,air=false,wreck=0,boostE=0,boosting=false,zt=0,wt=0,cb=1,pad=0,padCooldown=0,airT=0,roll=0,lastGH=0,lastRd=0,tt=0,pt=0,units=S.units?1:0,svT=0,gOpen=false,settingsOpen=false,gi=S.eq,garTab='bikes',garPrice='all',ga=0,netT=0,camInit=true;
 let ox=1.2,oy=0,oz=0,oh=0,opitch=0,lookYaw=0,lookPitch=0,walkSpeed=0,walkCycle=0,bounceRequested=false;
@@ -491,7 +492,8 @@ Object.assign(r,{tx:d.x,ty:d.y,tz:d.z,th:d.h,tp:d.on?0:d.p,tr:d.on?0:d.r,tv:d.on
 }catch(e){online=false;console.error('MQTT connection failed:',e&&e.message||e);networkText='Offline · trying another relay…';queueFailover()}
 }
 const nameInput=$('rider-name');
-try{nameInput.value=localStorage.getItem('wheeliex-name')||''}catch(e){}
+try{nameInput.value=localStorage.getItem('wheeliex-name')||''}catch(e){}}
+catch(e){console.error('game init failed:',e);const d=document.createElement('div');d.style.cssText='position:fixed;top:10px;left:10px;right:10px;background:#ff4444;color:#fff;padding:10px;z-index:10000;font-family:monospace;font-size:12px;max-height:200px;overflow:auto';d.textContent='Game init error: '+e.message;document.body.appendChild(d);}
 $('join-form').addEventListener('submit',e=>{e.preventDefault();riderName=nameInput.value.trim().slice(0,16);
 if(riderName.length<2){nameInput.setCustomValidity('Enter at least 2 characters.');nameInput.reportValidity();return}
 nameInput.setCustomValidity('');joined=true;for(const key in keys)keys[key]=0;try{myTag=tag(riderName,'#c0f56a','v'+VERSION,'#a3e635');me.g.add(myTag);walkerTag=tag(riderName,'#c0f56a');walkerTag.position.y=2.15;walkerTag.scale.set(2,.5,1);walker.g.add(walkerTag);}catch(e){console.error('join tag failed:',e)}$('join-screen').classList.add('hidden');
