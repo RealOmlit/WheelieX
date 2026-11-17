@@ -347,7 +347,9 @@ const roadFade=x=>Math.pow(Math.max(0,1-(x/12)**2),2);
 const makeRoadGeo=oz=>{const geo=new T.PlaneGeometry(24,S_,12,180).rotateX(-PI/2).translate(0,-0.006,0),position=geo.attributes.position;for(let i=0;i<position.count;i++){const x=position.getX(i),z=oz+position.getZ(i);position.setY(i,roadBump(z)*roadFade(x))}geo.computeVertexNormals();return geo};
 const gGeo=new T.PlaneGeometry(S_,S_).rotateX(-PI/2).translate(0,-0.006,0),bGeo=new T.BoxGeometry(1,1,1).translate(0,.5,0);
 const groundTex=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.fillStyle='#d8d8d8';x.fillRect(0,0,256,256);for(let i=0;i<2600;i++){const s=170+Math.random()*80|0;x.fillStyle='rgba('+s+','+s+','+s+',.35)';x.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*5,1+Math.random()*5)}const tx=new T.CanvasTexture(c);tx.colorSpace=T.SRGBColorSpace;tx.wrapS=tx.wrapT=T.RepeatWrapping;tx.repeat.set(24,24);tx.anisotropy=aniso;return tx})();
+const dirtTex=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.fillStyle='#7a5a3c';x.fillRect(0,0,256,256);for(let i=0;i<4000;i++){const s=110+Math.random()*60;x.fillStyle='rgba('+s+','+(s-30)+','+(s-60)+',.4)';x.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*4,1+Math.random()*4)}for(let i=0;i<800;i++){x.fillStyle='rgba(40,25,10,.25)';x.fillRect(Math.random()*256,Math.random()*256,2+Math.random()*6,2+Math.random()*6)}const tx=new T.CanvasTexture(c);tx.colorSpace=T.SRGBColorSpace;tx.wrapS=tx.wrapT=T.RepeatWrapping;tx.repeat.set(16,16);tx.anisotropy=aniso;return tx})();
 const GM=[0x5a5e66,0x5f9e4b,0xcaa56b,0x8f949c].map(c=>mat(c,{roughness:1,metalness:0,map:groundTex}));
+const dirtM=mat(0x8d6e4a,{roughness:1,metalness:0,map:dirtTex});
 const rt=(()=>{const c=document.createElement('canvas');c.width=512;c.height=2048;const x=c.getContext('2d');x.fillStyle='#34373d';x.fillRect(0,0,512,2048);for(let i=0;i<36000;i++){const shade=30+Math.random()*30;x.fillStyle=`rgba(${shade},${shade},${shade+2},.16)`;x.fillRect(Math.random()*512,Math.random()*2048,2+Math.random()*6,2+Math.random()*4)}for(let i=0;i<9000;i++){const shade=40+Math.random()*22;x.fillStyle=`rgba(${shade},${shade},${shade+1},.10)`;x.fillRect(Math.random()*512,Math.random()*2048,1+Math.random()*3,1+Math.random()*3)}x.fillStyle='#e7e8e8';x.fillRect(20,0,8,2048);x.fillRect(484,0,8,2048);x.fillStyle='#f2bd35';x.fillRect(248,0,8,2048);x.fillRect(268,0,8,2048);x.fillStyle='#e7e8e8';for(let i=0;i<10;i++){const y=i*204.8+60;x.fillRect(136,y,8,72);x.fillRect(368,y,8,72)}const t=new T.CanvasTexture(c);t.anisotropy=aniso;return t})();
 const roadM=mat(0xffffff,{map:rt,roughness:.9,metalness:0}),swM=mat(0x9a9a9a,{roughness:1,metalness:0}),seamM=mat(0x65696d,{roughness:1,metalness:0}),roadStudM=mat(0xe4e9e9,{emissive:0x111111,emissiveIntensity:.2,roughness:.3,metalness:.2}),poleM=mat(0x444444,{roughness:.6,metalness:.55}),lampM=mat(0xffd27a,{emissive:0xff9a35,emissiveIntensity:0,roughness:.2,metalness:.1}),streetGlowM=new T.MeshBasicMaterial({color:0xffb95e,transparent:true,opacity:0,depthWrite:false}),lensM=new T.MeshStandardMaterial({color:0xfff0cf,emissive:0xffb35e,emissiveIntensity:.8,roughness:.15,metalness:.1});
 const bldTex=(()=>{const N=8,W=64,c=document.createElement('canvas'),e=document.createElement('canvas');c.width=c.height=e.width=e.height=N*W;const x=c.getContext('2d'),y=e.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,N*W,N*W);y.fillStyle='#000';y.fillRect(0,0,N*W,N*W);
@@ -362,7 +364,7 @@ const RM=[0xd97706,0x9a7b4f,0x9ca3af,0xb45309].map(c=>mat(c,{roughness:.8}));
 function mkChunk(cx,cz){
 const r=rng((cx*73856093)^(cz*19349663)),g=new T.Group(),c={g,id:[cx,cz],ramps:[],cols:[],pads:[],lights:[],dis:[]},ox=cx*S_,oz=cz*S_;g.position.set(ox,0,oz);
 const hw=cx===0,b=hw?r()*3|0:r()*4|0;
-const gm=new T.Mesh(gGeo,GM[b]);gm.receiveShadow=true;g.add(gm);
+const gm=new T.Mesh(gGeo,b===3?dirtM:GM[b]);gm.receiveShadow=true;g.add(gm);
 const bk=new Map(),add=(m,x,y,z,cs,dyn)=>{m.position.set(x,y,z);if(dyn||m.geometry.type==='ExtrudeGeometry'){m.castShadow=!!cs;m.receiveShadow=true;g.add(m);return m}m.updateMatrix();const q=m.geometry.clone().applyMatrix4(m.matrix);const a=bk.get(m.material)||bk.set(m.material,[]).get(m.material);a.push(q);return m};
 const rp=ex=>{for(let i=0;i<Math.round(25*GFX[GFXP].parts);i++){const x=(r()-.5)*84,z=(r()-.5)*84;if(!hw||Math.abs(x)>ex)return[x,z]}return[40,40]};
 const ramp=(x,z,ry,L,w,H,mi)=>{const sh=new T.Shape();sh.moveTo(0,0);sh.lineTo(L,0);sh.lineTo(L,H);sh.closePath();const geo=new T.ExtrudeGeometry(sh,{depth:w,bevelEnabled:false}).translate(-L/2,0,-w/2);c.dis.push(geo);const m=add(new T.Mesh(geo,RM[mi]),x,0,z,1);m.rotation.y=ry;c.ramps.push({x:ox+x,z:oz+z,L,w,H,co:Math.cos(ry),si:Math.sin(ry)})};
@@ -390,7 +392,8 @@ if(b===0)for(let i=0;i<Math.round(9*GFX[GFXP].parts);i++){const[x,z]=rp(27),w=8+
 if(b===2){for(let i=0;i<Math.round(8*GFX[GFXP].parts);i++){const[x,z]=rp(17),m=new T.Mesh(rkGeo,rkM),s=.8+r()*2;m.scale.set(s,s*.7,s);add(m,x,s*.3,z,1)}
 for(let i=0;i<Math.round(6*GFX[GFXP].parts);i++){const[x,z]=rp(17);add(new T.Mesh(cacGeo,cacM),x,1.5,z,1)}
 for(let i=0;i<Math.round(2*GFX[GFXP].parts);i++){const[x,z]=rp(17);ramp(x,z,r()*6.28,9,5,2.2,1)}}
-if(b!==2)for(let i=0;i<Math.round(7*GFX[GFXP].parts);i++){const[x,z]=rp(17);tree(x,z)}
+if(b===3){for(let i=0;i<Math.round(6*GFX[GFXP].parts);i++){const[x,z]=rp(22);ramp(x,z,r()*6.28,11,6,3.0,3)}for(let i=0;i<Math.round(4*GFX[GFXP].parts);i++){const[x,z]=rp(22);ramp(x,z,r()*6.28,14,4,1.6,3)}for(let i=0;i<Math.round(3*GFX[GFXP].parts);i++){const[x,z]=rp(22);add(new T.Mesh(rkGeo,rkM),x,.7+z*0,z,1)}}
+if(b===1)for(let i=0;i<Math.round(7*GFX[GFXP].parts);i++){const[x,z]=rp(17);tree(x,z)}
 bk.forEach((a,m)=>{const mg=mergeGeometries(a);a.forEach(q=>q.dispose());c.dis.push(mg);const o=new T.Mesh(mg,m);o.castShadow=m!==roadM&&m!==GM[b]&&m!==swM;o.receiveShadow=true;g.add(o)});
 return c}
 function gH(x,z){const fade=roadFade(x);let h=roadBump(z)*fade;const a=Math.round(x/S_),b=Math.round(z/S_);gH.sl=roadSlope(z)*fade;gH.e=[0,1];
@@ -701,9 +704,15 @@ v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br)v=0;
 if(br){if(v>.2){v-=16*dt;if(v<0)v=0;skid=v>6&&!air?1:0}else{v-=2.6*dt;if(v<-.35*vmax)v=-.35*vmax;skid=0}}
 if(!Number.isFinite(v))v=0;
 const lift=Math.min(1,Math.abs(v)/5),wh=p>.1?1:0;
-const a=(pull*3.2+(boosting?.8:0))*lift-3.6*p-1.9*pw-br*8*(p>0?1:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
-pw+=a*dt;const prevP=p;p+=pw*dt;if(p<0){p=0;pw=Math.max(0,pw)}
+const wheelieMult=1/(1+Math.log10(Math.max(1,bike.pr/2500))*0.3);
+const stoppy=br&&v>2.5&&p<=0.4?Math.min(1,v/18)*2.2:0;
+const a=(pull&&v>0.5?(pull*3.2*wheelieMult+(boosting?.8:0))*lift:0)-3.6*p-1.9*pw-br*8*(p>0?1:0)-(stoppy>0?stoppy:0)+(Math.sin(tt*1.7)+.7*Math.sin(tt*2.9+1))*.3*(1-E[2]*.04)*wh;
+pw+=a*dt;const prevP=p;p+=pw*dt;
+if(p>2.2){p=2.2;pw=Math.min(0,pw)}
+if(p<-1.0){p=-1.0;pw=Math.max(0,pw)}
+if(Math.abs(p)<.05&&Math.abs(pw)<.05&&!pull&&!br&&!stoppy){p=0;pw=0}
 if(prevP>0&&p<=0){const wheelieH=Math.max(0,prevP),imp=Math.min(12,Math.abs(v)*0.6);const fc=Math.min(kit.frontTravel,imp*.035+wheelieH*Math.max(0,kit.frontTravel)*.5),rc=Math.min(kit.rearTravel,imp*.03+wheelieH*Math.max(0,kit.rearTravel)*.5);frontSusp.comp=Math.max(frontSusp.comp,fc);rearSusp.comp=Math.max(rearSusp.comp,rc);frontSusp.vel=Math.max(frontSusp.vel,Math.min(6,imp*.35+wheelieH*1.5));rearSusp.vel=Math.max(rearSusp.vel,Math.min(6,imp*.4+wheelieH*1.5))}
+if(prevP<0&&p>=0){pw=Math.max(0,pw);earn(25);pop('STOPPY LANDED · +$25','#4ade80')}
 earn(dt*Math.max(0,v)*.12);
 if(p>.15){wt+=dt;if(Math.abs(p-.8)<zw)zt+=dt;else zt=Math.max(0,zt-dt*1.5);cb=Math.min(3,1+zt*.9);earn(dt*(6+6*p)*Math.floor(cb));if(p>1.22){sparks=1;earn(dt*30*Math.floor(cb))}}else{wt=0;zt=0;cb=1}
 if(pull&&p>.15)wheelieHold+=dt;else wheelieHold=Math.max(0,wheelieHold-dt*2.5);
@@ -772,7 +781,7 @@ mgn.gain.setTargetAtTime(gOpen?.02:.04+.07*thr+Math.min(.04,sp*.001),t,.05);ng.s
 if(S.cash!==undefined){$('cash-value').textContent='$'+Math.floor(S.cash).toLocaleString()}
 const hourF=Math.floor(tod),clockPhase=hourF<6||hourF>=20?'NIGHT':hourF<8?'DAWN':hourF<18?'DAY':hourF<20?'DUSK':'NIGHT';
 $('clock').textContent=`${String(hourF).padStart(2,'0')}:${String(Math.floor((tod-hourF)*60)).padStart(2,'0')} · ${clockPhase}`;
-$('combo').textContent=trick?`TRICK · ${trick==='handscrape'?'HAND SCRAPE':'TRICK'}`:(p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(wreck>0?'WIPEOUT!':''));
+$('combo').textContent=trick?`TRICK · ${trick==='handscrape'?'HAND SCRAPE':'TRICK'}`:(p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(p<-.25&&wreck<=0?`STOPPY · front down`:(wreck>0?'WIPEOUT!':'')));
 $('sp').innerHTML=riding?(v<-0.1?'REV ':'')+Math.round(Math.abs(v)*(units?3.6:2.237))+` <small>${units?'KM/H':'MPH'}</small>`:`<small>ON FOOT · ${walkSpeed?'WALKING':'IDLE'}</small>`;
 $('bb').style.width=hasBoost?boostE+'%':'0%';$('boost-note').textContent=hasBoost?'BOOST [E] · tap speed for units':'NO BOOST MOUNT · MOD SHOP';
 const stale=online?[...rem.values()].filter(r=>r.ver!==VERSION).length:0;
