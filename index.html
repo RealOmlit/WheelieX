@@ -143,8 +143,8 @@
   const screen = $("loading-screen"), fill = $("loading-fill"), percent = $("loading-percent");
   const label = $("loading-label"), error = $("loading-error"), retry = $("loading-retry");
   const started = performance.now();
-  const MIN_MS = 1500;
-  const MAX_MS = 8000;
+  const MIN_MS = 0;
+  const MAX_MS = 6000;
   const phases = ["CALIBRATING MOTOR", "LOADING CITY BLOCKS", "IGNITING BATTERY", "SYNCING WEATHER"];
   let phase = 0, done = false, timer = 0;
 
