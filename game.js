@@ -358,7 +358,6 @@ const GM=[0x5a5e66,0x5f9e4b,0xcaa56b,0x8f949c].map(c=>mat(c,{roughness:1,metalne
 const dirtM=mat(0x8d6e4a,{roughness:1,metalness:0,map:dirtTex});
 const rt=(()=>{const c=document.createElement('canvas');c.width=512;c.height=2048;const x=c.getContext('2d');x.fillStyle='#34373d';x.fillRect(0,0,512,2048);for(let i=0;i<36000;i++){const shade=30+Math.random()*30;x.fillStyle=`rgba(${shade},${shade},${shade+2},.16)`;x.fillRect(Math.random()*512,Math.random()*2048,2+Math.random()*6,2+Math.random()*4)}for(let i=0;i<9000;i++){const shade=40+Math.random()*22;x.fillStyle=`rgba(${shade},${shade},${shade+1},.10)`;x.fillRect(Math.random()*512,Math.random()*2048,1+Math.random()*3,1+Math.random()*3)}x.fillStyle='#e7e8e8';x.fillRect(20,0,8,2048);x.fillRect(484,0,8,2048);x.fillStyle='#f2bd35';x.fillRect(248,0,8,2048);x.fillRect(268,0,8,2048);x.fillStyle='#e7e8e8';for(let i=0;i<10;i++){const y=i*204.8+60;x.fillRect(136,y,8,72);x.fillRect(368,y,8,72)}const t=new T.CanvasTexture(c);t.anisotropy=aniso;return t})();
 const roadM=mat(0xffffff,{map:rt,roughness:.9,metalness:0}),swM=mat(0x9a9a9a,{roughness:1,metalness:0}),seamM=mat(0x65696d,{roughness:1,metalness:0}),roadStudM=mat(0xe4e9e9,{emissive:0x111111,emissiveIntensity:.2,roughness:.3,metalness:.2}),poleM=mat(0x444444,{roughness:.6,metalness:.55}),lampM=mat(0xffd27a,{emissive:0xff9a35,emissiveIntensity:0,roughness:.2,metalness:.1}),streetGlowM=new T.MeshBasicMaterial({color:0xffb95e,transparent:true,opacity:0,depthWrite:false}),lensM=new T.MeshStandardMaterial({color:0xfff0cf,emissive:0xffb35e,emissiveIntensity:.8,roughness:.15,metalness:.1});
-const tlRedM=new T.MeshBasicMaterial({color:0xff2b2b}),tlGrnM=new T.MeshBasicMaterial({color:0x2bff5e}),tlYelM=new T.MeshBasicMaterial({color:0xffb020});
 /* Speed-limit cameras: the sign texture and materials are shared by every camera prop. */
 const speedSignTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.clearRect(0,0,128,128);x.fillStyle='#fff';x.beginPath();x.arc(64,64,58,0,PI*2);x.fill();x.strokeStyle='#dc2626';x.lineWidth=14;x.stroke();x.fillStyle='#111827';x.font='bold 62px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText('40',64,68);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=aniso;return t})();
 const speedSignM=new T.MeshBasicMaterial({map:speedSignTex,transparent:true,side:T.DoubleSide}),camBodyM=mat(0xd7dee8,{roughness:.45,metalness:.35}),camLensM=new T.MeshBasicMaterial({color:0x7dd3fc}),camDotM=new T.MeshBasicMaterial({color:0xff3b3b});
@@ -373,7 +372,7 @@ const pedGeo=new T.BoxGeometry(.35,.7,.35),pedSkinM=mat(0xb77b55,{roughness:.85,
 const padGeo=new T.PlaneGeometry(4,8).rotateX(-PI/2),padM=new T.MeshStandardMaterial({color:0x66ddff,emissive:0x0b7aa5,emissiveIntensity:.7,roughness:.35,metalness:.2});
 const RM=[0xd97706,0x9a7b4f,0x9ca3af,0xb45309].map(c=>mat(c,{roughness:.8}));
 function mkChunk(cx,cz){
-const r=rng((cx*73856093)^(cz*19349663)),g=new T.Group(),c={g,id:[cx,cz],ramps:[],cols:[],pads:[],lights:[],tls:[],peds:[],cams:[],dis:[]},ox=cx*S_,oz=cz*S_;g.position.set(ox,0,oz);
+const r=rng((cx*73856093)^(cz*19349663)),g=new T.Group(),c={g,id:[cx,cz],ramps:[],cols:[],pads:[],lights:[],peds:[],cams:[],dis:[]},ox=cx*S_,oz=cz*S_;g.position.set(ox,0,oz);
 const hw=cx===0,b=hw?r()*3|0:r()*4|0;
 const gm=new T.Mesh(gGeo,b===3?dirtM:GM[b]);gm.receiveShadow=true;g.add(gm);
 const bk=new Map(),add=(m,x,y,z,cs,dyn)=>{m.position.set(x,y,z);if(dyn||m.geometry.type==='ExtrudeGeometry'){m.castShadow=!!cs;m.receiveShadow=true;g.add(m);return m}m.updateMatrix();const q=m.geometry.clone().applyMatrix4(m.matrix);const a=bk.get(m.material)||bk.set(m.material,[]).get(m.material);a.push(q);return m};
@@ -396,8 +395,7 @@ add(new T.Mesh(new T.SphereGeometry(.09,8,6),lensM),sx*.9,6.87,z,1);
 const halo=new T.Mesh(lampGlowGeo,streetGlowM);add(halo,sx*.9,6.84,z,0,1);
 const light=new T.PointLight(0xffc777,0,30,2);light.position.set(sx*.9,6.9,z);g.add(light);c.lights.push(light)
 col(sx,z,.5,.5,7.5);
-if(z===0&&Math.abs(cz)%2===0){const tlGeo=new T.CylinderGeometry(.09,.09,2.6,8);tlGeo.translate(0,1.3,0);const tlBase=new T.Mesh(new T.CylinderGeometry(.17,.17,.55,8),poleM);tlBase.position.set(sx*.9,.25,z);g.add(tlBase);const tlPole=new T.Mesh(tlGeo,poleM);tlPole.position.set(sx*.9,1.3,z);g.add(tlPole);const tlBack=new T.Mesh(new T.BoxGeometry(.58,1.2,.05),mat(0x18202a));tlBack.position.set(sx*.9+.18,4.4,z+.16);g.add(tlBack);const tlBox=new T.Mesh(new T.BoxGeometry(.46,1.06,.26),mat(0x0b0f14));tlBox.position.set(sx*.9+.18,4.4,z);g.add(tlBox);const tlLight=new T.Mesh(new T.SphereGeometry(.19,12,10),tlGrnM);tlLight.position.set(sx*.9+.18,4.4,z-.14);tlLight.userData={tl:true};const tlGlow=new T.Mesh(new T.SphereGeometry(.46,12,10),new T.MeshBasicMaterial({color:0x2bff5e,transparent:true,opacity:.32,blending:T.AdditiveBlending,depthWrite:false}));tlGlow.position.copy(tlLight.position);c.tls.push({m:tlLight,g:tlGlow});tlIntersections.push({x:ox+sx*.9+.18,z:oz+z});g.add(tlLight,tlGlow)
-if(z===0&&Math.abs(sx)>10){const ped=buildWalker();ped.g.position.set(sx*.9,0,z);ped.g.visible=true;scene.add(ped.g);c.peds.push({g:ped.g,x:sx*.9,z:oz+z,phase:r()*6.28,w:0})}}}));
+if(z===0&&Math.abs(sx)>10){const ped=buildWalker();ped.g.position.set(sx*.9,0,z);ped.g.visible=true;scene.add(ped.g);c.peds.push({g:ped.g,x:sx*.9,z:oz+z,phase:r()*6.28,w:0})}}));
 if(Math.abs(cz)%3===0){const camSide=Math.abs(cz/3)%2?-1:1,camX=camSide*12.9,camZ=25;
 add(new T.Mesh(new T.CylinderGeometry(.08,.11,4.8,8),poleM),camX,2.4,camZ,1);
 add(new T.Mesh(new T.BoxGeometry(.38,.3,.62),camBodyM),camX,4.55,camZ,1);
@@ -449,7 +447,6 @@ addEventListener('keyup',e=>keys[e.code]=0);addEventListener('blur',()=>{for(con
 document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{if(k==='KeyF')tryGroundTouch();else{if(k==='Space'&&!keys[k]&&joined&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;keys[k]=1}e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0))});
 /* ---------- state ---------- */
 const MYC=new T.Color().setHSL(Math.random(),.8,.5).getHex();
-let tlPhase=0,tlState='green';const TL_CYCLE=5.5;const tlIntersections=[];
 let me;try{me=buildBike(BIKES[S.eq],MYC,HELMETS[S.helmet]?.color||0x20272a,true);}catch(e){console.error('buildBike failed:',e);try{me=buildBike(BIKES[0],MYC,0x20272a,true);}catch(e2){console.error('buildBike bike 0 failed:',e2);me={g:new T.Group()};}}scene.add(me.g);let myTag=null;
 let walker;try{walker=buildWalker();scene.add(walker.g);walker.g.visible=false;}catch(e){console.error('buildWalker failed:',e);walker={g:new T.Group()};scene.add(walker.g);walker.g.visible=false;}let walkerTag=null;
 let x=0,y=0,z=0,h=0,v=0,p=0,pw=0,vy=0,air=false,wreck=0,boostE=0,boosting=false,zt=0,wt=0,cb=1,pad=0,padCooldown=0,airT=0,roll=0,lastGH=0,lastRd=0,tt=0,pt=0,units=S.units?1:0,svT=0,gOpen=false,settingsOpen=false,gi=S.eq,garTab='bikes',garPrice='all',ga=0,netT=0,camInit=true;
@@ -719,12 +716,12 @@ const bike=BIKES[S.eq],motorScale=1+Math.min(.45,Math.max(0,E[0]/bike.s[0]-1)*.2
 if(thr){
   if(burnout)v-=4*dt;
   else if(v<0)v+=(3+E[1]*.45)*1.4*dt;
-  else v+=(3+E[1]*.45)*(1-Math.max(0,v)/vmax)*dt*1.35;
+  else v+=(3+E[1]*.45)*1.35*Math.pow(1-Math.min(1,v/vmax),.62)*dt; /* pulls all the way to the advertised top speed */
 }
 if(boosting)v+=(8+E[3]*1.3)*dt*(1-v/(vmax*1.1));
 if(pad>0&&hasBoost)v+=14*dt;
 if(v>vmax)v-=(v-vmax)*1.2*dt;
-v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br&&!burnout)v=0;
+if(!thr)v-=v*.05*dt+Math.sign(v)*.4*dt;if(Math.abs(v)<.05&&!thr&&!br&&!burnout)v=0;
 if(br){if(v>.2){v-=16*dt;if(v<0)v=0;skid=v>6&&!air?1:0}else{v-=2.6*dt;if(v<-.35*vmax)v=-.35*vmax;skid=burnout?1:0}}
 if(!Number.isFinite(v))v=0;
 const lift=Math.min(1,Math.abs(v)/5),wh=p>.1?1:0;
@@ -767,7 +764,6 @@ airT=0;vy=0;airFlip=0;airRoll=0
 }
 else{if(lastGH>gh+.25&&v>3){airFlip=0;airRoll=0;air=true;vy=Math.max(0,lastRd*v);y=lastGH}else y=gh}
 lastGH=gh;lastRd=rd;
-tlPhase=(tlPhase+dt)%TL_CYCLE;tlState=tlPhase<3?'green':tlPhase<3.5?'yellow':'red';const tlCol=tlState==='red'?tlRedM:tlState==='yellow'?tlYelM:tlGrnM;for(const c of chunks.values())for(const t of c.tls){t.m.material=tlCol;if(t.g)t.g.material.color.copy(tlCol.color)}if(tlState==='red'&&Math.abs(v)>3&&!air&&!wreck){for(const ti of tlIntersections){const dx=x-ti.x,dz=z-ti.z;if(Math.abs(dx)<6&&Math.abs(dz)<6){wreck=1.7;earn(-200);pop('RED LIGHT · -$200 · WIPEOUT','#f43f5e');break}}}
 nbr(x,z,c=>{for(const q of c.pads)if(!settingsOpen&&padCooldown<=0&&Math.abs(x-q.x)<2.4&&Math.abs(z-q.z)<4.8&&!air){pad=hasBoost?1.5:.75;padCooldown=4;if(hasBoost)boostE=Math.min(100,boostE+30);pop(hasBoost?'BOOST PAD!':'BOOST PAD','#a78bfa') }});
 for(const c of chunks.values())for(const p of c.peds){p.phase+=dt*1.5;p.x+=Math.sin(p.phase)*.5*dt;p.g.position.set(p.x,0,p.z);const d=Math.hypot(x-p.x,z-p.z);if(d<1.2&&!wreck&&Math.abs(v)>1){wreck=1.7;wanted=3;chaseT=15;earn(-100);pop('PED HIT · -$100 · COPS','#f43f5e')}}
 if(wreck>0){/* wipeout just began */}
@@ -814,7 +810,7 @@ $('sp').innerHTML=riding?(v<-0.1?'REV ':'')+Math.round(Math.abs(v)*(units?3.6:2.
 $('bb').style.width=hasBoost?boostE+'%':'0%';$('boost-note').textContent=hasBoost?'BOOST [E] · tap speed for units':'NO BOOST MOUNT · MOD SHOP';
 const stale=online?[...rem.values()].filter(r=>r.ver!==VERSION).length:0;
 $('net').textContent=online?`Connected: ${1+rem.size} rider${rem.size===1?'':'s'} online${stale?` · ${stale} on another version`:''}${rem.size?` · ${[...rem.values()].map(r=>r.n||'Rider').join(', ')}`:''}`:networkText;
-$('wanted').textContent=wanted?`🚨 WANTED · LEVEL ${wanted} · ${chaseT.toFixed(0)}s${escT>0?' · losing them':''}`:heat>.08?`🚔 POLICE ALERT ${Math.round(heat/1.35*100)}%`:tlState==='red'?'🚦 RED LIGHT':tlState==='yellow'?'🚦 YELLOW':'';
+$('wanted').textContent=wanted?`🚨 WANTED · LEVEL ${wanted} · ${chaseT.toFixed(0)}s${escT>0?' · losing them':''}`:heat>.08?`🚔 POLICE ALERT ${Math.round(heat/1.35*100)}%`:'';
 $('sl').style.opacity=boosting?.9:Math.max(0,Math.min(.5,(Math.abs(v)-32)/40));
 pt+=dt;svT+=dt;if(svT>3){svT=0;save()}
 drawMM();drawWM(zw);
