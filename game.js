@@ -678,7 +678,7 @@ function drawWM(zw){if(p<.04){wm.style.opacity=0;return}wm.style.opacity=1;wx.cl
 arc(0,1.6,'rgba(255,255,255,.25)');arc(.8-zw,.8+zw,'#22c55e');arc(1.22,1.6,'#ef4444');wx.strokeStyle='#fff';wx.lineWidth=4;wx.beginPath();wx.moveTo(120,120);wx.lineTo(120+Math.cos(a(Math.min(p,1.6)))*82,120+Math.sin(a(Math.min(p,1.6)))*82);wx.stroke()}
 /* ---------- main loop ---------- */
 function resize(){R.setPixelRatio(GFXP==='4k'?fourKDpr():GFX[GFXP].dpr);if(composer)composer.setPixelRatio(R.getPixelRatio());R.setSize(innerWidth,innerHeight,false);if(composer)composer.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;vo()}addEventListener('resize',resize);resize();
-loadChunks(0,0);let last=performance.now();const tv=new T.Vector3();
+try{loadChunks(0,0);}catch(e){console.error('loadChunks failed:',e)}let last=performance.now();const tv=new T.Vector3();
 function loop(now){requestAnimationFrame(loop);const dt=settingsOpen?0:Math.min(.05,(now-last)/1000);last=now;tt+=dt;padCooldown=Math.max(0,padCooldown-dt);
 const k=c=>joined&&keys[c],bikeKey=c=>riding&&k(c),thr=bikeKey('KeyW')||bikeKey('ArrowUp')?1:0,br=bikeKey('KeyS')||bikeKey('ArrowDown')?1:0,st=((bikeKey('KeyD')||bikeKey('ArrowRight'))?1:0)-((bikeKey('KeyA')||bikeKey('ArrowLeft'))?1:0),pull=bikeKey('ShiftLeft')||bikeKey('ShiftRight')?1:0,stoppyMan=pull&&br&&v>2,burnout=thr&&br&&Math.abs(v)<1.2;
 const mountTier=Number(S.boostMount[S.eq]||0),boostTier=mountTier,hasBoost=boostTier>0,bo=bikeKey('KeyE')&&hasBoost;
