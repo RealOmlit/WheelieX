@@ -2,17 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1b14">
-<meta name="description" content="E-Ride Life — hold your balance, clear the boost pads, and outrun the cops in this free browser 3D electric e-ride stunt game.">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="E-Ride Life is a free 3D e-bike stunt game for your browser. Hold your balance, hit the boost pads and outrun the police with other riders online.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="E-Ride Life">
+<meta property="og:description" content="Free 3D multiplayer e-bike stunts in your browser. Pull wheelies, clear jumps and outrun the police.">
 <title>E-Ride Life</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f2ffe0'/%3E%3Cstop offset='.5' stop-color='%23c0f56a'/%3E%3Cstop offset='1' stop-color='%234fd63f'/%3E%3C/linearGradient%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230f1b14'/%3E%3Cpath d='M22 9 H42 L32 56 Z' fill='url(%23g)'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23f2ffe0'/%3E%3Cstop offset='.5' stop-color='%23c8f86a'/%3E%3Cstop offset='1' stop-color='%234fd63f'/%3E%3C/linearGradient%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230f1b14'/%3E%3Cpath d='M22 9H42L32 56Z' fill='url(%23g)'/%3E/svg%3e">
+
+<!-- Start the slow network work early -->
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.js">
+<link rel="modulepreload" href="./game.js">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+
 <div class="loading-screen" id="loading-screen" role="status" aria-live="polite">
   <div class="loading-bg" aria-hidden="true">
     <i class="loading-orb orb-a"></i>
@@ -21,18 +32,18 @@
     <i class="loading-orb orb-d"></i>
   </div>
   <div class="loading-inner">
-    <div class="loading-topline"><span class="loading-live"><i></i> URBAN E-RIDE STUNTS</span><span class="loading-edition">WX / 01</span></div>
+    <div class="loading-topline"><span class="loading-live"><i></i> URBAN E-RIDE STUNTS</span><span class="loading-edition">ONLINE</span></div>
     <div class="loading-logo" aria-hidden="true">
-      <svg class="loading-ring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="29" fill="none" stroke="rgba(192,245,106,.22)" stroke-width="1.5" stroke-dasharray="2 7"></circle><circle class="loading-ring-dot" cx="32" cy="3" r="2.4" fill="#c0f56a"></circle></svg>
-      <svg class="loading-mark" viewBox="0 0 64 64"><defs><linearGradient id="boltG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2ffe0"/><stop offset=".45" stop-color="#c8f86a"/><stop offset="1" stop-color="#4fd63f"></linearGradient></defs><circle cx="32" cy="32" r="26" fill="#0c1810"/><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(192,245,106,.45)" stroke-width="1.5"/><path d="M22 9 H42 L32 56 Z" fill="url(#boltG)"></path></svg>
+      <svg class="loading-ring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="29" fill="none" stroke="rgba(192,245,106,.22)" stroke-width="1.5" stroke-dasharray="2 7"/><circle class="loading-ring-dot" cx="32" cy="3" r="2.4" fill="#c0f56a"/></svg>
+      <svg class="loading-mark" viewBox="0 0 64 64"><defs><linearGradient id="boltG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2ffe0"/><stop offset=".45" stop-color="#c8f86a"/><stop offset="1" stop-color="#4fd63f"/></linearGradient></defs><circle cx="32" cy="32" r="26" fill="#0c1810"/><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(192,245,106,.45)" stroke-width="1.5"/><path d="M22 9H42L32 56Z" fill="url(#boltG)"/></svg>
     </div>
     <div class="loading-heading"><span class="loading-kicker">ELECTRIC. UNFILTERED. YOURS.</span><h1>OWN THE<br><span>STREETS.</span></h1></div>
     <div class="loading-art" aria-hidden="true">
       <svg viewBox="0 0 280 118" fill="none">
         <ellipse class="loading-shadow" cx="140" cy="103" rx="92" ry="6" fill="rgba(0,0,0,.5)"/>
         <path class="loading-ground" d="M12 101h256"/>
-        <path class="loading-speed" d="M6 34 H274" />
-        <path class="loading-speed d2" d="M-6 50 H290" />
+        <path class="loading-speed" d="M6 34H274"/>
+        <path class="loading-speed d2" d="M-6 50H290"/>
         <circle class="loading-wheel" cx="73" cy="82" r="26"/>
         <circle class="loading-wheel" cx="207" cy="82" r="26"/>
         <path class="loading-bike" d="m73 82 37-41 34 41H73l29-30 47-5 28 35m-39-41h20m-65 0h-18m97 41 13-27"/>
@@ -42,54 +53,79 @@
     </div>
     <div class="loading-feats" aria-hidden="true"><span>ACCEL</span><span>BALANCE</span><span>JUMP</span><span>TRICK</span></div>
     <span class="loading-label" id="loading-label">CALIBRATING MOTOR</span>
-    <div class="loading-track"><span id="loading-fill"></span></div>
-    <div class="loading-foot"><span class="loading-percent" id="loading-percent">INITIALIZING 3D ENGINE</span><span class="loading-hint">GRAB YOUR HELMET</span></div>
+    <div class="loading-track" aria-hidden="true"><span id="loading-fill"></span></div>
+    <div class="loading-foot"><span class="loading-percent" id="loading-percent">STARTING 3D ENGINE</span><span class="loading-hint">GRAB YOUR HELMET</span></div>
     <span class="loading-error hidden" id="loading-error" role="alert"></span>
     <button class="loading-retry hidden" id="loading-retry" type="button">RELOAD GAME ↻</button>
   </div>
 </div>
+
 <div class="join-screen" id="join-screen" role="dialog" aria-modal="true" aria-labelledby="join-title">
-  <form class="join-card" id="join-form">
-    <span class="join-kicker">WHEELIEX MULTIPLAYER</span>
+  <form class="join-card" id="join-form" autocomplete="off">
+    <span class="join-kicker">E-RIDE LIFE MULTIPLAYER</span>
     <h2 id="join-title">WHO'S RIDING?</h2>
     <p>Pick a rider name to enter the city and meet other players.</p>
     <label for="rider-name">RIDER NAME</label>
-    <input id="rider-name" name="username" type="text" minlength="2" maxlength="16" autocomplete="nickname" placeholder="Your name" required>
-    <button class="join-button" type="submit">ENTER THE CITY <span>→</span></button>
-    <small>Your name is shown to everyone in this session.</small>
+    <input id="rider-name" name="username" type="text" minlength="2" maxlength="16" autocomplete="nickname" autocapitalize="words" spellcheck="false" enterkeyhint="go" placeholder="Your name" required>
+    <button class="join-button" type="submit">ENTER THE CITY <span aria-hidden="true">→</span></button>
+    <small>Other players in this session will see your name.</small>
   </form>
 </div>
-<canvas id="g"></canvas><div id="sl"></div>
+
+<canvas id="g" role="img" aria-label="Game view"></canvas><div id="sl"></div>
 <canvas id="mm" width="300" height="300" tabindex="0" role="button" aria-label="Expand player map" aria-expanded="false" title="Click to enlarge player map"></canvas>
-<div id="top" class="p"><div id="cash"><span class="cash-mark">$</span><span><small>BANK BALANCE</small><strong id="cash-value">$0</strong></span></div><div id="clock">06:00 · DAY</div><div id="combo"></div><div id="wanted"></div></div><div id="pl"></div>
-<div id="tr" class="p"><div id="ver" title="Game version"></div><div id="net" aria-live="polite">Enter your name to connect</div><button id="bg">🏍 Garage [G]</button><button id="st">⚙ Settings</button><button id="bm">🔊</button></div>
-<div id="pop"></div><canvas id="wm" width="240" height="130"></canvas>
-<div id="br" class="p"><div id="sp"></div><div class="bar"><i id="bb" style="width:0%"></i></div><small id="boost-note">NO BOOST MOUNT · MOD SHOP</small></div>
+
+<div id="top" class="p">
+  <div id="cash"><span class="cash-mark" aria-hidden="true">$</span><span><small>BANK BALANCE</small><strong id="cash-value">$0</strong></span></div>
+  <div id="clock">06:00 · DAY</div>
+  <div id="combo"></div>
+  <div id="wanted"></div>
+</div>
+<div id="pl"></div>
+
+<div id="tr" class="p">
+  <div id="ver" title="Game version"></div>
+  <div id="net" aria-live="polite">Enter your name to connect</div>
+  <button id="bg" type="button">🏍 Garage [G]</button>
+  <button id="st" type="button">⚙ Settings</button>
+  <button id="bm" type="button" aria-label="Toggle sound">🔊</button>
+</div>
+
+<div id="pop" aria-live="polite"></div><canvas id="wm" width="240" height="130" aria-hidden="true"></canvas>
+
+<div id="br" class="p">
+  <div id="sp"></div>
+  <div class="bar"><i id="bb" style="width:0%"></i></div>
+  <small id="boost-note">NO BOOST MOUNT · MOD SHOP</small>
+</div>
+
 <div id="help" class="p">W/↑ throttle · S/↓ brake (hold to reverse) · A/D steer · Space suspension bounce · Shift wheelie · F ground-touch in orange · AIR: W/S flips, A/D rolls · E boost · G garage</div>
+
 <div id="tc">
-<button data-k="KeyA" style="left:12px;bottom:90px">◀</button><button data-k="KeyD" style="left:86px;bottom:90px">▶</button>
-<button data-k="ShiftLeft" style="left:12px;bottom:162px;width:138px;background:#16a34a">WHEELIE</button>
-<button data-k="Space" style="left:12px;bottom:16px;width:138px">BOUNCE</button>
-<button data-k="KeyW" style="right:12px;bottom:90px">▲</button><button data-k="KeyS" style="right:86px;bottom:90px">■</button>
-<button data-k="KeyE" style="right:12px;bottom:16px;width:138px;background:#7c3aed">⚡ BOOST</button>
-<button data-k="KeyF" style="left:50%;bottom:16px;width:100px;transform:translateX(-50%)">GROUND</button></div>
+  <button type="button" data-k="KeyA" aria-label="Steer left" style="left:12px;bottom:90px">◀</button>
+  <button type="button" data-k="KeyD" aria-label="Steer right" style="left:86px;bottom:90px">▶</button>
+  <button type="button" data-k="ShiftLeft" style="left:12px;bottom:162px;width:138px;background:#16a34a">WHEELIE</button>
+  <button type="button" data-k="Space" style="left:12px;bottom:16px;width:138px">BOUNCE</button>
+  <button type="button" data-k="KeyW" aria-label="Throttle" style="right:12px;bottom:90px">▲</button>
+  <button type="button" data-k="KeyS" aria-label="Brake" style="right:86px;bottom:90px">■</button>
+  <button type="button" data-k="KeyE" style="right:12px;bottom:16px;width:138px;background:#7c3aed">⚡ BOOST</button>
+  <button type="button" data-k="KeyF" style="left:50%;bottom:16px;width:100px;transform:translateX(-50%)">GROUND</button>
+</div>
+
 <div id="gar"></div>
+
 <div id="settings" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-  <h2 id="settings-title">SETTINGS <button id="settings-close" aria-label="Close settings">✕</button></h2>
+  <h2 id="settings-title">SETTINGS <button id="settings-close" type="button" aria-label="Close settings">✕</button></h2>
   <label for="police-difficulty">POLICE DIFFICULTY</label>
   <select id="police-difficulty">
     <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option><option value="insane">Insane</option><option value="death">Death</option>
   </select>
-  <p>Higher difficulty means faster police, earlier detection, and longer escapes.</p>
+  <p>Higher difficulty means faster police, earlier detection and longer escapes.</p>
   <label for="graphics-quality">GRAPHICS QUALITY</label>
   <select id="graphics-quality">
-    <option value="low">Low · Maximum performance</option>
-    <option value="medium">Medium · Balanced entry</option>
-    <option value="high">High · Recommended standard</option>
-    <option value="ultra">Ultra · Maximum fidelity</option>
-    <option value="4k">4K · Native 2160p render</option>
+    <option value="low">Low · Maximum performance</option><option value="medium">Medium · Balanced entry</option><option value="high">High · Recommended standard</option><option value="ultra">Ultra · Maximum fidelity</option><option value="4k">4K · Native 2160p render</option>
   </select>
-  <p id="graphics-quality-note">Tune resolution scaling, antialiasing, shadows, particles, and draw distance. Changes apply live.</p>
+  <p id="graphics-quality-note">Tune resolution scaling, antialiasing, shadows, particles and draw distance. Changes apply live.</p>
   <fieldset class="accessibility">
     <legend>ACCESSIBILITY</legend>
     <label class="setting-toggle" for="a11y-reduced-motion"><span>Reduce flashing and motion</span><input id="a11y-reduced-motion" type="checkbox"></label>
@@ -97,65 +133,67 @@
     <label class="setting-toggle" for="a11y-high-contrast"><span>High-contrast interface</span><input id="a11y-high-contrast" type="checkbox"></label>
   </fieldset>
 </div>
-<script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
+
+<noscript><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f1b14;color:#f2ffe0;font-family:system-ui,sans-serif;font-size:14px;line-height:1.5;padding:20px;text-align:center">E-Ride Life needs JavaScript, WebGL and an internet connection. Turn JavaScript on or try a current browser.</div></noscript>
+
+<!-- Loading controller: runs before the game so failures are caught from the start -->
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const screen = $("loading-screen"), fill = $("loading-fill"), percent = $("loading-percent");
+  const label = $("loading-label"), error = $("loading-error"), retry = $("loading-retry");
+  const started = performance.now();
+  const MIN_MS = 1500;
+  const MAX_MS = 8000;
+  const phases = ["CALIBRATING MOTOR", "LOADING CITY BLOCKS", "IGNITING BATTERY", "SYNCING WEATHER"];
+  let phase = 0, done = false, timer = 0;
+
+  const phaseTimer = setInterval(() => { phase = (phase + 1) % phases.length; label.textContent = phases[phase]; }, 1600);
+
+  const finish = () => {
+    if (done) return;
+    done = true;
+    clearInterval(phaseTimer);
+    timer = setTimeout(() => {
+      fill.classList.add("complete");
+      fill.style.width = "100%";
+      percent.textContent = "READY";
+      screen.classList.add("done");
+      setTimeout(() => screen.classList.add("hidden"), 500);
+    }, Math.max(0, MIN_MS - (performance.now() - started)));
+  };
+
+  const fail = (message) => {
+    clearTimeout(timer);
+    clearInterval(phaseTimer);
+    done = true;
+    screen.classList.remove("done", "hidden");
+    screen.classList.add("failed");
+    label.textContent = "THE STREETS DIDN'T LOAD";
+    percent.textContent = "STARTUP ERROR";
+    error.textContent = message || "Check your connection and reload the game.";
+    error.classList.remove("hidden");
+    retry.classList.remove("hidden");
+  };
+
+  window.addEventListener("error", (e) => {
+    const t = e.target;
+    if (t && t.tagName === "SCRIPT" && /game\.js/.test(t.src || "")) {
+      fail("The game could not be loaded. Check your connection, then reload.");
+    }
+  }, true);
+
+  retry.addEventListener("click", () => location.reload());
+  label.textContent = phases[0];
+  window.WheelieXLoading = { finish, fail };
+  window.addEventListener("load", finish, { once: true });
+  setTimeout(finish, MAX_MS);
+})();
+</script>
+
+<!-- defer: MQTT no longer blocks the page, and still runs before game.js -->
+<script defer src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 <script id="game-module" type="module" src="./game.js"></script>
-<script>
-  (() => {
-    const screen = document.getElementById("loading-screen");
-    const fill = document.getElementById("loading-fill");
-    const percent = document.getElementById("loading-percent");
-    const label = document.getElementById("loading-label");
-    const error = document.getElementById("loading-error");
-    const retry = document.getElementById("loading-retry");
-    const gameModule = document.getElementById("game-module");
-    const started = performance.now();
-    const minimumDuration = 3000;
-    let finished = false;
-    let finishing = false;
-    let finishTimer;
-    const phases = ["CALIBRATING MOTOR", "LOADING CITY BLOCKS", "IGNITING BATTERY", "SYNCING WEATHER"];
-    let phaseIdx = 0;
-    let phaseTimer;
-
-    const cyclePhase = () => { phaseIdx = (phaseIdx + 1) % phases.length; label.textContent = phases[phaseIdx]; };
-
-    const finish = () => {
-      if (finished || finishing) return;
-      finishing = true;
-      window.clearInterval(phaseTimer);
-      finishTimer = window.setTimeout(() => {
-        if (finished) return;
-        finished = true;
-        fill.classList.add("complete");
-        fill.style.width = "100%";
-        percent.textContent = "READY";
-        screen.classList.add("done");
-        window.setTimeout(() => screen.classList.add("hidden"), 500);
-      }, Math.max(0, minimumDuration - (performance.now() - started)));
-    };
-    const fail = (message) => {
-      if (finished) return;
-      window.clearTimeout(finishTimer);
-      window.clearInterval(phaseTimer);
-      finishing = false;
-      finished = true;
-      screen.classList.add("failed");
-      label.textContent = "THE STREETS DIDN'T LOAD";
-      percent.textContent = "STARTUP ERROR";
-      error.textContent = message || "Check your connection and try again.";
-      error.classList.remove("hidden");
-      retry.classList.remove("hidden");
-    };
-    gameModule.addEventListener("error", () => fail("The game engine could not be loaded. Check your internet connection and reload."));
-    const safeFinish = () => { if (!finished) finish(); };
-    retry.addEventListener("click", () => window.location.reload());
-    label.textContent = phases[phaseIdx];
-    phaseTimer = window.setInterval(cyclePhase, 2600);
-    window.WheelieXLoading = { finish: safeFinish, fail };
-    window.addEventListener("load", safeFinish, { once: true });
-    window.setTimeout(() => { if (!finished) safeFinish(); }, 8000);
-  })();
-</script>
-<noscript><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#bfdef2;color:#0f1b14;font-family:system-ui,sans-serif;font-size:14px;line-height:1.5;padding:20px;text-align:center">E-Ride Life needs WebGL support and an internet connection to load the 3D engine. Please try again in a modern browser.</div></noscript>
-</body></html>
+</body>
+</html>
