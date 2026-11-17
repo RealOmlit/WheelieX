@@ -195,7 +195,6 @@ for(const gr of [.24,.3,.36]){const ring=new T.Mesh(new T.TorusGeometry(gr,.01,6
 P.add(glow);
 const Rd=new T.Group();P.add(Rd);
 const hBase=standH?1.16:d.sy+.82,hTop=standH?1.38:d.sy+1.0;
-Rd.add(tb([0,hBase-.3,wb*.1],[0,hBase+.18,wb*.36],.08,HEM));
 Rd.add(bx(.3,.36,.3,HEM,0,hBase,wb*.45));
 Rd.add(bx(.16,.12,.12,mat(0x12333f,{metalness:.85,roughness:.08}),0,hBase+.06,wb*.45+.11));
 Rd.add(bx(.16,.16,.16,mat(0xf2f4e8,{metalness:.6,roughness:.35}),0,hBase+.18,wb*.45));
@@ -219,7 +218,7 @@ function dressBike(o){
 const P=o.P,d=o.d,frontAssembly=o.frontAssembly,rearAssembly=o.rearAssembly,fwSpin=o.fwSpin,rwSpin=o.rwSpin,frontSpacing=o.frontSpacing;
 const wb=d.wb,wr=d.wr,tw=d.tw,bw=d.bw,bh=d.bh,sl=d.sl,sy=o.sy,sc=d.kind==='scooter';
 const y0=wr*.9,hy=sc?Math.max(wr*2+.18,0.98):wr*2+.18,hz=sc?Math.max(wb-.22,0.9):wb-.22,hby=hy+d.hb*.5+.06,pivotY=y0*.7,pivotZ=wb*.3,batteryY=y0+.12,batteryZ=wb*.42,axleY=-pivotY,axleZ=-pivotZ;
-const idx=Math.max(0,BIKES.indexOf(d)),M=o.M,A=o.A,F=o.F,SM=o.SM,PN=o.PN,rubber=o.rubber;
+const idx=Math.max(0,BIKES.indexOf(d)),M=o.M,A=o.A,F=o.F,SM=o.SM,PN=o.PN,rubber=o.rubber,SH=o.SH;
 const C=mat(0x0b0e12,{roughness:.4,metalness:.6}),CH=mat(0xe2e8ee,{roughness:.15,metalness:1}),LED=mat(0xeaf7ff,{emissive:0xbfefff,emissiveIntensity:2.6,roughness:.2,metalness:.1}),RED=mat(0x2a0509,{emissive:0xff1f3d,emissiveIntensity:1.7,roughness:.3,metalness:.1}),AMB=mat(0x1a1206,{emissive:0xffab2e,emissiveIntensity:1.5,roughness:.3}),ACC=mat(0x0a0a0a,{emissive:d.a,emissiveIntensity:1.6,roughness:.35,metalness:.2}),TINT=mat(0x16222c,{roughness:.05,metalness:.25,transparent:true,opacity:.38}),PLATE=mat(0xffffff,{map:numberPlateTex(idx),roughness:.5,metalness:.12});
 const V=(x,y,z)=>new T.Vector3(x,y,z);
 const m4=(x,y,z,rx=0,ry=0,rz=0,sx=1,syy=1,sz=1)=>{const u=new T.Object3D();u.position.set(x,y,z);u.rotation.set(rx,ry,rz);u.scale.set(sx,syy,sz);u.updateMatrix();return u.matrix.clone()};
@@ -327,6 +326,23 @@ if(sc){
  add(P,A,U,m4(0,hy*.72,hz-.02,0,0,0,.045,.05,.045));
  add(P,RED,boxGeo,m4(0,sy-.05,-.1,0,0,0,.09,.02,.014));
 }
+/* ---------- seated rider: torso, arms on the bars, legs on the pegs ---------- */
+const SKIN=mat(0xb77b55,{roughness:.85,metalness:0});
+const rHeadY=sc?1.16:d.sy+.82,rShY=rHeadY-.24,rShZ=wb*.4,rHipY=sc?Math.max(y0+.36,rHeadY-.72):sy+.06,rHipZ=wb*.1;
+add(P,PN,boxGeo,m4(0,rHipY,rHipZ,0,0,0,.3,.2,.27));
+slab(P,SH,[0,rHipY+.04,rHipZ+.01],[0,rShY,rShZ],.34,.23);
+slab(P,ACC,[0,rHipY+.05,rHipZ+.11],[0,rShY-.03,rShZ+.04],.075,.24);
+add(P,SKIN,boxGeo,m4(0,rShY+.03,rShZ+.03,0,0,0,.14,.15,.14));
+for(const s of [-1,1]){
+const sh=[s*.17,rShY,rShZ],el=[s*.29,rShY-.12,rShZ+.2],hand=[s*.34,hby,hz-.08],knee=[s*.19,rHipY-.24,wb*.44],ankle=[s*.19,y0+.15,wb*.2];
+add(P,SH,boxGeo,m4(sh[0],sh[1],sh[2],0,0,0,.18,.16,.21));
+slab(P,SH,sh,el,.12,.14);
+slab(P,SH,el,[hand[0],hand[1]+.02,hand[2]],.1,.115);
+add(P,C,boxGeo,m4(hand[0],hand[1],hand[2]-.01,0,0,0,.095,.105,.14));
+slab(P,PN,[s*.1,rHipY,rHipZ+.02],knee,.17,.19);
+slab(P,PN,knee,ankle,.14,.16);
+add(P,C,boxGeo,m4(ankle[0],ankle[1]-.05,ankle[2]+.05,0,0,0,.12,.1,.27));
+}
 for(const [target,byMat] of bags){for(const [material,geos] of byMat){const merged=mergeGeometries(geos);geos.forEach(g=>g.dispose());if(!merged)continue;const mesh=new T.Mesh(merged,material);mesh.castShadow=true;mesh.receiveShadow=true;target.add(mesh)}}
 }
 function tag(txt,col,sub,subCol){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.textAlign='center';x.fillStyle='rgba(0,0,0,.5)';x.fillRect(0,16,512,96);x.fillStyle=col;x.font=`bold ${sub?44:60}px system-ui`;x.fillText(txt,256,sub?66:86);if(sub){x.fillStyle=subCol||'#cbd5e1';x.font='bold 28px system-ui';x.fillText(sub,256,100)}const tx=new T.CanvasTexture(c);tx.anisotropy=aniso;const s=new T.Sprite(new T.SpriteMaterial({map:tx,depthTest:false}));s.scale.set(3,.75,1);s.position.y=2.4;s.renderOrder=9;return s}
@@ -359,8 +375,6 @@ const dirtM=mat(0x8d6e4a,{roughness:1,metalness:0,map:dirtTex});
 const rt=(()=>{const c=document.createElement('canvas');c.width=512;c.height=2048;const x=c.getContext('2d');x.fillStyle='#34373d';x.fillRect(0,0,512,2048);for(let i=0;i<36000;i++){const shade=30+Math.random()*30;x.fillStyle=`rgba(${shade},${shade},${shade+2},.16)`;x.fillRect(Math.random()*512,Math.random()*2048,2+Math.random()*6,2+Math.random()*4)}for(let i=0;i<9000;i++){const shade=40+Math.random()*22;x.fillStyle=`rgba(${shade},${shade},${shade+1},.10)`;x.fillRect(Math.random()*512,Math.random()*2048,1+Math.random()*3,1+Math.random()*3)}x.fillStyle='#e7e8e8';x.fillRect(20,0,8,2048);x.fillRect(484,0,8,2048);x.fillStyle='#f2bd35';x.fillRect(248,0,8,2048);x.fillRect(268,0,8,2048);x.fillStyle='#e7e8e8';for(let i=0;i<10;i++){const y=i*204.8+60;x.fillRect(136,y,8,72);x.fillRect(368,y,8,72)}const t=new T.CanvasTexture(c);t.anisotropy=aniso;return t})();
 const roadM=mat(0xffffff,{map:rt,roughness:.9,metalness:0}),swM=mat(0x9a9a9a,{roughness:1,metalness:0}),seamM=mat(0x65696d,{roughness:1,metalness:0}),roadStudM=mat(0xe4e9e9,{emissive:0x111111,emissiveIntensity:.2,roughness:.3,metalness:.2}),poleM=mat(0x444444,{roughness:.6,metalness:.55}),lampM=mat(0xffd27a,{emissive:0xff9a35,emissiveIntensity:0,roughness:.2,metalness:.1}),streetGlowM=new T.MeshBasicMaterial({color:0xffb95e,transparent:true,opacity:0,depthWrite:false}),lensM=new T.MeshStandardMaterial({color:0xfff0cf,emissive:0xffb35e,emissiveIntensity:.8,roughness:.15,metalness:.1});
 /* Speed-limit cameras: the sign texture and materials are shared by every camera prop. */
-const speedSignTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.clearRect(0,0,128,128);x.fillStyle='#fff';x.beginPath();x.arc(64,64,58,0,PI*2);x.fill();x.strokeStyle='#dc2626';x.lineWidth=14;x.stroke();x.fillStyle='#111827';x.font='bold 62px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText('40',64,68);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.anisotropy=aniso;return t})();
-const speedSignM=new T.MeshBasicMaterial({map:speedSignTex,transparent:true,side:T.DoubleSide}),camBodyM=mat(0xd7dee8,{roughness:.45,metalness:.35}),camLensM=new T.MeshBasicMaterial({color:0x7dd3fc}),camDotM=new T.MeshBasicMaterial({color:0xff3b3b});
 const bldTex=(()=>{const N=8,W=64,c=document.createElement('canvas'),e=document.createElement('canvas');c.width=c.height=e.width=e.height=N*W;const x=c.getContext('2d'),y=e.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,N*W,N*W);y.fillStyle='#000';y.fillRect(0,0,N*W,N*W);
 for(let i=0;i<N;i++)for(let j=0;j<N;j++){const g=x.createLinearGradient(0,j*W,0,j*W+W);g.addColorStop(0,'#5e8aa6');g.addColorStop(1,'#243b4d');x.fillStyle=g;x.fillRect(i*W+14,j*W+12,W-28,W-24);x.fillStyle='rgba(0,0,0,.18)';x.fillRect(i*W+10,j*W+W-12,W-20,4);if(Math.random()<.35){y.fillStyle=Math.random()<.5?'#ffd48a':'#cfe8ff';y.fillRect(i*W+14,j*W+12,W-28,W-24)}}
 const mk=cv=>{const tx=new T.CanvasTexture(cv);tx.colorSpace=T.SRGBColorSpace;tx.wrapS=tx.wrapT=T.RepeatWrapping;tx.anisotropy=aniso;return tx};return{map:mk(c),em:mk(e)}})();
@@ -372,7 +386,7 @@ const pedGeo=new T.BoxGeometry(.35,.7,.35),pedSkinM=mat(0xb77b55,{roughness:.85,
 const padGeo=new T.PlaneGeometry(4,8).rotateX(-PI/2),padM=new T.MeshStandardMaterial({color:0x66ddff,emissive:0x0b7aa5,emissiveIntensity:.7,roughness:.35,metalness:.2});
 const RM=[0xd97706,0x9a7b4f,0x9ca3af,0xb45309].map(c=>mat(c,{roughness:.8}));
 function mkChunk(cx,cz){
-const r=rng((cx*73856093)^(cz*19349663)),g=new T.Group(),c={g,id:[cx,cz],ramps:[],cols:[],pads:[],lights:[],peds:[],cams:[],dis:[]},ox=cx*S_,oz=cz*S_;g.position.set(ox,0,oz);
+const r=rng((cx*73856093)^(cz*19349663)),g=new T.Group(),c={g,id:[cx,cz],ramps:[],cols:[],pads:[],lights:[],peds:[],dis:[]},ox=cx*S_,oz=cz*S_;g.position.set(ox,0,oz);
 const hw=cx===0,b=hw?r()*3|0:r()*4|0;
 const gm=new T.Mesh(gGeo,b===3?dirtM:GM[b]);gm.receiveShadow=true;g.add(gm);
 const bk=new Map(),add=(m,x,y,z,cs,dyn)=>{m.position.set(x,y,z);if(dyn||m.geometry.type==='ExtrudeGeometry'){m.castShadow=!!cs;m.receiveShadow=true;g.add(m);return m}m.updateMatrix();const q=m.geometry.clone().applyMatrix4(m.matrix);const a=bk.get(m.material)||bk.set(m.material,[]).get(m.material);a.push(q);return m};
@@ -396,13 +410,6 @@ const halo=new T.Mesh(lampGlowGeo,streetGlowM);add(halo,sx*.9,6.84,z,0,1);
 const light=new T.PointLight(0xffc777,0,30,2);light.position.set(sx*.9,6.9,z);g.add(light);c.lights.push(light)
 col(sx,z,.5,.5,7.5);
 if(z===0&&Math.abs(sx)>10){const ped=buildWalker();ped.g.position.set(sx*.9,0,z);ped.g.visible=true;scene.add(ped.g);c.peds.push({g:ped.g,x:sx*.9,z:oz+z,phase:r()*6.28,w:0})}}));
-if(Math.abs(cz)%3===0){const camSide=Math.abs(cz/3)%2?-1:1,camX=camSide*12.9,camZ=25;
-add(new T.Mesh(new T.CylinderGeometry(.08,.11,4.8,8),poleM),camX,2.4,camZ,1);
-add(new T.Mesh(new T.BoxGeometry(.38,.3,.62),camBodyM),camX,4.55,camZ,1);
-const camLens=new T.Mesh(new T.CylinderGeometry(.09,.09,.14,10),camLensM);camLens.rotation.x=PI/2;add(camLens,camX,4.55,camZ-.36,1);
-add(new T.Mesh(new T.SphereGeometry(.045,8,6),camDotM),camX,4.72,camZ+.05,1);
-const camSign=new T.Mesh(new T.CircleGeometry(.42,24),speedSignM);camSign.rotation.y=PI;add(camSign,camX-camSide*.13,2.6,camZ,1);
-c.cams.push({x:ox+camX,z:oz+camZ,limit:40})}
 for(let z=-39;z<=39;z+=6){for(const sx of [-13.5,13.5])add(bx(2.7,.01,.04,seamM,sx,.205,z),sx,.205,z);
 for(const sx of [-10.8,10.8])add(bx(.12,.025,.2,roadStudM,sx,roadBump(z)*roadFade(sx)+.012,z),sx,roadBump(z)*roadFade(sx)+.012,z)}
 if(r()<.4){const side=r()<.5?-1:1,x=side*(13.2+(r()-.5)*2.4),z=(r()-.5)*60;add(new T.Mesh(padGeo,padM),x,roadBump(z)*roadFade(x)+.015,z);c.pads.push({x:ox+x,z:oz+z})}}
@@ -677,8 +684,7 @@ mm.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefa
 function drawMM(){const px=riding?x:ox,pz=riding?z:oz,heading=riding?h:oh,k=1.5,sh=Math.sin(heading),ch=Math.cos(heading),P=(wx_,wz)=>{const dx=wx_-px,dz=wz-pz;return[150+(-dx*ch+dz*sh)*k,150-(dx*sh+dz*ch)*k]};
 mx.fillStyle='#3d5a3a';mx.fillRect(0,0,300,300);mx.fillStyle='#50545c';mx.beginPath();[[-12,-200],[12,-200],[12,200],[-12,200]].forEach(([a,b],i)=>{const q=P(a,pz+b);i?mx.lineTo(q[0],q[1]):mx.moveTo(q[0],q[1])});mx.fill();
 const expanded=mm.classList.contains('expanded');
-const camIcon=(camX_,camZ_,lim)=>{const s=P(camX_,camZ_);if(s[0]<-14||s[0]>314||s[1]<-14||s[1]>314)return;mx.save();mx.translate(s[0],s[1]);mx.fillStyle='#0b1220';mx.strokeStyle='#facc15';mx.lineWidth=2;mx.beginPath();mx.roundRect(-9,-6,18,12,3);mx.fill();mx.stroke();mx.fillStyle='#facc15';mx.beginPath();mx.arc(0,0,3.2,0,7);mx.fill();mx.fillStyle='#0b1220';mx.beginPath();mx.arc(0,0,1.4,0,7);mx.fill();if(expanded&&lim){mx.fillStyle='#fff';mx.strokeStyle='#000';mx.font='bold 11px system-ui';mx.textAlign='center';mx.strokeText(lim+' LIMIT',0,-12);mx.fillText(lim+' LIMIT',0,-12)}mx.restore()};
-nbr(px,pz,c=>{mx.fillStyle='#8d96a5';c.cols.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)});mx.fillStyle='#fbbf24';c.ramps.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)});(c.cams||[]).forEach(q=>camIcon(q.x,q.z,q.limit))});
+nbr(px,pz,c=>{mx.fillStyle='#8d96a5';c.cols.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)});mx.fillStyle='#fbbf24';c.ramps.forEach(q=>{const s=P(q.x,q.z);mx.fillRect(s[0]-4,s[1]-4,8,8)})});
 mx.font=expanded?'bold 13px system-ui':'bold 18px system-ui';mx.textAlign='center';
 const dot=(X,Z,col,n)=>{const s=P(X,Z);if(s[0]<-10||s[0]>310||s[1]<-10||s[1]>310)return;mx.fillStyle=col;mx.beginPath();mx.arc(s[0],s[1],7,0,7);mx.fill();mx.strokeStyle='#000';mx.lineWidth=2;mx.stroke();if(n){const text=expanded?`${n} · ${Math.round(X)}, ${Math.round(Z)}`:n,half=mx.measureText(text).width/2,tx=Math.max(half+4,Math.min(296-half,s[0]));mx.fillStyle='#fff';mx.strokeText(text,tx,s[1]-11);mx.fillText(text,tx,s[1]-11)}};
 for(const r of rem.values())dot(r.onFoot?r.px:r.x,r.onFoot?r.pz:r.z,r.col,r.n||'');
