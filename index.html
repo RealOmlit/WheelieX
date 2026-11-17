@@ -167,10 +167,14 @@
   };
 
   const fail = (message) => {
-    if (done) return; // loading already dismissed — do not resurrect the screen (would reload-loop)
     clearTimeout(timer);
     clearInterval(phaseTimer);
     done = true;
+    if (screen.classList.contains("done")) {
+      // loading already dismissed — show error inline without resurrecting loading screen (no reload loop)
+      const d=document.createElement('div');d.style.cssText='position:fixed;top:10px;left:10px;right:10px;background:#ff4444;color:#fff;padding:10px;z-index:10000;font-family:monospace;font-size:12px;max-height:200px;overflow:auto';d.textContent='Game error: '+message;document.body.appendChild(d);
+      return;
+    }
     screen.classList.remove("done", "hidden");
     screen.classList.add("failed");
     label.textContent = "THE STREETS DIDN'T LOAD";

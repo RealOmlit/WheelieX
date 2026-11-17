@@ -419,16 +419,16 @@ const hCanvas=document.createElement('canvas');hCanvas.width=512;hCanvas.height=
 let pi=0;const emit=(p3,vx,vy,vz,l,r,g,b,gr)=>{const i=pi++%NP,q=pq[i];pp.set([p3.x,p3.y,p3.z],i*3);pc.set([r,g,b],i*3);q.l=l;q.v=[vx,vy,vz];q.g=gr};
 const stepP=dt=>{for(let i=0;i<NP;i++){const q=pq[i];if(q.l>0){q.l-=dt;q.v[1]-=q.g*dt;pp[i*3]+=q.v[0]*dt;pp[i*3+1]+=q.v[1]*dt;pp[i*3+2]+=q.v[2]*dt;if(q.l<=0)pp[i*3+1]=-999}}pg.attributes.position.needsUpdate=true;pg.attributes.color.needsUpdate=true};
 const applyGraphics=(p)=>{const g=GFX[p]||GFX.high;GFXP=p;R.setPixelRatio(p==='4k'?fourKDpr():g.dpr);if(composer)composer.setPixelRatio(R.getPixelRatio());R.antialias=g.antialias;R.shadowMap.enabled=g.shadow;R.shadowMap.type=T.PCFSoftShadowMap;sun.castShadow=g.shadow;sun.shadow.mapSize.set(g.shadowSize,g.shadowSize);R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();NP=Math.round(260*g.particles);if(composer){composer.dispose();composer=null}if(g.post){const rt=new T.WebGLRenderTarget(innerWidth,innerHeight,{type:T.HalfFloatType,samples:g.msaa||0});const c=new EffectComposer(R,rt);c.setPixelRatio(R.getPixelRatio());c.setSize(innerWidth,innerHeight);c.addPass(new RenderPass(scene,cam));if(g.bloom)c.addPass(new UnrealBloomPass(new T.Vector2(innerWidth,innerHeight),.32,.55,.9));c.addPass(new OutputPass());composer=c}};
-applyGraphics(GFXP);
+try{applyGraphics(GFXP);}catch(e){console.error('applyGraphics failed:',e)}
 /* ---------- audio ---------- */
 let AC,mg,mo1,mo2,mgn,sir,sg,ng={},muted=false;
-function ainit(){if(AC){AC.resume();return}try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return}
-mg=AC.createGain();mg.gain.value=muted?0:.5;mg.connect(AC.destination);
+function ainit(){if(AC){AC.resume();return}try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return}}
+try{mg=AC.createGain();mg.gain.value=muted?0:.5;mg.connect(AC.destination);
 mo1=AC.createOscillator();mo1.type='sawtooth';mo2=AC.createOscillator();mo2.type='sine';const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=1600;mgn=AC.createGain();mgn.gain.value=0;
 mo1.connect(f);mo2.connect(f);f.connect(mgn);mgn.connect(mg);mo1.start();mo2.start();
 const nb=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
 const ns=(t,fr,q)=>{const s=AC.createBufferSource();s.buffer=nb;s.loop=true;const fl=AC.createBiquadFilter();fl.type=t;fl.frequency.value=fr;fl.Q.value=q;const g=AC.createGain();g.gain.value=0;s.connect(fl);fl.connect(g);g.connect(mg);s.start();return g};
-ng.scr=ns('bandpass',1700,3);ng.spk=ns('highpass',5000,1);ng.bst=ns('bandpass',600,.6);sir=AC.createOscillator();sir.type='triangle';sg=AC.createGain();sg.gain.value=0;sir.connect(sg);sg.connect(mg);sir.start()}
+ng.scr=ns('bandpass',1700,3);ng.spk=ns('highpass',5000,1);ng.bst=ns('bandpass',600,.6);sir=AC.createOscillator();sir.type='triangle';sg=AC.createGain();sg.gain.value=0;sir.connect(sg);sg.connect(mg);sir.start()}catch(e){console.error('audio init failed:',e)}
 addEventListener('pointerdown',ainit);addEventListener('keydown',ainit);
 $('bm').onclick=()=>{muted=!muted;$('bm').textContent=muted?'🔇':'🔊';if(mg)mg.gain.value=muted?0:.5};
 /* ---------- input ---------- */
@@ -807,6 +807,6 @@ drawMM();drawWM(zw);
 const htx=hCanvas.getContext('2d');htx.fillStyle='#05070c';htx.fillRect(0,0,512,128);htx.fillStyle='#8ff';htx.font='bold 24px monospace';htx.textAlign='center';htx.fillText('MM '+Math.round(Math.abs(v)*(S.units?3.6:2.237)),256,32);htx.fillStyle='#fff';htx.font='bold 22px monospace';htx.fillText('BAT '+Math.round(15+((tt*13)%70))+'%',256,60);htx.fillStyle='#ffd27a';htx.font='bold 22px monospace';htx.fillText(['ECO','DRIVE','SPORT'][(Math.floor(tt*0.5))%3],256,88);hTex.needsUpdate=true;
 if(composer){composer.render()}else{R.render(scene,cam)}}
 addEventListener('beforeunload',save);document.addEventListener('visibilitychange',save);
-addEventListener('error',e=>{if(e.target&&e.target.tagName==='SCRIPT'&&/game\.js/.test(e.target.src||''))return;window.WheelieXLoading?.fail(e.message||'Game engine error');},true);
+addEventListener('error',e=>{if(e.target&&e.target.tagName==='SCRIPT'&&/game\.js/.test(e.target.src||''))return;window.WheelieXLoading?.fail(e.message||'Game engine error')},true);
 requestAnimationFrame(loop);
 window.WheelieXLoading?.finish();
