@@ -6,6 +6,7 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.13';
+window.WheelieXLoading?.finish();
 /* ---------- save ---------- */
 let S;try{S=JSON.parse(localStorage.getItem('ebl1'))}catch(e){}
 S=S||{cash:0,own:[0],eq:0,up:{},suspension:{},boostMount:{},hacks:{},helmetOwn:[0],helmet:0};S.suspension=S.suspension||{};S.boostMount=S.boostMount||{};S.hacks=S.hacks||[];S.helmetOwn=S.helmetOwn||[0];S.helmet=S.helmet==null?0:S.helmet;
@@ -796,5 +797,6 @@ drawMM();drawWM(zw);
 const htx=hCanvas.getContext('2d');htx.fillStyle='#05070c';htx.fillRect(0,0,512,128);htx.fillStyle='#8ff';htx.font='bold 24px monospace';htx.textAlign='center';htx.fillText('MM '+Math.round(Math.abs(v)*(S.units?3.6:2.237)),256,32);htx.fillStyle='#fff';htx.font='bold 22px monospace';htx.fillText('BAT '+Math.round(15+((tt*13)%70))+'%',256,60);htx.fillStyle='#ffd27a';htx.font='bold 22px monospace';htx.fillText(['ECO','DRIVE','SPORT'][(Math.floor(tt*0.5))%3],256,88);hTex.needsUpdate=true;
 if(composer){composer.render()}else{R.render(scene,cam)}}
 addEventListener('beforeunload',save);document.addEventListener('visibilitychange',save);
+addEventListener('error',e=>{if(e.target&&e.target.tagName==='SCRIPT'&&/game\.js/.test(e.target.src||''))return;window.WheelieXLoading?.fail(e.message||'Game engine error');},true);
 requestAnimationFrame(loop);
 window.WheelieXLoading?.finish();
