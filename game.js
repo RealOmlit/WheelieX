@@ -191,10 +191,10 @@ P.add(glow);
 const Rd=new T.Group();P.add(Rd);
 const hBase=standH?1.16:d.sy+.82,hTop=standH?1.38:d.sy+1.0;
 Rd.add(tb([0,hBase-.3,wb*.1],[0,hBase+.18,wb*.36],.08,HEM));
-const hd=new T.Mesh(new T.SphereGeometry(.15,20,14),HEM);hd.scale.set(.85,1.28,.85);hd.position.set(0,hBase,wb*.45);Rd.add(hd);
-const visor=new T.Mesh(new T.SphereGeometry(.11,16,12),mat(0x12333f,{metalness:.85,roughness:.08}));visor.scale.set(.55,.22,.32);visor.position.set(0,hBase+.06,wb*.45+.11);Rd.add(visor);
-const crown=new T.Mesh(new T.SphereGeometry(.08,12,10),mat(0xf2f4e8,{metalness:.6,roughness:.35}));crown.position.set(0,hBase+.18,wb*.45);Rd.add(crown);
-[-1,1].forEach(s=>{Rd.add(new T.Mesh(new T.SphereGeometry(.08,10,8),mat(0x20272a,{roughness:.5})),s*.13,hBase-.005,wb*.42)});
+Rd.add(bx(.3,.36,.3,HEM,0,hBase,wb*.45));
+Rd.add(bx(.16,.12,.12,mat(0x12333f,{metalness:.85,roughness:.08}),0,hBase+.06,wb*.45+.11));
+Rd.add(bx(.16,.16,.16,mat(0xf2f4e8,{metalness:.6,roughness:.35}),0,hBase+.18,wb*.45));
+[-1,1].forEach(s=>{Rd.add(bx(.16,.16,.16,mat(0x20272a,{roughness:.5}),s*.13,hBase-.005,wb*.42))});
 dressBike({P,d,frontAssembly,rearAssembly,fwSpin:fw.spin,rwSpin:rw.spin,frontSpacing,sy,M,A,F,SM,PN,rubber,SH,HEM});
 updateSuspension(0,0);
 g.traverse(o=>{if(o.isMesh)o.castShadow=true});
@@ -330,12 +330,12 @@ const s=V*dt/r.wr;r.rw.rotation.x+=s;r.fw.rotation.x+=s}
 function buildWalker(color){
 const g=new T.Group(),skin=mat(0xb77b55,{roughness:.85,metalness:0}),shirt=mat(color,{roughness:.7,metalness:0}),pants=mat(0x252a32,{roughness:.9,metalness:0}),helmet=mat(0x20272a,{roughness:.32,metalness:.5}),visor=mat(0x6da4b1,{roughness:.18,metalness:.65});
 g.add(bx(.52,.67,.3,shirt,0,1.18,0),bx(.46,.13,.32,pants,0,.81,0));
-const head=new T.Mesh(new T.SphereGeometry(.16,14,10),skin);head.position.y=1.72;g.add(head);
-const lid=new T.Mesh(new T.SphereGeometry(.19,16,12),helmet);lid.scale.set(.85,1.25,.85);lid.position.y=1.79;g.add(lid);
-const vvis=new T.Mesh(new T.SphereGeometry(.15,14,10),visor);vvis.scale.set(.72,.3,.5);vvis.position.set(0,1.82,.1);g.add(vvis);
-const limb=(length,radius,m,x,y)=>{const pivot=new T.Group();pivot.position.set(x,y,0);const part=new T.Mesh(new T.CylinderGeometry(radius*.72,radius,length,9),m);part.position.y=-length/2;pivot.add(part);g.add(pivot);return pivot};
-const arms=[limb(.62,.085,shirt,-.34,1.43),limb(.62,.085,shirt,.34,1.43)];
-const legs=[limb(.72,.12,pants,-.14,.78),limb(.72,.12,pants,.14,.78)];
+g.add(bx(.32,.32,.32,skin,0,1.72,0));
+g.add(bx(.36,.2,.36,helmet,0,1.79,0));
+g.add(bx(.24,.12,.1,visor,0,1.82,.14));
+const limb=(length,w,d,m,x,y)=>{const pivot=new T.Group();pivot.position.set(x,y,0);const part=bx(w,length,d,m,0,-length/2,0);pivot.add(part);g.add(pivot);return pivot};
+const arms=[limb(.62,.18,.18,shirt,-.34,1.43),limb(.62,.18,.18,shirt,.34,1.43)];
+const legs=[limb(.72,.2,.2,pants,-.14,.78),limb(.72,.2,.2,pants,.14,.78)];
 for(const side of [-1,1])g.add(bx(.16,.12,.28,helmet,side*.14,.12,.05));
 return{g,arms,legs};
 }
@@ -446,17 +446,31 @@ const earn=a=>{S.cash+=a};
 function pop(t,col){const d=document.createElement('div');d.className='pp';d.textContent=t;d.style.color=col||'#4ade80';d.style.marginLeft=((Math.random()-.5)*200-50)+'px';$('pop').appendChild(d);setTimeout(()=>d.remove(),1450)}
 /* ---------- multiplayer ---------- */
 const ROOM='eridelife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),rem=new Map();let cli=null,online=false,networkText='Enter a name to connect',subbed=false;
+/* TLS-only relays: a plain ws:// relay is blocked as mixed content on an HTTPS page. */
+const BROKERS=['wss://broker.emqx.io:8084/mqtt','wss://broker.hivemq.com:8884/mqtt','wss://test.mosquitto.org:8081/mqtt'];
+let brokerIdx=0,failT=0,mqttLoading=false;
+const relayHost=u=>u.replace(/^wss?:\/\//,'').split(/[:/]/)[0];
+const queueFailover=()=>{if(failT)return;failT=setTimeout(()=>{failT=0;brokerIdx=(brokerIdx+1)%BROKERS.length;connectOnline()},1500)};
+function ensureMqtt(cb){if(typeof mqtt!=='undefined')return cb(true);if(mqttLoading)return;mqttLoading=true;networkText='Loading rider relay…';const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mqtt@5.3.4/dist/mqtt.min.js';s.onload=()=>{mqttLoading=false;cb(typeof mqtt!=='undefined')};s.onerror=()=>{mqttLoading=false;cb(false)};document.head.appendChild(s)}
 function connectOnline(){
-try{cli=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'ebl_'+ID,reconnectPeriod:4000,connectTimeout:10000,clean:true,keepalive:30,resubscribe:true});
-const sub=()=>{if(subbed||!cli)return;subbed=true;cli.subscribe(ROOM+'/s',e=>{if(e){subbed=false;networkText='Reconnecting to relay…';console.error('MQTT subscribe failed:',e.message)}})};
-cli.on('connect',()=>{online=true;networkText='Connected';sub()});
-cli.on('reconnect',()=>{networkText='Reconnecting…';sub()});cli.on('close',()=>{online=false;subbed=false;networkText='Offline · playing solo'});cli.on('offline',()=>{online=false;subbed=false;networkText='Offline · playing solo'});
-cli.on('error',e=>{online=false;networkText='Offline · playing solo';console.error('MQTT connection failed:',e&&e.message||e)});
-cli.on('message',(t,m)=>{try{const d=JSON.parse(m.toString());if(d.i===ID||!BIKES[d.b]||typeof d.i!=='string')return;let r=rem.get(d.i);
+if(typeof mqtt==='undefined'){ensureMqtt(ok=>{if(ok)connectOnline();else{online=false;networkText='Offline · relay library blocked';console.error('MQTT library failed to load from its CDN')}});return}
+const url=BROKERS[brokerIdx%BROKERS.length];
+/* Keep exactly one live client: a stale client would keep retrying and fight the new relay. */
+if(cli){try{cli.removeAllListeners();cli.end(true)}catch(e){}cli=null}
+online=false;subbed=false;
+try{const c=cli=mqtt.connect(url,{clientId:'ebl_'+ID,reconnectPeriod:4000,connectTimeout:8000,clean:true,keepalive:30,resubscribe:true});
+networkText='Connecting to '+relayHost(url)+'…';
+const sub=()=>{if(subbed||cli!==c)return;subbed=true;c.subscribe(ROOM+'/s',{qos:0},e=>{if(e){subbed=false;networkText='Relay rejected the room · retrying';console.error('MQTT subscribe failed:',e.message)}})};
+c.on('connect',()=>{if(cli!==c)return;c.ready=true;online=true;if(failT){clearTimeout(failT);failT=0}networkText='Connected to riders';sub()});
+c.on('reconnect',()=>{if(cli!==c)return;networkText='Reconnecting…';sub()});
+c.on('close',()=>{if(cli!==c)return;online=false;subbed=false;if(c.ready){networkText='Reconnecting…'}else{networkText='Offline · trying another relay…';queueFailover()}});
+c.on('offline',()=>{if(cli!==c)return;online=false;subbed=false;networkText='Reconnecting…'});
+c.on('error',e=>{if(cli!==c)return;online=false;console.error('MQTT connection failed:',e&&e.message||e);if(!c.ready){networkText='Offline · trying another relay…';queueFailover()}});
+c.on('message',(t,m)=>{try{const d=JSON.parse(m.toString());if(d.i===ID||!BIKES[d.b]||typeof d.i!=='string')return;let r=rem.get(d.i);
 if(!r){r={rig:null,b:-1,x:d.x,y:d.y,z:d.z,h:d.h,p:d.p,r:d.r,v:0,col:'#'+(d.c>>>0).toString(16).padStart(6,'0'),ver:d.ver,onFoot:false,px:d.px??d.x,py:d.py??d.y,pz:d.pz??d.z,ph:d.ph??d.h,tx:d.x,ty:d.y,tz:d.z,afp:0,afr:0,fc:0,rc:0,tfc:0,trc:0};r.tag=tag(d.n||'Rider','#fff',verLabel(d.ver),verColor(d.ver));r.walker=buildWalker(d.c);r.walkerTag=tag(d.n||'Rider','#fff');r.walkerTag.position.y=2.15;r.walkerTag.scale.set(2,.5,1);r.walker.g.add(r.walkerTag);r.walker.g.visible=false;scene.add(r.walker.g);rem.set(d.i,r)}
 if(r.b!==d.b){if(r.rig)scene.remove(r.rig.g);r.rig=buildBike(BIKES[d.b],d.c,HELMETS[S.helmet]?.color||0x20272a);r.rig.g.add(r.tag);scene.add(r.rig.g);r.b=d.b}
 Object.assign(r,{tx:d.x,ty:d.y,tz:d.z,th:d.h,tp:d.on?0:d.p,tr:d.on?0:d.r,tv:d.on?0:d.v,tfp:d.fp||0,tfr:d.fr||0,tfc:Number.isFinite(d.fc)?d.fc:0,trc:Number.isFinite(d.rc)?d.rc:0,tpx:d.px??d.x,tpy:d.py??d.y,tpz:d.pz??d.z,tph:d.ph??d.h,onFoot:!!d.on,n:d.n,ver:d.ver,seen:performance.now()})}catch(e){console.error('Invalid rider update:',e)}})
-}catch(e){online=false;networkText='Offline · playing solo';console.error('MQTT connection failed:',e)}
+}catch(e){online=false;console.error('MQTT connection failed:',e&&e.message||e);networkText='Offline · trying another relay…';queueFailover()}
 }
 const nameInput=$('rider-name');
 try{nameInput.value=localStorage.getItem('wheeliex-name')||''}catch(e){}
