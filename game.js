@@ -5,7 +5,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.13';
+const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.15';
 window.WheelieXLoading?.finish();
 const ls=$('loading-screen');if(ls){ls.classList.add('done');ls.classList.add('hidden');}
 /* ---------- save ---------- */
@@ -83,9 +83,9 @@ const lv=i=>S.up[i]||(S.up[i]=[1,1,1,1]),eff=i=>{const rarity=hackRarity(i);retu
 const modPrice=(i,m)=>Math.round(Math.max(500,BIKES[i].pr)*m),mountPrice=(i,t)=>Math.round(Math.max(1000,BIKES[i].pr)*(t===1?3:4)),hackPrice=i=>Math.max(25000,Math.round(BIKES[i].pr*3));
 /* Empty car parks where riders host stunt rideouts. Hosting costs cash and boosts money earned on the rideout. */
 const RIDEOUTS=[{n:'Street Rideout',fee:25000,mult:1.5},{n:'Super Rideout',fee:30000,mult:2}];
-const RIDEOUT_SPOTS=[{n:'Meadowbrook Car Park',x:30,z:14},{n:'Old Town Car Park',x:-33,z:-4},{n:'Riverside Car Park',x:10,z:-32},{n:'Hillcrest Car Park',x:-28,z:30},{n:'Foundry Yard',x:40,z:-24}];
+const RIDEOUT_SPOTS=[{n:'Meadowbrook Car Park',x:30,z:14}];
 const rideMult=()=>rideTier<0?1:RIDEOUTS[rideTier].mult;
-function hostRideout(i){const r=RIDEOUTS[rideTier<0?0:rideTier],sp=RIDEOUT_SPOTS[i];if(S.cash<r.fee){pop('NOT ENOUGH CASH TO HOST A RIDEOUT','#f87171');return}S.cash-=r.fee;rideTier=rideTier<0?0:rideTier;save();pop(`${r.n} HOSTED AT ${sp.n.toUpperCase()} · MONEY BOUNCED ${r.mult}×`,'#c0f56a');if(questStage===2){questStage=3;qDone(2)}
+function hostRideout(i){const r=RIDEOUTS[rideTier<0?0:rideTier],sp=RIDEOUT_SPOTS[i];if(S.cash<r.fee){pop('NOT ENOUGH CASH TO HOST A RIDEOUT','#f87171');return}S.cash-=r.fee;rideTier=rideTier<0?0:rideTier;save();pop(`HOST TELEPORT · ${sp.n.toUpperCase()} · ${r.n} BOUNCED ${r.mult}×`,'#c0f56a',15000);if(questStage===2){questStage=3;qDone(2)}
 /* A hosted rideout starts in the empty car park: drop the rider there so the ride can begin. */
 x=sp.x;z=sp.z;y=gH(sp.x,sp.z);v=0;p=0;pw=0;wheelieHold=0;air=false;vy=0;camInit=true;if(wanted){wanted=0;heat=0;chaseT=0;escT=0}}
 /* ---------- three setup ---------- */
@@ -494,7 +494,7 @@ if(wheelie&&wzone===1){if(trick==null){trick='handscrape';trickT=0;pop('HAND SCR
 else if(wheelie&&wzone===2){wheelieHold=Math.max(0,wheelieHold-1.2);cb=1;earn(30);pop('SKILL · REACHED THE GROUND +$30','#4ade80')}
 }
 const earn=a=>{S.cash+=a*rideMult();questCash+=a;if(questStage===3&&questCash>=1000){questStage=4;qDone(3)}if(S.cash>0){LB.push({n:riderName||'Rider',c:Math.floor(S.cash)});LB.sort((a,b)=>b.c-a.c);if(LB.length>10)LB.length=10;save()}};
-function pop(t,col){const d=document.createElement('div');d.className='pp';d.textContent=t;d.style.color=col||'#4ade80';d.style.marginLeft=((Math.random()-.5)*200-50)+'px';$('pop').appendChild(d);setTimeout(()=>d.remove(),1450)}
+function pop(t,col,dur=1450){const d=document.createElement('div');d.className='pp';d.textContent=t;d.style.color=col||'#4ade80';d.style.marginLeft=((Math.random()-.5)*200-50)+'px';$('pop').appendChild(d);setTimeout(()=>d.remove(),dur)}
 /* ---------- multiplayer ---------- */
 const ROOM='eridelife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),rem=new Map();let cli=null,online=false,networkText='Enter a name to connect',subbed=false;
 /* TLS-only relays: a plain ws:// relay is blocked as mixed content on an HTTPS page. */
@@ -847,6 +847,7 @@ mgn.gain.setTargetAtTime(gOpen?.02:.04+.07*thr+Math.min(.04,sp*.001),t,.05);ng.s
 if(S.cash!==undefined){$('cash-value').textContent='$'+Math.floor(S.cash).toLocaleString()}
 $('rideout').textContent=rideTier>=0?`${RIDEOUTS[rideTier].n} · MONEY BOUNCED ${RIDEOUTS[rideTier].mult}×`:'NO RIDEOUT HOSTED';
 $('quest').textContent=quest?quest.n+' · '+quest.t+' · +$'+quest.cash:'';
+const qs=$('quest-select');if(qs&&!qs.dataset.ready){qs.dataset.ready='1';qs.innerHTML=QUESTS.map((q,i)=>`<option value="${i}"${i===questStage?' selected':''}>${q.n}</option>`).join('');qs.onchange=()=>{const i=+qs.value;const q=QUESTS[i];quest=q;questCash=0;$('quest').textContent=quest?quest.n+' · '+quest.t+' · +$'+quest.cash:''}}
 const hourF=Math.floor(tod),clockPhase=hourF<6||hourF>=20?'NIGHT':hourF<8?'DAWN':hourF<18?'DAY':hourF<20?'DUSK':'NIGHT';
 $('clock').textContent=String(hourF).padStart(2,'0')+':'+String(Math.floor((tod-hourF)*60)).padStart(2,'0')+' · '+clockPhase;
 $('combo').textContent=trick?`TRICK · ${trick==='handscrape'?'HAND SCRAPE':'TRICK'}`:(burnout?`BURNOUT · rear spinning`:(p>.15&&wreck<=0?`WHEELIE ${wt.toFixed(1)}s  ×${Math.floor(cb)}`:(p<-.25&&wreck<=0?`STOPPY · front down`:(wreck>0?'WIPEOUT!':''))));
