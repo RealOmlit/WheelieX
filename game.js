@@ -5,7 +5,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.15';
+const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.16';
 window.WheelieXLoading?.finish();
 const ls=$('loading-screen');if(ls){ls.classList.add('done');ls.classList.add('hidden');}
 /* ---------- save ---------- */
@@ -428,7 +428,7 @@ for(let z=-39;z<=39;z+=6){for(const sx of [-10.8,10.8])add(bx(.12,.025,.2,roadSt
 /* dirt trails running beside the highway */
 for(const side of [-1,1]){const N=16,pos=[],uv=[],idx=[];for(let i=0;i<=N;i++){const lz=-45+i*(S_/N),cx=trailX(oz+lz)*side;pos.push(cx-3.2,.02,lz,cx+3.2,.02,lz);uv.push(0,i/N*5,1,i/N*5);if(i<N){const a=i*2;idx.push(a,a+2,a+1,a+1,a+2,a+3)}}const tg=new T.BufferGeometry();tg.setAttribute('position',new T.Float32BufferAttribute(pos,3));tg.setAttribute('uv',new T.Float32BufferAttribute(uv,2));tg.setIndex(idx);tg.computeVertexNormals();const tm=new T.Mesh(tg,dirtM);tm.receiveShadow=true;g.add(tm);c.dis.push(tg)}
 }
-if(b===0)for(let i=0;i<Math.round(9*GFX[GFXP].parts);i++){const[x,z]=rp(27),w=8+r()*8,d=8+r()*8,h=10+r()*38;if(Math.abs(Math.abs(x)-trailX(oz+z))<w/2+4.5)continue;const m=new T.Mesh(bldGeo(w,h,d),BM[r()*5|0]);add(m,x,0,z,1);col(x,z,w,d);c.bld.push({x,z,w,d})}
+for(let i=0;i<Math.round(9*GFX[GFXP].parts);i++){const[x,z]=rp(27),w=8+r()*8,d=8+r()*8,h=10+r()*38;if(Math.abs(Math.abs(x)-trailX(oz+z))<w/2+4.5||Math.abs(x)<13.5)continue;const m=new T.Mesh(bldGeo(w,h,d),BM[r()*5|0]);add(m,x,0,z,1);col(x,z,w,d);c.bld.push({x,z,w,d})}
 if(b===2){for(let i=0;i<Math.round(8*GFX[GFXP].parts);i++){const[x,z]=rp(17);if(onTrail(x,oz+z))continue;const m=new T.Mesh(rkGeo,rkM),s=.8+r()*2;m.scale.set(s,s*.7,s);add(m,x,s*.3,z,1)}
 for(let i=0;i<Math.round(6*GFX[GFXP].parts);i++){const[x,z]=rp(17);if(onTrail(x,oz+z))continue;add(new T.Mesh(cacGeo,cacM),x,1.5,z,1)}}
 if(b===3){for(let i=0;i<Math.round(3*GFX[GFXP].parts);i++){const[x,z]=rp(22);if(onTrail(x,oz+z))continue;add(new T.Mesh(rkGeo,rkM),x,.7,z,1)}}
@@ -726,6 +726,7 @@ const a=Math.PI+Math.PI*frac;
 wx.beginPath();wx.strokeStyle='rgba(148,163,184,.3)';wx.lineWidth=12;wx.arc(120,120,90,Math.PI,Math.PI+Math.PI);wx.stroke();
 wx.beginPath();wx.strokeStyle=col;wx.lineWidth=boosting?16:12;wx.shadowColor=col;wx.shadowBlur=boosting?16:8;wx.stroke();
 for(let i=0;i<=10;i++){const t=i/10,ta=Math.PI+Math.PI*t,maj=i%5===0;wx.beginPath();wx.moveTo(120+Math.cos(ta)*(maj?84:78),120+Math.sin(ta)*(maj?84:78));wx.lineTo(120+Math.cos(ta)*(maj?96:90),120+Math.sin(ta)*(maj?96:90));wx.strokeStyle=maj?'rgba(226,238,220,.55)':'rgba(148,163,184,.22)';wx.lineWidth=maj?2:1;wx.stroke()}
+wx.beginPath();wx.strokeStyle='rgba(2,6,23,.55)';wx.lineWidth=7;wx.moveTo(120,120);wx.lineTo(120+Math.cos(a)*70,120+Math.sin(a)*70);wx.stroke();
 wx.beginPath();wx.strokeStyle='rgba(255,255,255,.92)';wx.lineWidth=4;wx.moveTo(120,120);wx.lineTo(120+Math.cos(a)*82,120+Math.sin(a)*82);wx.stroke();wx.shadowBlur=0;
 wx.beginPath();wx.fillStyle=col;wx.arc(120,120,7,0,7);wx.fill()}
 /* ---------- main loop ---------- */
