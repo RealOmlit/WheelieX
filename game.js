@@ -5,7 +5,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.22';
+const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.23';
 window.WheelieXLoading?.finish();
 const ls=$('loading-screen');if(ls){ls.classList.add('done');ls.classList.add('hidden');}
 /* ---------- save ---------- */
@@ -120,8 +120,9 @@ function buildBike(d,shirt,helmetColor=0x20272a,lit=false){
 const g=new T.Group(),P=new T.Group();g.add(P);
 const M=mat(d.c,{roughness:.38,metalness:.28}),A=mat(d.a,{roughness:.42,metalness:.22}),F=mat(d.f,{metalness:.9,roughness:.3}),K=mat(0xffffff,{map:tireMap,roughness:.95,metalness:0}),rubber=mat(0x17191b,{roughness:.92,metalness:0}),SM=mat(d.sc,{roughness:.72}),SH=mat(shirt,{metalness:0}),PN=mat(0x222244,{metalness:0});
 const HEM=mat(helmetColor,{roughness:.32,metalness:.5});
+const FDM=M.clone();FDM.side=T.DoubleSide;K.side=T.DoubleSide;
 const wh=()=>{const w=new T.Group(),s=new T.Group();w.add(s);
-const t=new T.Mesh(new T.CylinderGeometry(d.wr,d.wr,d.tw,20),K);t.rotation.z=1.5708;s.add(t);
+const tp=[];for(let i=0;i<=16;i++){const u=i/16*2-1;tp.push(new T.Vector2(d.wr*.74+d.wr*.26*(1-Math.pow(Math.abs(u),3.2)),u*d.tw*.5))}const t=new T.Mesh(new T.LatheGeometry(tp,36),K);t.rotation.z=1.5708;s.add(t);
 const hub=new T.Mesh(new T.CylinderGeometry(d.wr*.2,d.wr*.2,d.tw+.035,16),F);hub.rotation.z=PI/2;s.add(hub);
 for(const side of [-1,1]){
 const rim=new T.Mesh(new T.TorusGeometry(d.wr*.78,.018,6,28),A);rim.rotation.y=PI/2;rim.position.x=side*d.tw*.34;s.add(rim);
@@ -138,7 +139,7 @@ P.add(frontAssembly,rearAssembly);frontAssembly.add(fw.mount);fw.mount.position.
 const pivotY=y0*.7,pivotZ=wb*.3,rearArmLength=Math.hypot(pivotY,pivotZ);
 rearAssembly.position.set(0,pivotY,pivotZ);rearAssembly.add(rw.mount);rw.mount.position.set(0,-pivotY,-pivotZ);
 const forkAxis=new T.Vector3(0,hy,hz-wb).normalize(),forkPoint=(side,t)=>new T.Vector3(side*frontSpacing,0,wb).lerp(new T.Vector3(side*frontSpacing,hy,hz),t);
-for(const[front,assembly,z]of [[true,frontAssembly,wb],[false,rearAssembly,-pivotZ]]){const fender=new T.Mesh(new T.TorusGeometry(d.wr*(front&&d.fh?1.2:1.14),.038,7,28,PI),SM);fender.rotation.y=PI/2;fender.position.set(0,front?(d.fh?0.035:0.015):-pivotY+0.015,z);assembly.add(fender)}
+for(const[front,assembly,z]of [[true,frontAssembly,wb],[false,rearAssembly,-pivotZ]]){const fender=new T.Mesh(new T.CylinderGeometry(d.wr*(front&&d.fh?1.2:1.14)+.02,d.wr*(front&&d.fh?1.2:1.14)+.02,d.tw*(front?1.5:1.6)+.05,32,1,true,PI*.06,PI*(front?.9:.8)).rotateZ(PI/2),FDM);fender.position.set(0,front?(d.fh?0.035:0.015):-pivotY+0.015,z);assembly.add(fender)}
 const frontCoils=[];
 for(const side of [-1,1]){
 const lower=new T.Group();frontAssembly.add(lower);
@@ -211,10 +212,11 @@ for(const gr of [.24,.3,.36]){const ring=new T.Mesh(new T.TorusGeometry(gr,.01,6
 P.add(glow);
 const Rd=new T.Group();P.add(Rd);
 const hBase=standH?1.16:d.sy+.82,hTop=standH?1.38:d.sy+1.0;
-Rd.add(bx(.3,.36,.3,HEM,0,hBase,wb*.45));
-Rd.add(bx(.16,.12,.12,mat(0x12333f,{metalness:.85,roughness:.08}),0,hBase+.06,wb*.45+.11));
-Rd.add(bx(.16,.16,.16,mat(0xf2f4e8,{metalness:.6,roughness:.35}),0,hBase+.18,wb*.45));
-[-1,1].forEach(s=>{Rd.add(bx(.16,.16,.16,mat(0x20272a,{roughness:.5}),s*.13,hBase-.005,wb*.42))});
+{const hc=new T.Vector3(0,hBase-.03,wb*.45),shell=new T.Mesh(new T.SphereGeometry(.21,24,18),HEM);shell.scale.set(.95,1.02,1.12);shell.position.copy(hc);Rd.add(shell);
+const visor=new T.Mesh(new T.SphereGeometry(.214,20,10,PI/2-.95,1.9,1.12,.62),mat(0x0b1a24,{metalness:.9,roughness:.06}));visor.scale.copy(shell.scale);visor.position.copy(hc);Rd.add(visor);
+const chin=new T.Mesh(new RoundedBoxGeometry(.2,.13,.17,3,.05),HEM);chin.position.set(0,hc.y-.1,hc.z+.15);Rd.add(chin);
+const peak=bx(.25,.018,.17,HEM,0,hc.y+.11,hc.z+.2);peak.rotation.x=.3;Rd.add(peak);
+Rd.add(bx(.05,.02,.4,A,0,hc.y+.215,hc.z));}
 dressBike({P,d,frontAssembly,rearAssembly,fwSpin:fw.spin,rwSpin:rw.spin,frontSpacing,sy,M,A,F,SM,PN,rubber,SH,HEM});
 updateSuspension(0,0);let beam=null;if(lit){beam=new T.SpotLight(0xfff1d6,0,45,.55,.6,1.4);beam.position.set(0,hby,hz+.12);beam.target.position.set(0,0,hz+14);P.add(beam,beam.target)}
 g.traverse(o=>{if(o.isMesh)o.castShadow=true});
@@ -247,7 +249,7 @@ const torus=(target,material,R,tube,x,y,z,rx=0,ry=0,arc=PI*2)=>add(target,materi
 const tube=(target,material,pts,r)=>add(target,material,new T.TubeGeometry(new T.CatmullRomCurve3(pts.map(p=>V(p[0],p[1],p[2]))),20,r,5,false));
 /* wheels: knobby tread, machined rims, hub hardware, reflectors */
 for(const spin of [fwSpin,rwSpin]){
-for(let i=0;i<26;i++){const a=i/26*PI*2,r=wr+.006;add(spin,rubber,boxGeo,m4(0,Math.sin(a)*r,Math.cos(a)*r,a+PI/2,0,0,tw*1.04,.03,.036))}
+for(let i=0;i<36;i++){const a=i/36*PI*2,r=wr+.006;add(spin,rubber,boxGeo,m4(0,Math.sin(a)*r,Math.cos(a)*r,a+PI/2,0,0,tw*.9,.03,.036))}
 for(const side of [-1,1]){
  torus(spin,F,wr*.9,.011,side*tw*.47,0,0,0,PI/2);
  torus(spin,ACC,wr*.74,.012,side*tw*.31,0,0,0,PI/2);
@@ -342,22 +344,43 @@ if(sc){
  add(P,A,U,m4(0,hy*.72,hz-.02,0,0,0,.045,.05,.045));
  add(P,RED,boxGeo,m4(0,sy-.05,-.1,0,0,0,.09,.02,.014));
 }
-/* ---------- seated rider: torso, arms on the bars, legs on the pegs ---------- */
-const SKIN=mat(0xb77b55,{roughness:.85,metalness:0});
+/* ---------- v1.23 sculpted bodywork ---------- */
+{const mk=(geo,m,x,y,z)=>{const o=new T.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=true;P.add(o);return o};
+if(!sc){
+const paint=new T.MeshPhysicalMaterial({color:d.c,roughness:.3,metalness:.3,clearcoat:1,clearcoatRoughness:.12});
+const zf=hz-.1,zr=-.2,shp=new T.Shape();
+shp.moveTo(zf,hy*.9);shp.bezierCurveTo(zf-.25,hy*.98,wb*.45,sy+.12,wb*.12,sy+.045);shp.lineTo(zr,sy+.06);
+shp.quadraticCurveTo(zr-.06,sy,zr-.02,sy-.1);shp.lineTo(wb*.14,sy-.14);
+shp.bezierCurveTo(wb*.3,sy-.16,wb*.4,y0+.2,wb*.5,y0+.12);shp.lineTo(zf-.15,hy*.5);shp.lineTo(zr,hy*.7);shp.bezierCurveTo(zf+.02,hy*.7,zf,hy*.9);
+const eg=new T.ExtrudeGeometry(shp,{depth:.02,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:2,curveSegments:10});
+eg.translate(0,0,-.01);eg.rotateY(-PI/2);
+for(const side of [-1,1]){
+ mk(eg,paint,side*(bw*.5+.05),0,0);
+ rod(P,A,[side*.37,hby,hz-.06],[side*.4,hby+.1,hz+.12],.012);
+ slab(P,A,[side*.385,hby+.03,hz-.02],[side*.4,hby+.1,hz+.12],.012,.06);
+ add(P,LED,U,m4(side*.065,hy+.15,hz+.182,PI/2,0,0,.04,.012,.04));
+}}}
+/* ---------- v1.23 rider: smooth limbs, gloves, boots, knee pads ---------- */
+const SKIN=mat(0xb77b55,{roughness:.85,metalness:0}),SPH=new T.SphereGeometry(1,14,10),QI=new T.Quaternion();
+const ball=(target,material,p,r,sx=1,sy2=1,sz=1)=>add(target,material,SPH,new T.Matrix4().compose(V(p[0],p[1],p[2]),QI,V(r*sx,r*sy2,r*sz)));
+const limb=(target,material,a,b,r0,r1)=>{const A2=V(a[0],a[1],a[2]),B2=V(b[0],b[1],b[2]),dir=B2.clone().sub(A2),len=dir.length();if(len<1e-5)return;const q=new T.Quaternion().setFromUnitVectors(V(0,1,0),dir.normalize());add(target,material,new T.CylinderGeometry(r1,r0,len,12,1),new T.Matrix4().compose(A2.clone().add(B2).multiplyScalar(.5),q,V(1,1,1)));ball(target,material,a,r0);ball(target,material,b,r1)};
 const rHeadY=sc?1.16:d.sy+.82,rShY=rHeadY-.24,rShZ=wb*.4,rHipY=sc?Math.max(y0+.36,rHeadY-.72):sy+.06,rHipZ=wb*.1;
-add(P,PN,boxGeo,m4(0,rHipY,rHipZ,0,0,0,.3,.2,.27));
-slab(P,SH,[0,rHipY+.04,rHipZ+.01],[0,rShY,rShZ],.34,.23);
-slab(P,ACC,[0,rHipY+.05,rHipZ+.11],[0,rShY-.03,rShZ+.04],.075,.24);
-add(P,SKIN,boxGeo,m4(0,rShY+.03,rShZ+.03,0,0,0,.14,.15,.14));
+ball(P,PN,[0,rHipY,rHipZ],.15,1.1,.85,1);
+limb(P,SH,[0,rHipY+.06,rHipZ+.02],[0,rShY-.02,rShZ-.02],.065,.052);
+ball(P,SH,[0,rShY,rShZ],.2,1.15,.8,.85);
+slab(P,ACC,[0,rHipY+.05,rHipZ+.13],[0,rShY-.03,rShZ+.07],.075,.2);
+limb(P,SKIN,[0,rShY+.1,rShZ+.02],[0,rShY+.17,rShZ+.04],.055,.05);
+const kx=Math.max(.26,bw*.5+.14);
 for(const s of [-1,1]){
-const sh=[s*.17,rShY,rShZ],el=[s*.29,rShY-.12,rShZ+.2],hand=[s*.34,hby,hz-.08],knee=[s*.19,rHipY-.24,wb*.44],ankle=[s*.19,y0+.15,wb*.2];
-add(P,SH,boxGeo,m4(sh[0],sh[1],sh[2],0,0,0,.18,.16,.21));
-slab(P,SH,sh,el,.12,.14);
-slab(P,SH,el,[hand[0],hand[1]+.02,hand[2]],.1,.115);
-add(P,C,boxGeo,m4(hand[0],hand[1],hand[2]-.01,0,0,0,.095,.105,.14));
-slab(P,PN,[s*.1,rHipY,rHipZ+.02],knee,.17,.19);
-slab(P,PN,knee,ankle,.14,.16);
-add(P,C,boxGeo,m4(ankle[0],ankle[1]-.05,ankle[2]+.05,0,0,0,.12,.1,.27));
+const sh=[s*.2,rShY+.01,rShZ],el=[s*.31,rShY-.12,rShZ+.2],hand=[s*.34,hby,hz-.08],knee=[s*kx,rHipY-.24,wb*.44],ankle=[s*(kx-.04),y0+.15,wb*.2];
+limb(P,SH,sh,el,.065,.052);
+limb(P,SH,el,[hand[0],hand[1]+.02,hand[2]],.052,.045);
+ball(P,C,hand,.062,1,.95,1.25);
+limb(P,PN,[s*.11,rHipY,rHipZ+.02],knee,.095,.072);
+limb(P,PN,knee,ankle,.072,.06);
+ball(P,C,knee,.085);
+limb(P,C,[ankle[0],ankle[1]-.01,ankle[2]],[ankle[0],ankle[1]-.06,ankle[2]+.17],.065,.055);
+ball(P,C,[ankle[0],ankle[1]-.06,ankle[2]+.17],.06,.95,.8,1.3);
 }
 for(const [target,byMat] of bags){for(const [material,geos] of byMat){const merged=mergeGeometries(geos);geos.forEach(g=>g.dispose());if(!merged)continue;const mesh=new T.Mesh(merged,material);mesh.castShadow=true;mesh.receiveShadow=true;target.add(mesh)}}
 }
