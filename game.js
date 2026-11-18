@@ -731,7 +731,7 @@ const k=c=>joined&&keys[c],bikeKey=c=>riding&&k(c),thr=bikeKey('KeyW')||bikeKey(
 const mountTier=Number(S.boostMount[S.eq]||0),boostTier=mountTier,hasBoost=boostTier>0,bo=bikeKey('KeyE')&&hasBoost;
 const E=eff(S.eq),kit=SUSPENSIONS[Number(S.suspension[S.eq]||0)]||SUSPENSIONS[0],zw=.05+.007*E[2];let sparks=0,skid=0,frontLoad=0,rearLoad=0;
 if(bounceRequested){frontSusp.vel=Math.max(frontSusp.vel,1.6);rearSusp.vel=Math.max(rearSusp.vel,1.5);bounceRequested=false}
-if(gOpen){ga+=dt*.5;y=gH(x,z);boosting=false;walkSpeed=0}
+let vmax=25;if(gOpen){ga+=dt*.5;y=gH(x,z);boosting=false;walkSpeed=0}
 else if(!riding){
 boosting=false;pad=Math.max(0,pad-dt);
 const forward=(k('KeyW')||k('ArrowUp')?1:0)-(k('KeyS')||k('ArrowDown')?1:0),side=(k('KeyD')||k('ArrowRight')?1:0)-(k('KeyA')||k('ArrowLeft')?1:0),mag=Math.hypot(forward,side),speed=4.5;
@@ -748,7 +748,7 @@ else{
 boosting=!!bo&&boostE>1;
 if(boosting){boostE=Math.max(0,boostE-dt*30/(.6+E[3]*.14));earn(dt*6)}else if(hasBoost)boostE=Math.min(100,boostE+dt*(5+E[3]*1.4));else boostE=0;
 if(pad>0)pad-=dt;
-const bike=BIKES[S.eq],motorScale=1+Math.min(.45,Math.max(0,E[0]/bike.s[0]-1)*.2),vmax0=(bike.maxMph/2.237)*motorScale*(boosting?(boostTier>1?1.55:1.28):1)*(pad>0&&hasBoost?1.2:1);const vmax=Number.isFinite(vmax0)?vmax0:25;
+const bike=BIKES[S.eq],motorScale=1+Math.min(.45,Math.max(0,E[0]/bike.s[0]-1)*.2),vmax0=(bike.maxMph/2.237)*motorScale*(boosting?(boostTier>1?1.55:1.28):1)*(pad>0&&hasBoost?1.2:1);vmax=Number.isFinite(vmax0)?vmax0:25;
 if(thr){
   if(burnout)v=0;
   else if(v<0)v+=(3+E[1]*.45)*1.4*dt;
