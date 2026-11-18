@@ -49,6 +49,13 @@ Presets apply live and are remembered in the browser save file.
 - Wheelie combo rewards cap at 3×, with a green / orange / red balance meter; F in the orange zone scrapes the hand on the ground for a trick, F in the red zone on the ground counts as a reaching-the-ground skill. The suspension activates when the bike lands from a wheelie or trick landing and rebounds on impact.
 - Police cars, trees, rocks, and buildings now block the rider and police vehicles.
 - Helmet-cam slip HUD, minimap, boost bar, combo, wipeout, and air-time feedback.
+- Empty car parks (Meadowbrook, Old Town, Riverside, Hillcrest, Foundry Yard) where riders host stunt rideouts; hosting costs cash and boosts money earned on the ride. Street Rideout costs $25,000 for a 1.5× money bounce, the Super Rideout spends an extra $5,000 for a 2× bounce.
+- Minimap now draws buildings and trees from every chunk, so unbuilt lots read on the map before they are built.
+- Highway carries real curves and turns via lateral sine sweeps, so the road bends instead of running dead straight.
+
+## Quests
+
+Four ranked quests with cash rewards: First Flip (land a backflip, frontflip or barrel roll, +$250), Wheelie Pro (land a clean wheelie, +$150), Rideout Host (host a rideout at an empty car park, +$300), and Cash Hustle (bank $1,000 in one ride, +$500). The active quest, its reward, and completion pop-ups drive progression.
 
 ## Garage and progression
 

@@ -19,12 +19,15 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
 #cash strong{display:block;margin-top:1px;color:#c0f56a;font:700 23px "DM Sans",sans-serif;font-variant-numeric:tabular-nums;text-shadow:0 0 16px #c0f56a55}
 #clock{color:#dbe7d4;font:500 10px "DM Mono",monospace;letter-spacing:1.1px}
 #combo{font-size:16px;color:#facc15;min-height:20px}
+#quest{min-height:16px;font:500 10px "DM Mono",monospace;letter-spacing:1px;color:#a5f3fc;text-align:center}
+#rideout{min-height:16px;font:500 10px "DM Mono",monospace;letter-spacing:1.4px;color:#c0f56a;text-align:center}
 #tr{top:10px;right:10px;text-align:right;max-width:250px}
 #ver{display:inline-block;margin-bottom:6px;padding:2px 8px;border:1px solid rgba(192,245,106,.4);border-radius:999px;background:rgba(192,245,106,.08);color:#c0f56a;font:500 9px "DM Mono",monospace;letter-spacing:1.2px}
 button{font:inherit;color:#fff;background:#2563eb;border:0;border-radius:8px;padding:6px 10px;margin:4px 0 0 4px;cursor:pointer}
 button:disabled{opacity:.4;cursor:default}
 #br{bottom:14px;right:14px;width:190px;text-align:right}
-#sp{font-size:34px}small{font-size:12px;opacity:.8}
+#sp{font-size:34px}#sp .spd-num{display:inline-block;min-width:.9em;font:800 54px "Barlow Condensed",Impact,sans-serif;line-height:1;color:#f2ffe0;text-shadow:0 0 22px rgba(192,245,106,.5)}
+body.a11y-large-text #sp .spd-num{font-size:76px}
 .bar{height:8px;background:#fff3;border-radius:4px;overflow:hidden;flex:1}.bar i{display:block;height:100%;background:#38bdf8}
 #bb{background:linear-gradient(90deg,#8b5cf6,#38bdf8)!important}
 #wm{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);opacity:0;pointer-events:none}
