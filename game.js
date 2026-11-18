@@ -801,6 +801,7 @@ airT=0;vy=0;airFlip=0;airRoll=0
 }else if(y-gh>1){air=true;vy=0;airFlip=0;airRoll=0;airT=0;earn(dt*20)}
 }
 else{if(lastGH>gh+.25&&v>3){airFlip=0;airRoll=0;air=true;vy=Math.max(0,lastRd*v);y=lastGH}else y=gh}
+if(!air&&wreck<=0&&y>gh+0.01){y=gh;vy=0;}
 lastGH=gh;lastRd=rd;
 for(const c of chunks.values())for(const p of c.peds){const sp=p.speed||.6;p.phase+=dt*sp*5.2;p.z+=p.dir*sp*dt;if(p.z-p.home>40||p.z-p.home<-40){p.dir*=-1;p.z+=p.dir*sp*dt*2}p.g.position.set(p.x,p.y,p.z);p.g.rotation.y=p.dir>0?0:PI;const stride=Math.sin(p.phase)*.55;p.arms[0].rotation.x=stride;p.arms[1].rotation.x=-stride;p.legs[0].rotation.x=-stride;p.legs[1].rotation.x=stride;const d=Math.hypot(x-p.x,z-p.z);if(d<1.2&&!wreck&&Math.abs(v)>1){wreck=1.7;wanted=3;chaseT=15;earn(-100);pop('PED HIT · -$100 · COPS','#f43f5e')}}
 if(wreck>0){/* wipeout just began */}
