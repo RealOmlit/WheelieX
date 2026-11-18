@@ -5,7 +5,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.16';
+const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.17';
 window.WheelieXLoading?.finish();
 const ls=$('loading-screen');if(ls){ls.classList.add('done');ls.classList.add('hidden');}
 /* ---------- save ---------- */
@@ -87,7 +87,12 @@ const RIDEOUT_SPOTS=[{n:'Meadowbrook Car Park',x:30,z:14}];
 const rideMult=()=>rideTier<0?1:RIDEOUTS[rideTier].mult;
 function hostRideout(i){const r=RIDEOUTS[rideTier<0?0:rideTier],sp=RIDEOUT_SPOTS[i];if(S.cash<r.fee){pop('NOT ENOUGH CASH TO HOST A RIDEOUT','#f87171');return}S.cash-=r.fee;rideTier=rideTier<0?0:rideTier;save();pop(`HOST TELEPORT · ${sp.n.toUpperCase()} · ${r.n} BOUNCED ${r.mult}×`,'#c0f56a',15000);if(questStage===2){questStage=3;qDone(2)}
 /* A hosted rideout starts in the empty car park: drop the rider there so the ride can begin. */
-x=sp.x;z=sp.z;y=gH(sp.x,sp.z);v=0;p=0;pw=0;wheelieHold=0;air=false;vy=0;camInit=true;if(wanted){wanted=0;heat=0;chaseT=0;escT=0}}
+x=sp.x;z=sp.z;y=gH(sp.x,sp.z);v=0;p=0;pw=0;wheelieHold=0;air=false;vy=0;camInit=true;if(wanted){wanted=0;heat=0;chaseT=0;escT=0}
+for(const c of portCraft){scene.remove(c);c.traverse(o=>{if(o.isMesh){o.geometry?.dispose?.();o.material?.dispose?.()}})}
+portCraft.length=0;
+addPortCraft(buildBoat,sp,{x:0,y:0,z:7});
+addPortCraft(buildJet,sp,{x:-5,y:0,z:9});
+pop(`PORT DOCKED · JETSKI + BOAT AT ${sp.n.toUpperCase()}`,'#38bdf8',3000);}
 /* ---------- three setup ---------- */
 const cv=$('g');
 const GFX={
@@ -373,6 +378,12 @@ const legs=[limb(.72,.2,.2,pants,-.14,.78),limb(.72,.2,.2,pants,.14,.78)];
 for(const side of [-1,1])g.add(bx(.16,.12,.28,helmet,side*.14,.12,.05));
 return{g,arms,legs};
 }
+/* Jetskis and boats docked at the port when hosting a rideout. */
+const portCraft=[];
+const craftHull=mat(0x14324a,{roughness:.6,metalness:.5}),craftMast=mat(0x1e2836,{roughness:.7,metalness:.4}),craftSail=new T.MeshBasicMaterial({color:0xe8f2ff});
+const buildBoat=()=>{const g=new T.Group();const hull=new T.Mesh(new T.RoundedBoxGeometry(2.6,.16,6.5,2,.07),craftHull);hull.position.y=.13;g.add(hull);const mast=new T.Mesh(new T.CylinderGeometry(.05,.05,7,6),craftMast);mast.position.y=3.6;g.add(mast);const sail=new T.Mesh(new T.PlaneGeometry(1.7,.95,1,1),craftSail);sail.position.set(0,5.4,2.2);sail.rotation.z=-.35;g.add(sail);const cab=new T.Mesh(new T.RoundedBoxGeometry(1.7,.9,2.6,2,.06),craftMast);cab.position.set(0,1.5,0);g.add(cab);return g};
+const buildJet=()=>{const g=new T.Group();const fl=new T.Mesh(new T.RoundedBoxGeometry(.85,.07,2,2,.03),craftHull);fl.position.set(-1.15,.07,0);const fr=new T.Mesh(new T.RoundedBoxGeometry(.85,.07,2,2,.03),craftHull);fr.position.set(1.15,.07,0);g.add(fl,fr);const seat=new T.Mesh(new T.RoundedBoxGeometry(.55,.09,1.3,2,.03),craftMast);seat.position.set(0,.27,0);g.add(seat);const post=new T.Mesh(new T.CylinderGeometry(.028,.028,.55,8),craftMast);post.position.set(0,.5,0);post.rotation.z=PI/2;g.add(post);const glow=new T.Mesh(new T.SphereGeometry(.12,8,6),new T.MeshBasicMaterial({color:0x66ddff,transparent:true,opacity:.8,depthWrite:false}));glow.position.set(0,.3,0);g.add(glow);return g};
+const addPortCraft=(build,spot,vel)=>{const g=build();g.position.set(spot.x,0.18,spot.z);g.userData={vel,phase:Math.random()*6};portCraft.push(g);scene.add(g);return g};
 /* ---------- world ---------- */
 const S_=90,chunks=new Map(),rng=s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
 const roadHill=z=>0.9*Math.sin(z*0.011)+0.45*Math.sin(z*0.027+2);
@@ -785,7 +796,7 @@ if(wheelieHold>3.0&&wheelieHold-dt<=3.0)pop('EASE OFF THE WHEELIE!','#facc15');
 wzone=pull&&p>0?(wheelieHold>3.8?2:wheelieHold>3.0?1:0):0;
 if(p>1.45||wheelieHold>3.8){const heldTooLong=wheelieHold>3.8;wreck=1.7;wt=0;zt=0;cb=1;wheelieHold=0;pop(heldTooLong?'WHEELIE OVERHELD!':'WIPEOUT!','#f43f5e')}
 if(trick){trickT+=dt;if(trickT>0.9){const pts=Math.round(60+Math.abs(v)*45);earn(pts);pop('HAND SCRAPE · +$'+pts,'#facc15');trick=null;cb=1}}
-h-=st*(1.9/(1+Math.abs(v)*.04))*(p>.2?.55+.05*E[2]:1)*Math.min(1,Math.abs(v)/3)*(v<0?-1:1)*dt;
+h-=st*(2.3/(1+Math.abs(v)*.035))*(p>.2?.6+.05*E[2]:1)*(v<0?-1:1)*dt*Math.max(1,Math.min(2,Math.abs(v)/1.5));
 roll+=(st*.4*Math.min(1,Math.abs(v)/10)-roll)*Math.min(1,8*dt);
 x+=Math.sin(h)*v*dt;z+=Math.cos(h)*v*dt;
 nbr(x,z,c=>{for(const q of c.cols)if(y<=q.h&&Math.abs(x-q.x)<q.hw&&Math.abs(z-q.z)<q.hd){const px=q.hw-Math.abs(x-q.x),pz=q.hd-Math.abs(z-q.z);if(px<pz)x+=Math.sign(x-q.x||1)*px;else z+=Math.sign(z-q.z||1)*pz;}});
@@ -809,6 +820,7 @@ airT=0;vy=0;airFlip=0;airRoll=0
 else{if(lastGH>gh+.25&&v>3){airFlip=0;airRoll=0;air=true;vy=Math.max(0,lastRd*v);y=lastGH}else y=gh}
 if(!air&&wreck<=0&&y>gh+0.01){y=gh;vy=0;}
 lastGH=gh;lastRd=rd;
+for(const c of portCraft){const u=c.userData;c.position.x+=u.vel.x*dt;c.position.z+=u.vel.z*dt;c.position.y=0.18+Math.sin(tt*2+u.phase)*0.015;c.rotation.y=Math.atan2(u.vel.x,u.vel.z)}
 for(const c of chunks.values())for(const p of c.peds){const sp=p.speed||.6;p.phase+=dt*sp*5.2;p.z+=p.dir*sp*dt;if(p.z-p.home>40||p.z-p.home<-40){p.dir*=-1;p.z+=p.dir*sp*dt*2}p.g.position.set(p.x,p.y,p.z);p.g.rotation.y=p.dir>0?0:PI;const stride=Math.sin(p.phase)*.55;p.arms[0].rotation.x=stride;p.arms[1].rotation.x=-stride;p.legs[0].rotation.x=-stride;p.legs[1].rotation.x=stride;const d=Math.hypot(x-p.x,z-p.z);if(d<1.2&&!wreck&&Math.abs(v)>1){wreck=1.7;wanted=3;chaseT=15;earn(-100);pop('PED HIT · -$100 · COPS','#f43f5e')}}
 if(wreck>0){/* wipeout just began */}
 }
