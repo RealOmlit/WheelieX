@@ -21,6 +21,11 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
 #combo{font-size:16px;color:#facc15;min-height:20px}
 #quest{min-height:16px;font:500 10px "DM Mono",monospace;letter-spacing:1px;color:#a5f3fc;text-align:center}
 #tr #quest{margin-top:10px;padding-top:8px;border-top:1px solid #ffffff14;text-align:left}
+#quest-btn{width:100%;margin:8px 0 0;text-align:right;background:linear-gradient(145deg,#155e75,#0e7490)!important;border-color:#22d3ee88!important;box-shadow:0 3px 12px #06b6d444!important}
+#quest-btn:hover{border-color:#67e8f9!important}
+#quest-menu{position:absolute;top:100%;right:0;left:0;z-index:7;text-align:center}
+#quest-menu .qopt{display:block;width:100%;margin:2px 0;padding:6px;border:1px solid #ffffff22;border-radius:7px;background:#ffffff0b;color:#e2e8f0;font:600 10px "DM Mono",monospace;letter-spacing:1px;cursor:pointer}
+#quest-menu .qopt:hover{border-color:#22d3ee88;background:#22d3ee14;color:#fff}
 #rideout{min-height:16px;font:500 10px "DM Mono",monospace;letter-spacing:1.4px;color:#c0f56a;text-align:center}
 #tr{top:10px;right:10px;text-align:right;max-width:250px}
 #ver{display:inline-block;margin-bottom:6px;padding:2px 8px;border:1px solid rgba(192,245,106,.4);border-radius:999px;background:rgba(192,245,106,.08);color:#c0f56a;font:500 9px "DM Mono",monospace;letter-spacing:1.2px}
