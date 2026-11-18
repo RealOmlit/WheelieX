@@ -5,7 +5,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.17';
+const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.18';
 window.WheelieXLoading?.finish();
 const ls=$('loading-screen');if(ls){ls.classList.add('done');ls.classList.add('hidden');}
 /* ---------- save ---------- */
@@ -473,6 +473,7 @@ const ns=(t,fr,q)=>{const s=AC.createBufferSource();s.buffer=nb;s.loop=true;cons
 ng.scr=ns('bandpass',1700,3);ng.spk=ns('highpass',5000,1);ng.bst=ns('bandpass',600,.6);sir=AC.createOscillator();sir.type='triangle';sg=AC.createGain();sg.gain.value=0;sir.connect(sg);sg.connect(mg);sir.start()}catch(e){console.error('audio init failed:',e)}}
 addEventListener('pointerdown',ainit);addEventListener('keydown',ainit);
 $('bm').onclick=()=>{muted=!muted;$('bm').textContent=muted?'🔇':'🔊';if(mg)mg.gain.value=muted?0:.5};
+const volEl=$('volume');if(volEl){volEl.value=muted?0:50;volEl.oninput=()=>{const g=+volEl.value/100;if(mg)mg.gain.value=g*.5;muted=g<=0;$('bm').textContent=muted?'🔇':'🔊'}};
 /* ---------- input ---------- */
 const keys={};let joined=false,riderName='',riding=true,lbOpen=false;addEventListener('keydown',e=>{if(settingsOpen){if(e.code==='Escape'){e.preventDefault();closeSettings()}return}keys[e.code]=1;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(joined&&e.code==='Space'&&!e.repeat&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;if(joined&&e.code==='KeyF'&&!e.repeat)tryGroundTouch();if(joined&&e.code==='KeyG'&&riding)tg(!gOpen);if(joined&&e.code==='Escape'&&gOpen)tg(false);if(e.code==='KeyL'){lbOpen=!lbOpen;$('lb').classList.toggle('hidden',!lbOpen);if(lbOpen){$('lb-list').innerHTML=LB.map((e,i)=>`<div style='padding:4px 0;border-bottom:1px solid #333'><span style='opacity:.7'>#${i+1}</span> <span style='float:right'>$${e.c.toLocaleString()}</span><div>${e.n}</div></div>`).join('')}}});
 addEventListener('keyup',e=>keys[e.code]=0);addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
@@ -509,7 +510,7 @@ function pop(t,col,dur=1450){const d=document.createElement('div');d.className='
 /* ---------- multiplayer ---------- */
 const ROOM='eridelife-ghpages-v1',ID=Math.random().toString(36).slice(2,9),rem=new Map();let cli=null,online=false,networkText='Enter a name to connect',subbed=false;
 /* TLS-only relays: a plain ws:// relay is blocked as mixed content on an HTTPS page. */
-const BROKERS=['wss://broker.emqx.io:8084/mqtt','wss://broker.hivemq.com:8884/mqtt','wss://test.mosquitto.org:8081/mqtt','wss://mqtt.eclipseprojects.io:443/mqtt','wss://broker-cn.emqx.io:8084/mqtt'];
+const BROKERS=['wss://broker.emqx.io:8084/mqtt','wss://broker.hivemq.com:8884/mqtt','wss://broker-cn.emqx.io:8084/mqtt','wss://broker-us-east-1.emqx.io:8084/mqtt','wss://broker-eu-west-1.emqx.io:8084/mqtt','wss://mqtt.eclipseprojects.io:443/mqtt'];
 let brokerIdx=0,attemptAt=0,mqttLoading=false;
 const relayHost=u=>u.replace(/^wss?:\/\//,'').split(/[:/]/)[0];
 /* Riders only share a room on the same relay, and public relays can take 20s to hand out a session, so never rotate a working one. */
