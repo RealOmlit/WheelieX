@@ -5,7 +5,7 @@ import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.20';
+const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.21';
 window.WheelieXLoading?.finish();
 const ls=$('loading-screen');if(ls){ls.classList.add('done');ls.classList.add('hidden');}
 /* ---------- save ---------- */
@@ -476,7 +476,9 @@ $('bm').onclick=()=>{muted=!muted;$('bm').textContent=muted?'🔇':'🔊';if(mg)
 const volEl=$('volume');if(volEl){volEl.value=muted?0:50;volEl.oninput=()=>{const g=+volEl.value/100;if(mg)mg.gain.value=g*.5;muted=g<=0;$('bm').textContent=muted?'🔇':'🔊'}};
 /* ---------- admin bar (dev / testing) ---------- */
 const ADMIN=true;
-const admEl=$('admin');if(admEl)admEl.classList.toggle('hidden',!ADMIN);
+const ADMIN_NAME='omlit';
+const isAdmin=()=>ADMIN&&joined&&riderName.trim().toLowerCase()===ADMIN_NAME;
+const admEl=$('admin');if(admEl)admEl.classList.toggle('hidden',!isAdmin());
 const admSpeed=$('adm-speed');
 const admSet=$('adm-set-speed');
 if(admSet)admSet.onclick=()=>{const s=Math.max(0,Math.min(120,admSpeed?+admSpeed.value||0:0));v=s;pop('ADMIN SPEED SET · '+s,'+#6ee7b0',2200)};
@@ -489,7 +491,7 @@ $('adm-div10').onclick=()=>{v/=10;pop('ADMIN SPEED ÷10 · '+Math.round(v),'+#6e
 $('adm-give100').onclick=()=>{v=100;pop('ADMIN SPEED +100 · 100','#facc15',2200)};
 $('adm-megabike').onclick=()=>{const i=BIKES.findIndex(b=>/Wolf King|Dualtron/.test(b.n));if(i<0)return;if(!S.own.includes(i)){S.own.push(i);pop('ADMIN MEGA BIKE GRANTED · '+BIKES[i].n,'#facc15')}setBike(i)};
 /* ---------- input ---------- */
-const keys={};let joined=false,riderName='',riding=true,lbOpen=false;addEventListener('keydown',e=>{if(settingsOpen){if(e.code==='Escape'){e.preventDefault();closeSettings()}return}if((e.code==='KeyQ'||e.code==='Tab')&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){e.preventDefault();const a=$('admin');if(a)a.classList.toggle('hidden',!a.classList.contains('hidden'))}keys[e.code]=1;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(joined&&e.code==='Space'&&!e.repeat&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;if(joined&&e.code==='KeyF'&&!e.repeat)tryGroundTouch();if(joined&&e.code==='KeyG'&&riding)tg(!gOpen);if(joined&&e.code==='Escape'&&gOpen)tg(false);if(e.code==='KeyL'){lbOpen=!lbOpen;$('lb').classList.toggle('hidden',!lbOpen);if(lbOpen){$('lb-list').innerHTML=LB.map((e,i)=>`<div style='padding:4px 0;border-bottom:1px solid #333'><span style='opacity:.7'>#${i+1}</span> <span style='float:right'>$${e.c.toLocaleString()}</span><div>${e.n}</div></div>`).join('')}}});
+const keys={};let joined=false,riderName='',riding=true,lbOpen=false;addEventListener('keydown',e=>{if(settingsOpen){if(e.code==='Escape'){e.preventDefault();closeSettings()}return}if((e.code==='KeyQ'||e.code==='Tab')&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!isAdmin())return;e.preventDefault();const a=$('admin');if(a)a.classList.toggle('hidden',!a.classList.contains('hidden'))}keys[e.code]=1;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(joined&&e.code==='Space'&&!e.repeat&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;if(joined&&e.code==='KeyF'&&!e.repeat)tryGroundTouch();if(joined&&e.code==='KeyG'&&riding)tg(!gOpen);if(joined&&e.code==='Escape'&&gOpen)tg(false);if(e.code==='KeyL'){lbOpen=!lbOpen;$('lb').classList.toggle('hidden',!lbOpen);if(lbOpen){$('lb-list').innerHTML=LB.map((e,i)=>`<div style='padding:4px 0;border-bottom:1px solid #333'><span style='opacity:.7'>#${i+1}</span> <span style='float:right'>$${e.c.toLocaleString()}</span><div>${e.n}</div></div>`).join('')}}});
 addEventListener('keyup',e=>keys[e.code]=0);addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
 document.querySelectorAll('#tc button').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{if(k==='KeyF')tryGroundTouch();else{if(k==='Space'&&!keys[k]&&joined&&riding&&!gOpen&&!air&&!wreck)bounceRequested=true;keys[k]=1}e.preventDefault()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>keys[k]=0))});
 /* ---------- state ---------- */
@@ -873,6 +875,7 @@ if(AC&&mo1){const t=AC.currentTime,sp=Math.abs(v),bs=boosting?1:0;mo1.frequency.
 mgn.gain.setTargetAtTime(gOpen?.02:.04+.07*thr+Math.min(.04,sp*.001),t,.05);ng.scr.gain.setTargetAtTime(skid?.25:0,t,.05);ng.spk.gain.setTargetAtTime(sparks?.18:0,t,.03);ng.bst.gain.setTargetAtTime(bs?.22:0,t,.1);const nd=Math.min(...cops.map(q=>q.d));sir.frequency.setTargetAtTime(900+300*Math.sin(tt*7),t,.02);sg.gain.setTargetAtTime(wanted?.07*Math.max(.2,1-nd/200):0,t,.1)}
 /* HUD */
 if(S.cash!==undefined){$('cash-value').textContent='$'+Math.floor(S.cash).toLocaleString()}
+const admEl2=$('admin');if(admEl2)admEl2.classList.toggle('hidden',!isAdmin());
 $('rideout').textContent=rideTier>=0?`${RIDEOUTS[rideTier].n} · MONEY BOUNCED ${RIDEOUTS[rideTier].mult}×`:'NO RIDEOUT HOSTED';
 $('quest').textContent=quest?quest.n+' · '+quest.t+' · +$'+quest.cash:'';
 const qs=$('quest-select');if(qs&&!qs.dataset.ready){qs.dataset.ready='1';qs.innerHTML=QUESTS.map((q,i)=>`<option value="${i}"${i===questStage?' selected':''}>${q.n}</option>`).join('');qs.onchange=()=>{const i=+qs.value;const q=QUESTS[i];quest=q;questCash=0;$('quest').textContent=quest?quest.n+' · '+quest.t+' · +$'+quest.cash:''}}
