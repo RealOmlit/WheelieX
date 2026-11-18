@@ -60,12 +60,6 @@ body.a11y-large-text #br #sp .spd-num{font-size:56px}
 #settings p{margin:12px 0 0;color:#cbd5e1;font-size:12px;line-height:1.5}
 #volume{width:100%;accent-color:#c0f56a;margin-top:2px}
 #volume-note{display:block;margin:6px 0 0;color:#94a3b8;font:500 10px "DM Mono",monospace}
-#admin{position:fixed;left:10px;bottom:10px;width:210px;z-index:4;text-align:left}
-#admin h3{margin:0 0 6px;color:#f87171;font:600 10px "DM Mono",monospace;letter-spacing:2px}
-#admin label{display:block;margin:8px 0 2px;color:#94a3b8;font:600 10px "DM Mono",monospace;letter-spacing:1px}
-#admin input{width:100%;margin:0 0 6px;padding:6px;border:1px solid #fff3;border-radius:6px;background:#1a2530;color:#fff;font:inherit}
-#admin button{width:100%;margin:3px 0 0}
-#admin .p{padding:10px 12px}
 #settings .accessibility{margin:18px 0 0;padding:10px 12px;border:1px solid #fff3;border-radius:8px}
 #settings .accessibility legend{padding:0 6px;color:#c0f56a;font:600 10px "DM Mono",monospace;letter-spacing:1px}
 #settings .setting-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:9px 0;font:500 12px "DM Sans",sans-serif;letter-spacing:0}
