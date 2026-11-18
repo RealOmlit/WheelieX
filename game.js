@@ -85,7 +85,9 @@ const modPrice=(i,m)=>Math.round(Math.max(500,BIKES[i].pr)*m),mountPrice=(i,t)=>
 const RIDEOUTS=[{n:'Street Rideout',fee:25000,mult:1.5},{n:'Super Rideout',fee:30000,mult:2}];
 const RIDEOUT_SPOTS=[{n:'Meadowbrook Car Park',x:30,z:14},{n:'Old Town Car Park',x:-33,z:-4},{n:'Riverside Car Park',x:10,z:-32},{n:'Hillcrest Car Park',x:-28,z:30},{n:'Foundry Yard',x:40,z:-24}];
 const rideMult=()=>rideTier<0?1:RIDEOUTS[rideTier].mult;
-function hostRideout(i){const r=RIDEOUTS[rideTier<0?0:rideTier],sp=RIDEOUT_SPOTS[i];if(S.cash<r.fee){pop('NOT ENOUGH CASH TO HOST A RIDEOUT','#f87171');return}S.cash-=r.fee;rideTier=rideTier<0?0:rideTier;save();pop(`${r.n} HOSTED AT ${sp.n.toUpperCase()} · MONEY BOUNCED ${r.mult}×`,'#c0f56a');if(questStage===2){questStage=3;qDone(2)}}
+function hostRideout(i){const r=RIDEOUTS[rideTier<0?0:rideTier],sp=RIDEOUT_SPOTS[i];if(S.cash<r.fee){pop('NOT ENOUGH CASH TO HOST A RIDEOUT','#f87171');return}S.cash-=r.fee;rideTier=rideTier<0?0:rideTier;save();pop(`${r.n} HOSTED AT ${sp.n.toUpperCase()} · MONEY BOUNCED ${r.mult}×`,'#c0f56a');if(questStage===2){questStage=3;qDone(2)}
+/* A hosted rideout starts in the empty car park: drop the rider there so the ride can begin. */
+x=sp.x;z=sp.z;y=gH(sp.x,sp.z);v=0;p=0;pw=0;wheelieHold=0;air=false;vy=0;camInit=true;if(wanted){wanted=0;heat=0;chaseT=0;escT=0}}
 /* ---------- three setup ---------- */
 const cv=$('g');
 const GFX={
@@ -360,7 +362,9 @@ const s=V*dt/r.wr;r.rw.rotation.x+=s;r.fw.rotation.x+=s}
 function buildWalker(color){
 const g=new T.Group(),skin=mat(0xb77b55,{roughness:.85,metalness:0}),shirt=mat(color,{roughness:.7,metalness:0}),pants=mat(0x252a32,{roughness:.9,metalness:0}),helmet=mat(0x20272a,{roughness:.32,metalness:.5}),visor=mat(0x6da4b1,{roughness:.18,metalness:.65});
 g.add(bx(.52,.67,.3,shirt,0,1.18,0),bx(.46,.13,.32,pants,0,.81,0));
-g.add(bx(.32,.32,.32,skin,0,1.72,0));
+const head=new T.Mesh(new T.SphereGeometry(.17,16,12),skin);head.position.set(0,1.72,0);g.add(head);
+const lid=new T.Mesh(new T.SphereGeometry(.19,16,12),helmet);lid.scale.set(.85,1.25,.85);lid.position.set(0,1.8,0);g.add(lid);
+const visorM=new T.Mesh(new T.SphereGeometry(.09,10,8),visor);visorM.scale.set(1.2,.35,1);visorM.position.set(0,1.86,0);g.add(visorM);
 g.add(bx(.36,.2,.36,helmet,0,1.79,0));
 g.add(bx(.24,.12,.1,visor,0,1.82,.14));
 const limb=(length,w,d,m,x,y)=>{const pivot=new T.Group();pivot.position.set(x,y,0);const part=bx(w,length,d,m,0,-length/2,0);pivot.add(part);g.add(pivot);return pivot};
@@ -376,7 +380,7 @@ const roadBump=z=>roadHill(z)+.003+.025*Math.pow(Math.max(0,Math.cos(z*.48)),8)+
 const roadSlope=z=>0.0099*Math.cos(z*0.011)+0.01215*Math.cos(z*0.027+2)+(Math.cos(z*.48)>0?-.096*Math.pow(Math.cos(z*.48),7)*Math.sin(z*.48):0)+.00163*Math.cos(z*1.63);
 const trailX=z=>22+2*Math.sin(z*.021)+1.2*Math.sin(z*.071),onTrail=(x,z)=>Math.abs(Math.abs(x)-trailX(z))<3.6;
 const roadFade=x=>Math.pow(Math.max(0,1-(x/12)**2),2);
-const makeRoadGeo=oz=>{const geo=new T.PlaneGeometry(24,S_,12,180).rotateX(-PI/2).translate(0,-0.006,0),position=geo.attributes.position;for(let i=0;i<position.count;i++){const x=position.getX(i),z=oz+position.getZ(i);position.setY(i,roadBump(z)*roadFade(x));position.setX(i,x+Math.sin(z*.013)*5+Math.sin(z*.041+1.3)*2)}geo.computeVertexNormals();return geo};
+const makeRoadGeo=oz=>{const geo=new T.PlaneGeometry(24,S_,12,180).rotateX(-PI/2).translate(0,-0.006,0),position=geo.attributes.position;for(let i=0;i<position.count;i++){const x=position.getX(i),z=oz+position.getZ(i);position.setY(i,roadBump(z)*roadFade(x));position.setX(i,x+Math.sin(z*.0105)*9+Math.sin(z*.029+1.9)*4)}geo.computeVertexNormals();return geo};
 const gGeo=new T.PlaneGeometry(S_,S_).rotateX(-PI/2).translate(0,-0.006,0),bGeo=new T.BoxGeometry(1,1,1).translate(0,.5,0);
 const groundTex=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.fillStyle='#d8d8d8';x.fillRect(0,0,256,256);for(let i=0;i<2600;i++){const s=170+Math.random()*80|0;x.fillStyle='rgba('+s+','+s+','+s+',.35)';x.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*5,1+Math.random()*5)}const tx=new T.CanvasTexture(c);tx.colorSpace=T.SRGBColorSpace;tx.wrapS=tx.wrapT=T.RepeatWrapping;tx.repeat.set(24,24);tx.anisotropy=aniso;return tx})();
 const dirtTex=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.fillStyle='#7a5a3c';x.fillRect(0,0,256,256);for(let i=0;i<4000;i++){const s=110+Math.random()*60;x.fillStyle='rgba('+s+','+(s-30)+','+(s-60)+',.4)';x.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*4,1+Math.random()*4)}for(let i=0;i<800;i++){x.fillStyle='rgba(40,25,10,.25)';x.fillRect(Math.random()*256,Math.random()*256,2+Math.random()*6,2+Math.random()*6)}const tx=new T.CanvasTexture(c);tx.colorSpace=T.SRGBColorSpace;tx.wrapS=tx.wrapT=T.RepeatWrapping;tx.repeat.set(16,16);tx.anisotropy=aniso;return tx})();
@@ -696,7 +700,7 @@ else if(a==='buyhelmet'){const i=+t.dataset.i,h=HELMETS[i];if(S.cash>=h.pr){S.ca
 else if(a==='eqhelmet'){const i=+t.dataset.i;if((S.helmetOwn||[]).includes(i))S.helmet=i;setBike(gi)}
 save();rg()};
 G.onchange=e=>{if(e.target.id==='gar-price'){garPrice=e.target.value;rg()}};
-$('bg').onclick=()=>tg(!gOpen);$('sp').onclick=()=>{units=!units;S.units=units?1:0;save()};
+$('bg').onclick=()=>tg(!gOpen);$('host').onclick=()=>{const i=Math.floor(Math.random()*RIDEOUT_SPOTS.length);hostRideout(i)};$('sp').onclick=()=>{units=!units;S.units=units?1:0;save()};
 setTimeout(()=>$('help').remove(),15000);
 /* ---------- HUD draw ---------- */
 const mm=$('mm'),mx=mm.getContext('2d'),wm=$('wm'),wx=wm.getContext('2d');
@@ -717,12 +721,13 @@ for(const r of rem.values())dot(r.onFoot?r.px:r.x,r.onFoot?r.pz:r.z,r.col,r.n||'
 cops.forEach(q=>{if(q.c.g.visible)dot(q.x,q.z,((tt*6)|0)%2?'#ff2222':'#2f6bff',wanted?'POLICE':'')});
 mx.fillStyle='#fff';mx.strokeStyle='#000';mx.beginPath();mx.moveTo(150,134);mx.lineTo(160,160);mx.lineTo(150,154);mx.lineTo(140,160);mx.closePath();mx.fill();mx.stroke();
 if(expanded&&joined){const text=`${riderName} · ${Math.round(px)}, ${Math.round(pz)}`;mx.font='bold 13px system-ui';mx.fillStyle='#fff';mx.strokeStyle='#000';mx.textAlign='center';mx.strokeText(text,150,181);mx.fillText(text,150,181)}}
-function drawWM(f){if(!riding||Math.abs(v)<.4){wm.style.opacity=0;return}wm.style.opacity=1;wx.clearRect(0,0,240,130);const frac=Math.max(0,Math.min(1,f)),spd=Math.abs(v),shown=Math.round(spd*(units?3.6:2.237)),col=boosting?'#c084fc':frac<.6?'#22c55e':frac<.85?'#facc15':'#ef4444';
-wx.beginPath();wx.strokeStyle='rgba(148,163,184,.3)';wx.lineWidth=12;wx.arc(120,120,92,Math.PI,Math.PI+Math.PI*1.6);wx.stroke();
+function drawWM(f){if(!riding||Math.abs(v)<.4){wm.style.opacity=0;return}wm.style.opacity=1;wx.clearRect(0,0,240,130);const frac=Math.max(0,Math.min(1,f)),col=boosting?'#c084fc':frac<.6?'#22c55e':frac<.85?'#facc15':'#ef4444';
+const a=Math.PI+Math.PI*frac;
+wx.beginPath();wx.strokeStyle='rgba(148,163,184,.3)';wx.lineWidth=12;wx.arc(120,120,90,Math.PI,Math.PI+Math.PI);wx.stroke();
 wx.beginPath();wx.strokeStyle=col;wx.lineWidth=boosting?16:12;wx.shadowColor=col;wx.shadowBlur=boosting?16:8;wx.stroke();
-wx.beginPath();wx.strokeStyle='rgba(255,255,255,.92)';wx.lineWidth=4;wx.moveTo(120,120);wx.lineTo(120+Math.cos(Math.PI+frac*Math.PI*1.6)*78,120+Math.sin(Math.PI+frac*Math.PI*1.6)*78);wx.stroke();wx.shadowBlur=0;
-wx.beginPath();wx.fillStyle=col;wx.arc(120,120,7,0,7);wx.fill();
-wx.fillStyle='#f8fafc';wx.font='800 42px "DM Mono",monospace';wx.textAlign='center';wx.textBaseline='middle';wx.fillText(String(shown),120,96);wx.shadowBlur=0;wx.font='700 11px "DM Mono",monospace';wx.fillStyle='#94a3b8';wx.fillText(units?'KM/H':'MPH',120,122)}
+for(let i=0;i<=10;i++){const t=i/10,ta=Math.PI+Math.PI*t,maj=i%5===0;wx.beginPath();wx.moveTo(120+Math.cos(ta)*(maj?84:78),120+Math.sin(ta)*(maj?84:78));wx.lineTo(120+Math.cos(ta)*(maj?96:90),120+Math.sin(ta)*(maj?96:90));wx.strokeStyle=maj?'rgba(226,238,220,.55)':'rgba(148,163,184,.22)';wx.lineWidth=maj?2:1;wx.stroke()}
+wx.beginPath();wx.strokeStyle='rgba(255,255,255,.92)';wx.lineWidth=4;wx.moveTo(120,120);wx.lineTo(120+Math.cos(a)*82,120+Math.sin(a)*82);wx.stroke();wx.shadowBlur=0;
+wx.beginPath();wx.fillStyle=col;wx.arc(120,120,7,0,7);wx.fill()}
 /* ---------- main loop ---------- */
 function resize(){R.setPixelRatio(GFX[GFXP].dpr);if(composer)composer.setPixelRatio(R.getPixelRatio());R.setSize(innerWidth,innerHeight,false);if(composer)composer.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;vo()}addEventListener('resize',resize);resize();
 try{loadChunks(0,0);}catch(e){console.error('loadChunks failed:',e)}let last=performance.now();const tv=new T.Vector3();

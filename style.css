@@ -20,17 +20,26 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
 #clock{color:#dbe7d4;font:500 10px "DM Mono",monospace;letter-spacing:1.1px}
 #combo{font-size:16px;color:#facc15;min-height:20px}
 #quest{min-height:16px;font:500 10px "DM Mono",monospace;letter-spacing:1px;color:#a5f3fc;text-align:center}
+#tr #quest{margin-top:10px;padding-top:8px;border-top:1px solid #ffffff14;text-align:left}
 #rideout{min-height:16px;font:500 10px "DM Mono",monospace;letter-spacing:1.4px;color:#c0f56a;text-align:center}
 #tr{top:10px;right:10px;text-align:right;max-width:250px}
 #ver{display:inline-block;margin-bottom:6px;padding:2px 8px;border:1px solid rgba(192,245,106,.4);border-radius:999px;background:rgba(192,245,106,.08);color:#c0f56a;font:500 9px "DM Mono",monospace;letter-spacing:1.2px}
-button{font:inherit;color:#fff;background:#2563eb;border:0;border-radius:8px;padding:6px 10px;margin:4px 0 0 4px;cursor:pointer}
+button{font:inherit;color:#fff;background:linear-gradient(145deg,#2f6fe0,#1d4ed8);border:1px solid #60a5fa88;border-radius:9px;padding:7px 12px;margin:4px 0 0 4px;cursor:pointer;box-shadow:0 3px 10px #2563eb33}
 button:disabled{opacity:.4;cursor:default}
-#br{bottom:14px;right:14px;width:190px;text-align:right}
-#sp{font-size:34px}#sp .spd-num{display:inline-block;min-width:.9em;font:800 54px "Barlow Condensed",Impact,sans-serif;line-height:1;color:#f2ffe0;text-shadow:0 0 22px rgba(192,245,106,.5)}
-body.a11y-large-text #sp .spd-num{font-size:76px}
+#bg{background:linear-gradient(145deg,#27b34f,#146c33)!important;border-color:#4ade8088;box-shadow:0 3px 12px #22c55e44}
+#st{background:linear-gradient(145deg,#3aa8f5,#075985)!important;border-color:#38bdf8aa;box-shadow:0 3px 12px #38bdf844}
+#br{top:86px;left:170px;width:180px;text-align:center;padding:10px 14px;z-index:3}
+#br #sp .spd-num{display:inline-block;min-width:.9em;font:800 40px "Barlow Condensed",Impact,sans-serif;line-height:1;color:#f2ffe0;text-shadow:0 0 22px rgba(192,245,106,.5)}
+#br .bar{width:100%;height:8px;background:#ffffff2e;border-radius:4px;overflow:hidden;margin:10px 0 2px}
+#br .bar i{display:block;height:100%;background:linear-gradient(90deg,#8b5cf6,#38bdf8)}
+#br #boost-note{display:block;margin-top:6px;color:#94a3b8;font:500 9px "DM Mono",monospace;letter-spacing:1px}
+#sp{font-size:34px}
+#br #sp{text-align:center}
+body.a11y-large-text #sp{font-size:42px}
+body.a11y-large-text #br #sp .spd-num{font-size:56px}
 .bar{height:8px;background:#fff3;border-radius:4px;overflow:hidden;flex:1}.bar i{display:block;height:100%;background:#38bdf8}
 #bb{background:linear-gradient(90deg,#8b5cf6,#38bdf8)!important}
-#wm{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);opacity:0;pointer-events:none}
+#wm{position:fixed;top:10px;left:170px;width:120px;height:65px;opacity:0;pointer-events:none;z-index:3}
 #sl{position:fixed;inset:0;pointer-events:none;opacity:0;background:repeating-conic-gradient(from 0deg at 50% 50%,#0000 0 3deg,#cfe8ff66 3deg 3.6deg);-webkit-mask:radial-gradient(circle,#0000 40%,#000 90%);mask:radial-gradient(circle,#0000 40%,#000 90%)}
 #pop{position:fixed;top:30%;left:0;right:0;pointer-events:none}
 .pp{position:absolute;left:50%;font-size:24px;font-weight:800;text-shadow:0 2px 4px #000a;animation:fl 1.4s forwards;white-space:nowrap}
@@ -81,7 +90,7 @@ h2{display:flex;justify-content:space-between;margin:0 0 10px}h2 span{color:#4ad
 .hack-odds i{color:#fff;font-style:normal}
 #gar .hack-card button{align-self:stretch;margin:4px 0 0;background:#db3444}
 #tc{display:none}
-@media(pointer:coarse){#tc{display:block}#br{bottom:170px}#help{display:none}
+@media(pointer:coarse){#tc{display:block}#br{top:86px;left:170px}#help{display:none}
 #tc button{position:fixed;width:64px;height:64px;font-size:24px;opacity:.7;margin:0;touch-action:none}}
 .loading-screen{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;overflow:auto;padding:24px 16px;background:radial-gradient(ellipse at 50% 26%,rgba(192,245,106,.16),transparent 42%),radial-gradient(ellipse at 85% 92%,rgba(56,189,248,.12),transparent 55%),linear-gradient(145deg,#182420,#0b130f);transition:opacity .55s ease,visibility .55s ease;animation:loading-fade 1.4s ease both}
 .loading-screen::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 52%,rgba(0,0,0,.6) 100%)}
