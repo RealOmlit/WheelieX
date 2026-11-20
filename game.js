@@ -469,6 +469,7 @@ if(b===2){for(let i=0;i<Math.round(8*GFX[GFXP].parts);i++){const[x,z]=rp(17);if(
 for(let i=0;i<Math.round(6*GFX[GFXP].parts);i++){const[x,z]=rp(17);if(onTrail(x,oz+z))continue;add(new T.Mesh(cacGeo,cacM),x,1.5,z,1)}}
 if(b===3){for(let i=0;i<Math.round(3*GFX[GFXP].parts);i++){const[x,z]=rp(22);if(onTrail(x,oz+z))continue;add(new T.Mesh(rkGeo,rkM),x,.7,z,1)}}
 if(b===1)for(let i=0;i<Math.round(7*GFX[GFXP].parts);i++){const[x,z]=rp(17);if(onTrail(x,oz+z))continue;tree(x,z);c.trees.push({x,z})}
+ if(!hw&&!isTownChunk(cx,cz))for(let i=0;i<2;i++){const[x,z]=rp(27);if(onTrail(x,oz+z))continue;const ped=buildWalker();ped.g.position.set(ox+x,.2,oz+z);ped.g.visible=true;scene.add(ped.g);c.peds.push({g:ped.g,arms:ped.arms,legs:ped.legs,x:ox+x,y:.14,z:oz+z,home:oz+z,phase:r()*6.28,dir:r()<.5?1:-1,speed:.55+r()*.5})}
 bk.forEach((a,m)=>{const mg=mergeGeometries(a);a.forEach(q=>q.dispose());c.dis.push(mg);const o=new T.Mesh(mg,m);o.castShadow=m!==roadM&&m!==GM[b]&&m!==swM;o.receiveShadow=true;g.add(o)});
 return c}
 function gH(x,z){const fade=roadFade(x),sw=Math.abs(x)>12&&Math.abs(x)<15.05?.2:0;let h=roadBump(z)*fade;const a=Math.round(x/S_),b=Math.round(z/S_);gH.sl=roadSlope(z)*fade;gH.e=[0,1];
@@ -855,6 +856,7 @@ if(!air&&wreck<=0&&y>gh+0.01){y=gh;vy=0;}
 lastGH=gh;lastRd=rd;
 for(const c of portCraft){const u=c.userData;c.position.x+=u.vel.x*dt;c.position.z+=u.vel.z*dt;c.position.y=0.18+Math.sin(tt*2+u.phase)*0.015;c.rotation.y=Math.atan2(u.vel.x,u.vel.z)}
 for(const c of chunks.values())for(const p of c.peds){const sp=p.speed||.6;p.phase+=dt*sp*5.2;p.z+=p.dir*sp*dt;if(p.z-p.home>40||p.z-p.home<-40){p.dir*=-1;p.z+=p.dir*sp*dt*2}p.g.position.set(p.x,p.y,p.z);p.g.rotation.y=p.dir>0?0:PI;const stride=Math.sin(p.phase)*.55;p.arms[0].rotation.x=stride;p.arms[1].rotation.x=-stride;p.legs[0].rotation.x=-stride;p.legs[1].rotation.x=stride;const d=Math.hypot(x-p.x,z-p.z);if(d<1.2&&!wreck&&Math.abs(v)>1){wreck=1.7;wanted=3;chaseT=15;earn(-100);pop('PED HIT · -$100 · COPS','#f43f5e')}}
+ for(const p of town.c.peds){const sp=p.speed||.6;p.phase+=dt*sp*5.2;p.z+=p.dir*sp*dt;if(p.z-p.home>40||p.z-p.home<-40){p.dir*=-1;p.z+=p.dir*sp*dt*2}p.g.position.set(p.x,p.y,p.z);p.g.rotation.y=p.dir>0?0:PI;const stride=Math.sin(p.phase)*.55;p.arms[0].rotation.x=stride;p.arms[1].rotation.x=-stride;p.legs[0].rotation.x=-stride;p.legs[1].rotation.x=stride;const d2=Math.hypot(x-(TOWN.x+p.x),z-(TOWN.z+p.z));if(d2<1.2&&!wreck&&Math.abs(v)>1){wreck=1.7;wanted=3;chaseT=15;earn(-100);pop('PED HIT · -$100 · COPS','#f43f5e')}}
 if(wreck>0){/* wipeout just began */}
 }
 if(!gOpen){stepSuspension(frontSusp,kit.frontSpring,kit.frontDamping,kit.frontTravel,dt,frontLoad);stepSuspension(rearSusp,kit.rearSpring,kit.rearDamping,kit.rearTravel,dt,rearLoad)}

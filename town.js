@@ -2,10 +2,10 @@
 import * as T from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 const PI=Math.PI;
-/* The town fills world chunks cx 4..6, cz -1..1 (x 315..585, z -135..135). A 24 m road links it to the highway. */
-export const TOWN={name:'Maple Hollow',x:450,z:0,w:270,d:270,spawn:{x:380,z:0}};
-export const isTownChunk=(cx,cz)=>cx>=4&&cx<=6&&cz>=-1&&cz<=1;
-export const inConnector=(wx,wz)=>wz>-18&&wz<18&&wx>6&&wx<TOWN.x-TOWN.w/2+10;
+/* The town fills world chunks cx 2..7, cz -3..2 (x 180..720, z -270..270). A 24 m road links it to the highway. */
+export const TOWN={name:'Maple Hollow',x:450,z:0,w:540,d:540,spawn:{x:330,z:0}};
+export const isTownChunk=(cx,cz)=>cx>=2&&cx<=7&&cz>=-3&&cz<=2;
+export const inConnector=(wx,wz)=>wz>-18&&wz<18&&wx>6&&wx<TOWN.x-TOWN.w/2;
 
 export function buildTown(scene){
  const g=new T.Group();g.position.set(TOWN.x,0,TOWN.z);
@@ -46,26 +46,26 @@ export function buildTown(scene){
   for(let i=1;i<lanes;i++){const px=i/lanes*w;if(i===lanes/2){x.fillStyle='#f2bd35';x.fillRect(px-11,0,7,h);x.fillRect(px+4,0,7,h)}else{x.fillStyle='#ececea';x.fillRect(px-3,0,6,h*.45)}}});
   t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(1,len/16);return t};
  const roadMesh=(parent,w,len,lanes,x,z,alongX,y=.035)=>{const geo=new T.PlaneGeometry(w,len).rotateX(-PI/2);if(alongX)geo.rotateY(PI/2);const m=new T.Mesh(geo,new T.MeshStandardMaterial({map:roadTex(lanes,len),roughness:.92,metalness:0}));m.position.set(x,y,z);m.receiveShadow=true;parent.add(m);return m};
- /* connector from the highway shoulder (world x 15) to the town edge (x 315), always in the scene so it shows from the highway */
- roadMesh(scene,24,300,6,165.05,0,true);
- roadMesh(g,24,270,6,0,0,true);                         /* E-W boulevard */
- roadMesh(g,24,270,6,0,0,false,.034);                   /* N-S boulevard */
+ /* connector from the highway shoulder (world x 15) to the town edge (x 180), always in the scene so it shows from the highway */
+ roadMesh(scene,24,165,6,97.5,0,true);
+ roadMesh(g,24,540,6,0,0,true);                         /* E-W boulevard */
+ roadMesh(g,24,540,6,0,0,false,.034);                   /* N-S boulevard */
  const plain=new T.Mesh(new T.PlaneGeometry(24,24).rotateX(-PI/2),asphalt);plain.position.set(0,.036,0);plain.receiveShadow=true;g.add(plain);
- for(const sz of [-85,85])for(const sx of [-1,1])roadMesh(g,10,123,2,sx*73.5,sz,true,.036);   /* residential streets, split at the boulevard */
+ for(const sz of [-170,170])for(const sx of [-1,1])roadMesh(g,10,243,2,sx*135,sz,true,.036);   /* residential streets, split at the boulevard */
  /* sidewalks, crosswalks */
  for(const sx of [-1,1])for(const sz of [-1,1]){
-  box(walk,123,.08,3,sx*73.5,.04,sz*13.5);box(walk,3,.08,123,sx*13.5,.04,sz*73.5);
-  for(const s2 of [-85,85]){box(walk,123,.08,2,sx*73.5,.04,s2-7);box(walk,123,.08,2,sx*73.5,.04,s2+7)}}
+  box(walk,246,.08,6,sx*147,.04,sz*27);box(walk,6,.08,246,sx*27,.04,sz*147);
+  for(const s2 of [-170,170]){box(walk,246,.08,4,sx*147,.04,s2-14);box(walk,246,.08,4,sx*147,.04,s2+14)}}
  for(const s of [-1,1]){for(let i=-10.5;i<=10.5;i+=1.4){box(white,.7,.02,3.2,i,.047,s*17);box(white,3.2,.02,.7,s*17,.047,i)}}
  /* traffic lights on the four corners + street lamps */
- for(const sx of [-1,1])for(const sz of [-1,1]){const x0=sx*13,z0=sz*13;cyl(pole,.13,6,x0,3,z0);box(pole,.14,.14,10,x0,6,z0-sz*5);
+ for(const sx of [-1,1])for(const sz of [-1,1]){const x0=sx*26,z0=sz*26;cyl(pole,.13,6,x0,3,z0);box(pole,.14,.14,10,x0,6,z0-sz*5);
   for(const zz of [z0-sz*8.5,z0-sz*5]){box(signalYel,.4,1.15,.4,x0,5.2,zz);put(redL,U.ico,x0,5.55,zz+sz*.22,.11,.11,.11);put(lampM,U.ico,x0,5.2,zz+sz*.22,.11,.11,.11);put(grnL,U.ico,x0,4.85,zz+sz*.22,.11,.11,.11)}}
  const lamp=(x,z,dx,dz)=>{cyl(pole,.1,7,x,3.5,z);box(pole,Math.abs(dx)||.12,.1,Math.abs(dz)||.12,x+dx/2,7,z+dz/2);box(lampM,.5,.14,.3,x+dx,6.9,z+dz)};
- for(let x=-120;x<=120;x+=30){if(Math.abs(x)<20)continue;lamp(x,13.5,0,-1.2);lamp(x,-13.5,0,1.2)}
- for(let z=-120;z<=120;z+=30){if(Math.abs(z)<20)continue;lamp(13.5,z,-1.2,0);lamp(-13.5,z,1.2,0)}
+ for(let x=-240;x<=240;x+=60){if(Math.abs(x)<40)continue;lamp(x,27,0,-2.4);lamp(x,-27,0,2.4)}
+ for(let z=-240;z<=240;z+=60){if(Math.abs(z)<40)continue;lamp(27,z,-2.4,0);lamp(-27,z,2.4,0)}
  /* ---- occupancy so trees and houses stay out of each other's way ---- */
  const occ=[],claim=(x,z,w,d,m=0)=>occ.push([x-w/2-m,x+w/2+m,z-d/2-m,z+d/2+m]);
- const blocked=(x,z,r)=>{if(Math.abs(x)<18+r||Math.abs(z)<18+r||Math.abs(Math.abs(z)-85)<9+r)return true;for(const o of occ)if(x>o[0]-r&&x<o[1]+r&&z>o[2]-r&&z<o[3]+r)return true;return false};
+ const blocked=(x,z,r)=>{if(Math.abs(x)<18+r||Math.abs(z)<18+r||Math.abs(Math.abs(z)-170)<9+r)return true;for(const o of occ)if(x>o[0]-r&&x<o[1]+r&&z>o[2]-r&&z<o[3]+r)return true;return false};
  /* ---- houses ---- */
  const house=(x,z,face,streetZ)=>{const w=9+rng()*4,d=9+rng()*3,h=4.4+rng()*1.6,bm=body[rng()*body.length|0],rm=roofs[rng()*roofs.length|0],fz=z+face*d/2;
   box(bm,w,h,d,x,h/2,z);gable(rm,d+1.4,2.8+rng(),w+1.4,x,h,z,PI/2);box(brick,.9,2.6,.9,x+w*.25,h+2,z);
@@ -74,30 +74,32 @@ export function buildTown(scene){
   box(windowM,.14,1.3,1.5,x+w/2+.05,2.5,z);box(windowM,.14,1.3,1.5,x-w/2-.05,2.5,z);box(windowM,1.5,1.3,.14,x,2.5,z-face*(d/2+.05));
   const edge=streetZ+(z<streetZ?-7:7),len=Math.abs(edge-fz);box(lotM,3.2,.05,len,x-w*.18+3,.05,(edge+fz)/2);
   solid(x,z,w,d);claim(x,z,w+2,d+2,3)};
- for(const [rz,face,sz] of [[-102,1,-85],[-68,-1,-85],[68,1,85],[102,-1,85]])for(const hx of [-120,-96,-72,-48,48,72,96,120]){if(rz===-102&&hx>72)continue;house(hx+(rng()-.5)*4,rz,rz<sz?1:-1,sz)}
+ for(const [rz,face,sz] of [[-204,1,-170],[-136,-1,-170],[136,1,170],[204,-1,170]])for(const hx of [-180,-144,-108,-72,-36,36,72,108,144,180]){if(rz===-204&&hx>72)continue;house(hx+(rng()-.5)*4,rz,rz<sz?1:-1,sz)}
  /* ---- convenience store + car park (north-west of the intersection) ---- */
- {const LX=-54,LZ=-42;box(lotM,56,.1,36,LX,.05,LZ);claim(LX,LZ,58,38,2);
-  for(let i=0;i<17;i++){box(white,.14,.02,5.6,LX-26+i*3.25,.11,LZ+2);box(white,.14,.02,5.6,LX-26+i*3.25,.11,LZ+11)}
-  const sm=M(0xdadde4),roof=M(0x8d8a99,{roughness:.7}),sz=-52;
-  box(sm,26,6,10,LX,3,sz);box(roof,28.4,.7,12.4,LX,6.3,sz);box(dkGlass,26.2,.5,.1,LX,5.2,sz+5.05);
-  box(storeGlass,23,3.5,.2,LX,2.2,sz+5.1);for(let i=-5;i<=5;i++)box(dkGlass,.18,3.6,.3,LX+i*2.3,2.2,sz+5.1);
-  box(door,2.2,2.6,.25,LX+8.2,1.4,sz+5.15);box(lampM,7,1.1,.25,LX-6,5.2,sz+5.3);
-  solid(LX,sz,26,10);
+ {const LX=-108,LZ=-84;box(lotM,112,.1,72,LX,.05,LZ);claim(LX,LZ,118,78,2);
+  for(let i=0;i<34;i++){box(white,.14,.02,42,LX-52+i*6.5,.11,LZ+2);box(white,.14,.02,42,LX-52+i*6.5,.11,LZ+21)}
+  const sm=M(0xdadde4),roof=M(0x8d8a99,{roughness:.7}),sz=-84;
+  box(sm,52,12,20,LX,6,sz);box(roof,56.8,.7,24.8,LX,12.6,sz);box(dkGlass,52.2,6,.2,LX,10.4,sz+10);
+  box(storeGlass,46,7,.2,LX,4.4,sz+10);for(let i=-7;i<=7;i++)box(dkGlass,.36,7.2,.6,LX+i*4.6,4.4,sz+10);
+  box(door,4.4,5.2,.5,LX+16.4,2.8,sz+10.25);box(lampM,14,2.2,.5,LX-12,10.4,sz+10.3);
+  solid(LX,sz,52,20);
   const carCols=[0xc0392b,0x2c5aa0,0xe8e8e8,0x2d2d33,0xe0a82e,0x3f8f5f];
   const car=(x,z,col,ry)=>{const cm=M(col,{roughness:.35,metalness:.4});box(cm,1.9,.7,4.3,x,.6,z,ry);box(dkGlass,1.6,.65,2.3,x,1.2,z-.2,ry);for(const sx of [-1,1])for(const sz2 of [-1.3,1.3])cylX(tire,.36,.25,x+sx*.95,.36,z+sz2);solid(x,z,2,4.4,1.8)};
-  [[-72,-27],[-66,-27],[-60,-38],[-48,-38],[-40,-27],[-34,-38]].forEach((p,i)=>car(p[0],p[1],carCols[i],0));
+  [[-144,-54],[-132,-54],[-120,-76],[-96,-76],[-80,-54],[-68,-76]].forEach((p,i)=>car(p[0],p[1],carCols[i],0));
   const sign=new T.Mesh(new T.PlaneGeometry(9,1.6),new T.MeshBasicMaterial({map:canvasTex(512,96,(x,w,h)=>{x.fillStyle='#14342a';x.fillRect(0,0,w,h);x.fillStyle='#ffd54a';x.font='bold 64px "Fredoka","Arial Rounded MT Bold",system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('MAPLE MART',w/2,h/2+4)})}));
   sign.position.set(LX-6,5.2,sz+5.46);g.add(sign)}
  /* ---- glass office tower (east of the intersection) ---- */
- {const X=60,Z=-45,w=28,d=26,h=34;box(glassM,w,h,d,X,h/2,Z);for(let y=3.4;y<h;y+=3.4)box(band,w+.4,.25,d+.4,X,y,Z);for(const sx of [-1,1])for(const sz of [-1,1])box(band,.6,h,.6,X+sx*w/2,h/2,Z+sz*d/2);box(M(0x8d95a1),w+1,.8,d+1,X,h+.4,Z);solid(X,Z,w,d);claim(X,Z,w+2,d+2,3)}
+ {const X=120,Z=-90,w=56,d=52,h=68;box(glassM,w,h,d,X,h/2,Z);for(let y=3.4;y<h;y+=3.4)box(band,w+.4,.25,d+.4,X,y,Z);for(const sx of [-1,1])for(const sz of [-1,1])box(band,.6,h,.6,X+sx*w/2,h/2,Z+sz*d/2);box(M(0x8d95a1),w+1,.8,d+1,X,h+.4,Z);solid(X,Z,w,d);claim(X,Z,w+2,d+2,3)}
  /* ---- civic building + factory with chimneys ---- */
- {const X=-58,Z=48;box(M(0xc9b79c),36,8,16,X,4,Z);box(M(0x4a4f5c),38,.8,18,X,8.4,Z);for(let i=-7;i<=7;i++)box(windowM,1.6,2,.14,X+i*2.3,4.6,Z-8.05);for(let i=-3;i<=3;i++)box(white,.7,6,.7,X+i*4.8,3,Z-8.8);solid(X,Z,36,16);claim(X,Z,38,18,3)}
- {const X=102,Z=-118;box(M(0x8a7d78),36,12,22,X,6,Z);box(M(0x5b5350),38,.8,24,X,12.4,Z);for(let i=0;i<5;i++)gable(saw,7,2.4,22,X-14+i*7,12.8,Z,0);
-  for(const cx of [-8,2]){cyl(chim,1.5,26,X+cx,13,Z+14);cyl(chim,1.6,1.2,X+cx,26.4,Z+14)}solid(X,Z,36,22);claim(X,Z,38,24,3)}
+ {const X=-116,Z=96;box(M(0xc9b79c),72,16,32,X,8,Z);box(M(0x4a4f5c),76,.8,36,X,16.8,Z);for(let i=-14;i<=14;i++)box(windowM,3.2,4,.28,X+i*4.6,9.2,Z-16.1);for(let i=-6;i<=6;i++)box(white,1.4,12,1.4,X+i*9.6,6,Z-17.6);solid(X,Z,76,32);claim(X,Z,78,34,3)}
+ {const X=204,Z=-236;box(M(0x8a7d78),72,24,44,X,12,Z);box(M(0x5b5350),76,.8,48,X,24.8,Z);for(let i=0;i<5;i++)gable(saw,14,4.8,44,X-28+i*14,25.6,Z,0);
+  for(const cx of [-16,4]){cyl(chim,3,52,X+4,26,Z+28);cyl(chim,3.2,2.4,X+4,52.8,Z+28)}solid(X,Z,76,48);claim(X,Z,78,50,3)}
  /* ---- autumn trees ---- */
  let placed=0;for(let tries=0;tries<700&&placed<140;tries++){const x=(rng()-.5)*262,z=(rng()-.5)*262;if(blocked(x,z,2.5))continue;
   const s=1.7+rng()*1.3,m=autumn[rng()*autumn.length|0];cyl(trunk,.28*s/1.5,2.4*s/1.5,x,1.2*s/1.5,z);blob(m,1.9*s/1.4,x,3.4*s/1.5+1,z,.85);blob(autumn[rng()*autumn.length|0],1.4*s/1.4,x+.5*s/2,4.6*s/1.5+1,z-.3,.9);
   if(placed<60)c.trees.push({x:TOWN.x+x,z:TOWN.z+z});claim(x,z,1.5,1.5);placed++}
+  /* ---- pedestrians wandering the streets ---- */
+  for(let i=0;i<14;i++){const px=-170+Math.random()*340,pz=-80+Math.random()*160;if(blocked(px,pz,2))continue;const ped=buildWalker();ped.g.position.set(px,.2,pz);ped.g.visible=true;g.add(ped.g);c.peds.push({g:ped.g,arms:ped.arms,legs:ped.legs,x:px,y:.14,z:pz,home:pz,phase:Math.random()*6.28,dir:Math.random()<.5?1:-1,speed:.5+Math.random()*.5})}
  /* ---- build the merged meshes ---- */
  for(const [m,geos] of bk){const merged=mergeGeometries(geos);geos.forEach(q=>q.dispose());if(!merged)continue;const o=new T.Mesh(merged,m);o.castShadow=m!==white&&m!==walk&&m!==lotM;o.receiveShadow=true;g.add(o)}
  scene.add(g);
