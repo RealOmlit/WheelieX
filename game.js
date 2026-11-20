@@ -6,8 +6,9 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { SUSPENSIONS, tuneStat, tuneSoft, suspKit, suspLocked, bikeSpec, tuneDress, createTuningGarage } from "./tuning.js";
+import { EXTRA_BIKES } from "./bikes.js";
 import { TOWN, buildTown, isTownChunk, inConnector } from "./town.js";
-const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.25';
+const $=id=>document.getElementById(id),PI=Math.PI,VERSION='1.26';
 window.WheelieXLoading?.finish();
 const ls=$('loading-screen');if(ls){ls.classList.add('done');ls.classList.add('hidden');}
 /* ---------- save ---------- */
@@ -37,7 +38,7 @@ const verLabel=v=>v?'v'+v:'v?',verColor=v=>v===VERSION?'#a3e635':'#f87171';
 const verEl=$('ver');if(verEl)verEl.textContent='v'+VERSION;
 if(resetLegacyBoost)save();
 /* ---------- bikes ---------- */
-const B=(n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph,kind='bike')=>({n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph,kind});
+const B=(n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph,kind='bike',spec)=>({n,pr,s,c,a,f,sc,wr,tw,wb,bw,bh,sl,sy,hb,fh,maxMph,kind,spec});
 const BIKES=[
 B("City E-Cruiser",0,[3,3,8,2],2450411,14427686,11184810,2236962,0.31,0.07,1.18,0.32,0.32,0.6,0.62,0.22,0,25),
 B("Super73 RX Mojave",1200,[4,4,7,3],5660730,14268794,8947848,12884579,0.255,0.11,1.25,0.28,0.26,0.95,0.52,0.45,0,28),
@@ -57,7 +58,7 @@ B("Segway Ninebot Max G30P",650,[2,2,6,2],15265522,2240572,10466248,2898502,0.11
 B("Apollo Go",700,[3,3,7,3],1450810,3359054,8228771,2766144,0.12,0.05,0.75,0.16,0.11,0.45,0,0.8,0,28,'scooter'),
 B("NAMI Burn-E 2",1500,[6,6,7,5],2302755,4937059,9279912,2830908,0.15,0.07,0.9,0.2,0.14,0.5,0,0.9,0,45,'scooter'),
 B("Dualtron Storm",2400,[7,7,6,6],1711393,4871528,9148586,2304563,0.16,0.08,1,0.24,0.16,0.55,0,0.95,0,55,'scooter'),
-B("Kaabo Wolf King GT",3100,[8,8,6,7],1053720,4147027,7042694,1909804,0.18,0.09,1.05,0.26,0.18,0.6,0,1,0,60,'scooter')];
+B("Kaabo Wolf King GT",3100,[8,8,6,7],1053720,4147027,7042694,1909804,0.18,0.09,1.05,0.26,0.18,0.6,0,1,0,60,'scooter'),...EXTRA_BIKES];
 const HELMETS=[
  {n:'Street Helm',pr:300,color:0xf2f4e8,accent:0x2563eb,desc:'All-round urban shell'},
  {n:'Trail Helm',pr:900,color:0x20272a,accent:0x38bdf8,desc:'Rock-and-dirt protection'},
@@ -710,7 +711,7 @@ const listBikes=garTab==='rideouts'?[]:BIKE_ORDER.filter(i=>garTab==='scooters'?
 if(garTab==='rideouts'){RIDEOUT_SPOTS.forEach((sp,i)=>{const r=RIDEOUTS[rideTier];t+=('<div class="card"><b>'+sp.n+'</b><small>EMPTY CAR PARK · NOT BUILT</small><span>'+r.n+' · $'+r.fee.toLocaleString()+' · MONEY BOUNCED '+r.mult+'×</span><button class="big" data-a="ride" data-i="'+i+'" data-t="'+(rideTier<0?0:rideTier)+'">HOST '+r.n.toUpperCase()+'</button></div>');t+=('<div class="card"><b>SUPER RIDEOUT</b><small>SPEND AN EXTRA $5,000 FOR THE 2× MONEY BOUNCE</small><span>2× MONEY BOUNCED ON EVERY HOSTED RIDEOUT</span><button class="big" data-a="ride" data-i="0" data-t="1">HOST SUPER · $30,000 · 2×</button></div>');});}else if(!listBikes.length)t+='<div class="gar-empty">No bikes match this filter.</div>';
 if(listBikes.length&&!listBikes.includes(gi)){gi=listBikes[0];setBike(gi)}
 listBikes.forEach(i=>{const b=BIKES[i],owned=S.own.includes(i);t+=`<div class="card${i===gi?' sel':''}" data-a="pv" data-i="${i}"><b>${b.n}</b><small>${owned?(i===S.eq?'EQUIPPED':'OWNED'):'$'+b.pr.toLocaleString()} · ${Math.round(b.maxMph*(units?1.609:1))} ${units?'KM/H':'MPH'}</small>${eff(i).map(q=>`<div class="bar"><i style="width:${Math.min(100,q*10)}%"></i></div>`).join('')}</div>`});
-if(garTab!=='rideouts'){const b=BIKES[gi],own=S.own.includes(gi),e=eff(gi),L=lv(gi),rarity=hackRarity(gi),hackCost=hackPrice(gi),canReroll=hackRank(gi)<HACK_RARITIES.length-1;t+=`</div><h3>${b.n} <small class="bike-spec">${Math.round(b.maxMph*(units?1.609:1))} ${units?'KM/H':'MPH'}</small></h3>`;
+if(garTab!=='rideouts'){const b=BIKES[gi],own=S.own.includes(gi),e=eff(gi),L=lv(gi),rarity=hackRarity(gi),hackCost=hackPrice(gi),canReroll=hackRank(gi)<HACK_RARITIES.length-1;t+=`</div><h3>${b.n} <small class="bike-spec">${Math.round(b.maxMph*(units?1.609:1))} ${units?'KM/H':'MPH'}${b.spec?` · ${b.spec}`:''}</small></h3>`;
 t+=own?(gi===S.eq?'':'<button class="big" data-a="eq">EQUIP</button>'):`<button class="big" data-a="buy" ${S.cash<b.pr?'disabled':''}>BUY $${b.pr.toLocaleString()}</button>`;
 SN.forEach((n,k)=>{const l=L[k],maxed=e[k]>=10||b.s[k]*(1+l*.015)>10;t+=`<div class="row"><span>${n}</span><div class="bar"><i style="width:${Math.min(100,e[k]*10)}%"></i></div><em>${maxed?'MAX':`Lv ${l}`}</em>${own&&!maxed&&l<10?`<button data-a="up" data-k="${k}" ${S.cash<cost(gi,l)?'disabled':''}>+1.5% · $${cost(gi,l).toLocaleString()}</button>`:`<button disabled>${maxed||l>=10?'MAX':'—'}</button>`}</div>`});
 const chosen=Number(S.suspension[gi]||0),mounted=Number(S.boostMount[gi]||0);
